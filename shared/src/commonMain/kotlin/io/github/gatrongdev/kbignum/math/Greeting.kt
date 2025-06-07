@@ -3,6 +3,9 @@ package io.github.gatrongdev.kbignum.math
 class Greeting {
     private val platform: Platform = getPlatform()
 
+    /**
+     * Returns a greeting message based on the current platform.
+     */
     fun greet(): String {
         return "Hello, ${platform.name}!"
     }
