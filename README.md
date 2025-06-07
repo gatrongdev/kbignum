@@ -4,7 +4,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.gatrongdev/kbignum.svg)](https://central.sonatype.com/artifact/io.github.gatrongdev/kbignum)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/gatrongdev/kbignum/ci.yml?branch=main)](https://github.com/gatrongdev/kbignum/actions)
-[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)](https://github.com/gatrongdev/kbignum)
+[![Test Coverage](https://img.shields.io/badge/coverage-brightgreen.svg)](https://github.com/gatrongdev/kbignum)
 [![API Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://gatrongdev.github.io/kbignum/)
 
 
