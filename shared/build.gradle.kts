@@ -62,7 +62,7 @@ mavenPublishing {
 
     signAllPublications()
 
-    coordinates(group.toString(), "library", version.toString())
+    coordinates(group.toString(), "kbignum", version.toString())
 
     pom {
         name = "KBigNum Library"
