@@ -6,6 +6,9 @@ on:
     paths:
       - 'shared/build.gradle.kts'
 
+permissions:
+  contents: read
+
 jobs:
   check-version:
     name: 🔍 Check Version Update
@@ -30,110 +33,70 @@ jobs:
           echo "  Main branch version: $MAIN_VERSION"
           echo "  PR version: $PR_VERSION"
           
+          # Create summary
+          echo "## 🔍 Version Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Aspect | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Main Branch Version | \`$MAIN_VERSION\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| PR Version | \`$PR_VERSION\` |" >> $GITHUB_STEP_SUMMARY
+          
           # Validate semantic versioning
           if ! echo "$PR_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$'; then
             echo "❌ PR version '$PR_VERSION' does not follow semantic versioning"
             echo "Please use format: MAJOR.MINOR.PATCH (e.g., 1.0.0, 1.0.1, 1.1.0)"
+            echo "| Version Format | ❌ Invalid |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Error**: Version '$PR_VERSION' does not follow semantic versioning" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please use format: MAJOR.MINOR.PATCH (e.g., 1.0.0, 1.0.1, 1.1.0)" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
+          
+          echo "| Version Format | ✅ Valid |" >> $GITHUB_STEP_SUMMARY
           
           # Check if version was updated
           if [ "$PR_VERSION" = "$MAIN_VERSION" ]; then
             echo "⚠️ Version was not updated in this PR"
             echo "If this PR should trigger a release, please update the version in shared/build.gradle.kts"
             echo "Use the script: ./scripts/update-version.sh <new-version>"
-            # Don't fail, just warn
+            echo "| Version Changed | ⚠️ No |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ⚠️ No Version Change" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "This PR does not update the version number." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**If you want to create a release:**" >> $GITHUB_STEP_SUMMARY
+            echo "1. Update the version in \`shared/build.gradle.kts\`" >> $GITHUB_STEP_SUMMARY
+            echo "2. Or use the helper script: \`./scripts/update-version.sh <new-version>\`" >> $GITHUB_STEP_SUMMARY
+            echo "3. Follow semantic versioning (e.g., 1.0.0, 1.0.1, 1.1.0)" >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ Version updated from $MAIN_VERSION to $PR_VERSION"
+            echo "| Version Changed | ✅ Yes |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ Version Updated" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "This PR updates the version from \`$MAIN_VERSION\` to \`$PR_VERSION\`." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**What happens next:**" >> $GITHUB_STEP_SUMMARY
+            echo "1. When this PR is merged to main, a new release will be automatically created" >> $GITHUB_STEP_SUMMARY
+            echo "2. The library will be published to Maven Central" >> $GITHUB_STEP_SUMMARY
+            echo "3. GitHub release notes will be generated" >> $GITHUB_STEP_SUMMARY
             
             # Check if version is greater
-            if ! printf '%s\n%s\n' "$MAIN_VERSION" "$PR_VERSION" | sort -V -C; then
+            if printf '%s\n%s\n' "$MAIN_VERSION" "$PR_VERSION" | sort -V -C; then
               echo "✅ Version increased correctly"
+              echo "| Version Order | ✅ Increased |" >> $GITHUB_STEP_SUMMARY
             else
               echo "⚠️ New version ($PR_VERSION) should typically be greater than current version ($MAIN_VERSION)"
+              echo "| Version Order | ⚠️ Check needed |" >> $GITHUB_STEP_SUMMARY
             fi
           fi
-
-      - name: 📝 Add comment to PR
-        uses: actions/github-script@v7
-        if: always()
-        with:
-          script: |
-            const fs = require('fs');
-            
-            // Get version info
-            const prVersion = require('child_process')
-              .execSync("grep 'version = ' shared/build.gradle.kts | head -1 | sed 's/.*version = \"\\(.*\\)\".*/\\1/'")
-              .toString().trim();
-            
-            const mainVersion = require('child_process')
-              .execSync("git show origin/main:shared/build.gradle.kts | grep 'version = ' | head -1 | sed 's/.*version = \"\\(.*\\)\".*/\\1/'")
-              .toString().trim();
-            
-            const versionChanged = prVersion !== mainVersion;
-            
-            const body = `## 🔍 Version Check Results
-            
-            | Aspect | Value |
-            |--------|-------|
-            | Main Branch Version | \`${mainVersion}\` |
-            | PR Version | \`${prVersion}\` |
-            | Version Changed | ${versionChanged ? '✅ Yes' : '⚠️ No'} |
-            
-            ${versionChanged ? 
-              `### ✅ Version Updated
-              
-              This PR updates the version from \`${mainVersion}\` to \`${prVersion}\`.
-              
-              **What happens next:**
-              1. When this PR is merged to main, a new release will be automatically created
-              2. The library will be published to Maven Central
-              3. GitHub release notes will be generated
-              
-              ` : 
-              `### ⚠️ No Version Change
-              
-              This PR does not update the version number.
-              
-              **If you want to create a release:**
-              1. Update the version in \`shared/build.gradle.kts\`
-              2. Or use the helper script: \`./scripts/update-version.sh <new-version>\`
-              3. Follow semantic versioning (e.g., 1.0.0, 1.0.1, 1.1.0)
-              
-              `}
-            
-            ---
-            
-            💡 **Tip:** Use [semantic versioning](https://semver.org/) for version numbers:
-            - **PATCH** (x.x.X): Bug fixes
-            - **MINOR** (x.X.x): New features (backward compatible)  
-            - **MAJOR** (X.x.x): Breaking changes`;
-            
-            // Find existing comment
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            
-            const existingComment = comments.data.find(
-              comment => comment.body.includes('## 🔍 Version Check Results')
-            );
-            
-            if (existingComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: body
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: body
-              });
-            }
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 **Tip:** Use [semantic versioning](https://semver.org/) for version numbers:" >> $GITHUB_STEP_SUMMARY
+          echo "- **PATCH** (x.x.X): Bug fixes" >> $GITHUB_STEP_SUMMARY
+          echo "- **MINOR** (x.X.x): New features (backward compatible)" >> $GITHUB_STEP_SUMMARY
+          echo "- **MAJOR** (X.x.x): Breaking changes" >> $GITHUB_STEP_SUMMARY

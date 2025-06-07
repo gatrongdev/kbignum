@@ -14,6 +14,12 @@ on:
         default: false
         type: boolean
 
+permissions:
+  contents: write
+  actions: read
+  id-token: write
+  pages: write
+
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
