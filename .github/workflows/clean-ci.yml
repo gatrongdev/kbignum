@@ -1,0 +1,238 @@
+name: Weekly Repository Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Chạy vào 00:00 Chủ nhật hàng tuần
+  workflow_dispatch:  # Cho phép chạy thủ công
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close stale PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.TOKEN }}
+          stale-pr-message: 'Pull request này không có hoạt động trong 30 ngày và sẽ được đánh dấu là stale.'
+          close-pr-message: 'PR này đã bị đóng do không hoạt động trong thời gian dài.'
+          days-before-stale: 30
+          days-before-close: 7
+          stale-pr-label: 'stale'
+          exempt-pr-labels: 'no-stale,WIP'
+
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ secrets.TOKEN }}
+          repository: ${{ github.repository }}
+          retain_days: 7
+          keep_minimum_runs: 5
+
+      - name: Cleanup caches
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.TOKEN }}
+          script: |
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            
+            const now = new Date();
+            console.log(`Found ${caches.data.actions_caches.length} caches to process`);
+            
+            for (const cache of caches.data.actions_caches) {
+              const createdAt = new Date(cache.created_at);
+              const daysOld = (now - createdAt) / (1000 * 60 * 60 * 24);
+            
+              if (daysOld > 7) {  
+                console.log(`Deleting cache: ${cache.key}, created ${daysOld.toFixed(1)} days ago`);
+                try {
+                  await github.rest.actions.deleteActionsCacheById({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    cache_id: cache.id
+                  });
+                  console.log(`Successfully deleted cache: ${cache.key}`);
+                } catch (error) {
+                  console.error(`Failed to delete cache ${cache.key}: ${error}`);
+                }
+              } else {
+                console.log(`Keeping cache: ${cache.key}, only ${daysOld.toFixed(1)} days old`);
+              }
+            }
+
+      - name: Cleanup old releases
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.TOKEN }}
+          script: |
+            console.log('Starting release cleanup...');
+            
+            // Lấy tất cả releases
+            const releases = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            
+            const now = new Date();
+            const productionReleases = [];
+            const devReleases = [];
+            
+            // Phân loại releases
+            for (const release of releases.data) {
+              if (release.tag_name.includes('dev-')) {
+                devReleases.push(release);
+              } else {
+                productionReleases.push(release);
+              }
+            }
+            
+            console.log(`Found ${productionReleases.length} production releases and ${devReleases.length} dev releases`);
+            
+            // Cleanup Dev Pre-releases (giữ lại 10 bản gần nhất, xóa những bản cũ hơn 30 ngày)
+            let devReleasesToDelete = [];
+            if (devReleases.length > 10) {
+              // Sắp xếp theo thời gian tạo (mới nhất trước)
+              devReleases.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+              // Giữ lại 10 bản mới nhất, xem xét xóa những bản còn lại
+              const oldDevReleases = devReleases.slice(10);
+            
+              for (const release of oldDevReleases) {
+                const createdAt = new Date(release.created_at);
+                const daysOld = (now - createdAt) / (1000 * 60 * 60 * 24);
+            
+                if (daysOld > 30) {
+                  devReleasesToDelete.push(release);
+                }
+              }
+            }
+            
+            // Cleanup Production releases (giữ lại 20 bản gần nhất, xóa những bản cũ hơn 90 ngày)
+            let prodReleasesToDelete = [];
+            if (productionReleases.length > 20) {
+              // Sắp xếp theo thời gian tạo (mới nhất trước)
+              productionReleases.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+              // Giữ lại 20 bản mới nhất, xem xét xóa những bản còn lại
+              const oldProdReleases = productionReleases.slice(20);
+            
+              for (const release of oldProdReleases) {
+                const createdAt = new Date(release.created_at);
+                const daysOld = (now - createdAt) / (1000 * 60 * 60 * 24);
+            
+                if (daysOld > 90) {
+                  prodReleasesToDelete.push(release);
+                }
+              }
+            }
+            
+            // Thực hiện xóa dev releases
+            for (const release of devReleasesToDelete) {
+              const createdAt = new Date(release.created_at);
+              const daysOld = (now - createdAt) / (1000 * 60 * 60 * 24);
+            
+              console.log(`Deleting dev release: ${release.tag_name}, created ${daysOld.toFixed(1)} days ago`);
+              try {
+                await github.rest.repos.deleteRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: release.id
+                });
+            
+                // Xóa tag tương ứng
+                try {
+                  await github.rest.git.deleteRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: `tags/${release.tag_name}`
+                  });
+                  console.log(`Successfully deleted dev release and tag: ${release.tag_name}`);
+                } catch (tagError) {
+                  console.error(`Failed to delete tag ${release.tag_name}: ${tagError}`);
+                }
+              } catch (error) {
+                console.error(`Failed to delete dev release ${release.tag_name}: ${error}`);
+              }
+            }
+            
+            // Thực hiện xóa production releases
+            for (const release of prodReleasesToDelete) {
+              const createdAt = new Date(release.created_at);
+              const daysOld = (now - createdAt) / (1000 * 60 * 60 * 24);
+            
+              console.log(`Deleting production release: ${release.tag_name}, created ${daysOld.toFixed(1)} days ago`);
+              try {
+                await github.rest.repos.deleteRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: release.id
+                });
+            
+                // Xóa tag tương ứng
+                try {
+                  await github.rest.git.deleteRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: `tags/${release.tag_name}`
+                  });
+                  console.log(`Successfully deleted production release and tag: ${release.tag_name}`);
+                } catch (tagError) {
+                  console.error(`Failed to delete tag ${release.tag_name}: ${tagError}`);
+                }
+              } catch (error) {
+                console.error(`Failed to delete production release ${release.tag_name}: ${error}`);
+              }
+            }
+            
+            // Tóm tắt kết quả
+            console.log(`=== CLEANUP SUMMARY ===`);
+            console.log(`Dev releases deleted: ${devReleasesToDelete.length}`);
+            console.log(`Production releases deleted: ${prodReleasesToDelete.length}`);
+            console.log(`Dev releases remaining: ${devReleases.length - devReleasesToDelete.length}`);
+            console.log(`Production releases remaining: ${productionReleases.length - prodReleasesToDelete.length}`);
+
+      - name: Cleanup old artifacts
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.TOKEN }}
+          script: |
+            console.log('Starting artifacts cleanup...');
+            
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            
+            const now = new Date();
+            let deletedCount = 0;
+            
+            console.log(`Found ${artifacts.data.artifacts.length} artifacts to process`);
+            
+            for (const artifact of artifacts.data.artifacts) {
+              const createdAt = new Date(artifact.created_at);
+              const daysOld = (now - createdAt) / (1000 * 60 * 60 * 24);
+            
+              // Xóa artifacts cũ hơn 30 ngày
+              if (daysOld > 30) {
+                console.log(`Deleting artifact: ${artifact.name}, created ${daysOld.toFixed(1)} days ago`);
+                try {
+                  await github.rest.actions.deleteArtifact({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    artifact_id: artifact.id
+                  });
+                  deletedCount++;
+                  console.log(`Successfully deleted artifact: ${artifact.name}`);
+                } catch (error) {
+                  console.error(`Failed to delete artifact ${artifact.name}: ${error}`);
+                }
+              } else {
+                console.log(`Keeping artifact: ${artifact.name}, only ${daysOld.toFixed(1)} days old`);
+              }
+            }
+            
+            console.log(`Artifacts cleanup completed. Deleted ${deletedCount} artifacts.`);
