@@ -10,6 +10,11 @@ class Greeting {
         return "Hello, ${platform.name}!"
     }
 
+    /**
+     * Demonstrates the usage of KBigNum library with BigDecimal and BigInteger operations.
+     * This function performs addition and multiplication of large decimal numbers,
+     * and also shows how to handle large integers.
+     */
     fun demonstrateBigNumbers(): String {
         val bigDecimal1 = "123456789.987654321".toKBigDecimal()
         val bigDecimal2 = "987654321.123456789".toKBigDecimal()
