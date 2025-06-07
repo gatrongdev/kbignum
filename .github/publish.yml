@@ -1,6 +1,8 @@
 # .github/workflows/publish.yml
 name: Publish
 on:
+  push:
+    branches: [main]
   release:
     types: [released, prereleased]
 jobs:
