@@ -17,7 +17,7 @@ plugins {
 }
 
 group = "io.github.gatrongdev"
-version = "0.0.12"
+version = "0.0.13"
 
 kotlin {
     androidTarget {
