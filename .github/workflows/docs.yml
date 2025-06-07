@@ -9,6 +9,8 @@ on:
 # Updated permissions for peaceiris/actions-gh-pages@v3
 permissions:
   contents: write
+  pages: write      # Add this for GitHub Pages
+  id-token: write
 
 concurrency:
   group: "pages"
@@ -70,7 +72,7 @@ jobs:
   notify:
     name: 📢 Notify Success
     runs-on: ubuntu-latest
-    needs: [build-docs]
+    needs: [deploy-docs]
     if: success() && github.ref == 'refs/heads/main'
     
     steps:
