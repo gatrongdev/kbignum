@@ -1,10 +1,11 @@
 name: 🚀 Release & Publish
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'shared/build.gradle.kts'
+  workflow_run:
+    workflows: ["🔄 CI/CD Pipeline"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,9 +20,59 @@ env:
   GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m"
 
 jobs:
+  check-ci-success:
+    name: 🔍 Check CI Success
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    outputs:
+      should_proceed: ${{ steps.check.outputs.should_proceed }}
+    
+    steps:
+      - name: ✅ Verify CI success
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_proceed=true" >> $GITHUB_OUTPUT
+            echo "🔧 Manual trigger - proceeding with release check"
+          elif [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
+            echo "should_proceed=true" >> $GITHUB_OUTPUT
+            echo "✅ CI passed - proceeding with release check"
+          else
+            echo "should_proceed=false" >> $GITHUB_OUTPUT
+            echo "❌ CI failed - blocking release"
+            exit 1
+          fi
+
+  check-version-change:
+    name: 🔍 Check Version Change
+    runs-on: ubuntu-latest
+    needs: check-ci-success
+    if: needs.check-ci-success.outputs.should_proceed == 'true'
+    outputs:
+      has_version_change: ${{ steps.version_change.outputs.has_change }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: 🔍 Check if version changed
+        id: version_change
+        run: |
+          # Check if build.gradle.kts was modified in the last commit
+          if git diff HEAD~1 HEAD --name-only | grep -q "shared/build.gradle.kts"; then
+            echo "has_change=true" >> $GITHUB_OUTPUT
+            echo "✅ Version file changed - proceeding with release"
+          else
+            echo "has_change=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No version change detected - skipping release"
+          fi
   version-check:
     name: 🔍 Version Check
     runs-on: ubuntu-latest
+    needs: check-version-change
+    if: needs.check-version-change.outputs.has_version_change == 'true'
     outputs:
       version: ${{ steps.version.outputs.version }}
       should_release: ${{ steps.tag_check.outputs.should_release }}
@@ -232,7 +283,7 @@ jobs:
   release-summary:
     name: 📋 Release Summary
     runs-on: ubuntu-latest
-    needs: [version-check, create-release, publish-maven, deploy-docs]
+    needs: [check-ci-success, check-version-change, version-check, create-release, publish-maven, deploy-docs]
     if: always()
     
     steps:
@@ -244,20 +295,32 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Version Check | ${{ needs.version-check.result == 'success' && '✅ Completed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| CI Success Check | ${{ needs.check-ci-success.result == 'success' && '✅ Passed' || needs.check-ci-success.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version Change Check | ${{ needs.check-version-change.result == 'success' && '✅ Detected' || needs.check-version-change.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version Check | ${{ needs.version-check.result == 'success' && '✅ Completed' || needs.version-check.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| GitHub Release | ${{ needs.create-release.result == 'success' && '✅ Created' || needs.create-release.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Maven Publish | ${{ needs.publish-maven.result == 'success' && '✅ Published' || needs.publish-maven.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Documentation | ${{ needs.deploy-docs.result == 'success' && '✅ Deployed' || needs.deploy-docs.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ needs.version-check.outputs.should_release }}" = "true" ]; then
+          if [ "${{ needs.check-ci-success.outputs.should_proceed }}" != "true" ]; then
+            echo "### ❌ Release Blocked" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Release was blocked because CI/CD pipeline failed." >> $GITHUB_STEP_SUMMARY
+            echo "✅ Fix the issues and push again to trigger release." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.check-version-change.outputs.has_version_change }}" != "true" ]; then
+            echo "### ⏭️ No Release Needed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No version change detected in shared/build.gradle.kts." >> $GITHUB_STEP_SUMMARY
+            echo "Update the version to trigger a release." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.version-check.outputs.should_release }}" = "true" ]; then
             echo "### 🎉 Release v${{ needs.version-check.outputs.version }}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "- 🏷️ [GitHub Release](https://github.com/gatrongdev/kbignum/releases/tag/v${{ needs.version-check.outputs.version }})" >> $GITHUB_STEP_SUMMARY
             echo "- 📦 [Maven Central](https://central.sonatype.com/artifact/io.github.gatrongdev/kbignum)" >> $GITHUB_STEP_SUMMARY
             echo "- 📚 [Documentation](https://gatrongdev.github.io/kbignum/)" >> $GITHUB_STEP_SUMMARY
           else
-            echo "### ⏭️ No Release Created" >> $GITHUB_STEP_SUMMARY
+            echo "### ⏭️ Release Skipped" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Version v${{ needs.version-check.outputs.version }} already exists." >> $GITHUB_STEP_SUMMARY
           fi
