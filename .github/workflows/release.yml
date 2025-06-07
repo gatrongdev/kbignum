@@ -3,6 +3,8 @@ name: 🚀 Release
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'shared/build.gradle.kts'
 
 permissions:
   contents: write
