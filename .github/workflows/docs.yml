@@ -2,9 +2,9 @@ name: 📚 Generate and Deploy Documentation
 
 on:
   push:
-    branches: [ dev ]
+    branches: [ main ]
   pull_request:
-    branches: [ dev ]
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -61,7 +61,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build-docs
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/main'
     
     steps:
     - name: 🌐 Deploy to GitHub Pages
@@ -72,7 +72,7 @@ jobs:
     name: 📢 Notify Success
     runs-on: ubuntu-latest
     needs: [build-docs, deploy-docs]
-    if: success() && github.ref == 'refs/heads/dev'
+    if: success() && github.ref == 'refs/heads/main'
     
     steps:
     - name: ✅ Documentation Deployed
