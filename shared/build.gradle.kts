@@ -122,8 +122,7 @@ ktlint {
     reporters {
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
-        // Tắt SARIF để tránh xung đột với CodeQL
-        // reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.SARIF)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.SARIF)
     }
     filter {
         exclude("**/generated/**")
@@ -144,8 +143,7 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
         html.required.set(true)
         xml.required.set(true)
         txt.required.set(true)
-        // Tắt SARIF để tránh xung đột với CodeQL
-        sarif.required.set(false)
+        sarif.required.set(true)
         md.required.set(true)
     }
 }
