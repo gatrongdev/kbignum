@@ -45,8 +45,9 @@ When reporting a vulnerability, please include:
 KBigNum implements several security measures:
 
 ### Code Quality
-- **Static Analysis**: CodeQL and Detekt for vulnerability detection
-- **Dependency Scanning**: Regular dependency vulnerability checks
+- **Static Analysis**: GitHub's default CodeQL setup for vulnerability detection
+- **Code Quality**: Detekt static analysis for Kotlin-specific issues  
+- **Dependency Scanning**: Dependabot for automated dependency vulnerability checks
 - **Code Review**: All changes require review before merging
 
 ### Build Security
@@ -63,9 +64,9 @@ KBigNum implements several security measures:
 
 Our automated security scanning includes:
 
-- **CodeQL**: Static analysis for security vulnerabilities
-- **Dependency Check**: OWASP dependency vulnerability scanning
-- **Supply Chain Security**: GitHub's dependency graph and Dependabot
+- **CodeQL**: GitHub's default CodeQL setup for security vulnerability detection
+- **Dependency Scanning**: Dependabot for automated dependency updates and vulnerability alerts
+- **Supply Chain Security**: GitHub's dependency graph, security advisories, and secret scanning
 
 ## 📚 Security Best Practices
 
