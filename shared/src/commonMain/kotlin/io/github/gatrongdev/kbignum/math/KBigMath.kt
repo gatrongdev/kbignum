@@ -1,4 +1,4 @@
-package io.github.gatrongdev.kbignum.math.math
+package io.github.gatrongdev.kbignum.math
 
 /**
  * Mathematical utility functions for KBigDecimal and KBigInteger

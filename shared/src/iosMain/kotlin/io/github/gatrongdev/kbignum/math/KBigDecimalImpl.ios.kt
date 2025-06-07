@@ -1,4 +1,4 @@
-package io.github.gatrongdev.kbignum.math.math
+package io.github.gatrongdev.kbignum.math
 
 import platform.Foundation.NSDecimalNumber
 import platform.Foundation.NSDecimalNumberHandler
