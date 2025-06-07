@@ -6,6 +6,11 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     id("com.vanniktech.maven.publish") version "0.30.0"
+    
+    // Code quality and security plugins
+    id("org.jetbrains.kotlinx.kover")
+    id("org.jlleitschuh.gradle.ktlint")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 group = "io.github.gatrongdev"
@@ -89,4 +94,58 @@ mavenPublishing {
             developerConnection = "scm:git:ssh://git@github.com/gatrongdev/kbignum.git"
         }
     }
+}
+
+// ==================== Code Quality & Security Configuration ====================
+
+// Kover configuration for test coverage
+kover {
+    reports {
+        filters {
+            excludes {
+                // Loại trừ các file generated và platform-specific
+                packages("*.generated.*")
+                annotatedBy("*Generated*")
+            }
+        }
+    }
+}
+
+// ktlint configuration for code style
+ktlint {
+    version.set("1.0.1")
+    android.set(false)
+    ignoreFailures.set(false)
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.SARIF)
+    }
+    filter {
+        exclude("**/generated/**")
+        include("**/kotlin/**")
+    }
+}
+
+// detekt configuration for static analysis
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config.setFrom("$projectDir/config/detekt/detekt.yml")
+    baseline = file("$projectDir/config/detekt/baseline.xml")
+    
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        txt.required.set(true)
+        sarif.required.set(true)
+        md.required.set(true)
+    }
+}
+
+// Tạo task để chạy tất cả checks
+tasks.register("runAllChecks") {
+    group = "verification"
+    description = "Run all code quality checks"
+    dependsOn("test", "ktlintCheck", "detekt", "koverXmlReport")
 }
