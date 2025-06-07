@@ -5,317 +5,133 @@ on:
     branches: [ main ]
     paths:
       - 'shared/build.gradle.kts'
-      - 'build.gradle.kts'
-  workflow_dispatch:
-    inputs:
-      force_release:
-        description: 'Force release even if version unchanged'
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: write
-  actions: read
-  id-token: write
-  pages: write
-
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m"
 
 jobs:
-  detect-version-change:
-    name: 🔍 Detect Version Change
+  release:
+    name: 🎉 Create Release
     runs-on: ubuntu-latest
-    outputs:
-      version-changed: ${{ steps.version-check.outputs.changed }}
-      current-version: ${{ steps.version-check.outputs.current-version }}
-      previous-version: ${{ steps.version-check.outputs.previous-version }}
-      should-release: ${{ steps.version-check.outputs.should-release }}
+    
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🔍 Check version change
-        id: version-check
+      - name: 🔍 Get version from gradle
+        id: version
         run: |
-          # Get current version from build.gradle.kts
-          CURRENT_VERSION=$(grep 'version = ' shared/build.gradle.kts | head -1 | sed 's/.*version = "\(.*\)".*/\1/')
-          echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          
-          # Get previous version from git history
-          PREVIOUS_VERSION=""
-          if git show HEAD~1:shared/build.gradle.kts 2>/dev/null | grep -q 'version = '; then
-            PREVIOUS_VERSION=$(git show HEAD~1:shared/build.gradle.kts | grep 'version = ' | head -1 | sed 's/.*version = "\(.*\)".*/\1/')
-          fi
-          echo "previous-version=$PREVIOUS_VERSION" >> $GITHUB_OUTPUT
-          
-          # Check if version changed
-          VERSION_CHANGED="false"
-          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
-            VERSION_CHANGED="true"
-          fi
-          echo "changed=$VERSION_CHANGED" >> $GITHUB_OUTPUT
-          
-          # Check if we should release
-          SHOULD_RELEASE="false"
-          if [ "$VERSION_CHANGED" = "true" ] || [ "${{ github.event.inputs.force_release }}" = "true" ]; then
-            SHOULD_RELEASE="true"
-          fi
-          echo "should-release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
-          
-          echo "📋 Version Detection Results:"
-          echo "  Current Version: $CURRENT_VERSION"
-          echo "  Previous Version: $PREVIOUS_VERSION"
-          echo "  Version Changed: $VERSION_CHANGED"
-          echo "  Should Release: $SHOULD_RELEASE"
+          VERSION=$(grep 'version = ' shared/build.gradle.kts | head -1 | sed 's/.*version = "\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📋 Current version: $VERSION"
 
-      - name: ✅ Validate semantic versioning
-        if: steps.version-check.outputs.should-release == 'true'
+      - name: ✅ Check if tag exists
+        id: tag_check
         run: |
-          VERSION="${{ steps.version-check.outputs.current-version }}"
-          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$'; then
-            echo "❌ Version '$VERSION' does not follow semantic versioning (e.g., 1.0.0, 1.0.0-alpha.1)"
-            exit 1
+          if git tag | grep -q "^v${{ steps.version.outputs.version }}$"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Tag v${{ steps.version.outputs.version }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Tag v${{ steps.version.outputs.version }} does not exist yet"
           fi
-          echo "✅ Version '$VERSION' follows semantic versioning"
-
-  build-and-test:
-    name: 🔨 Build & Test
-    needs: detect-version-change
-    if: needs.detect-version-change.outputs.should-release == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
 
       - name: ☕ Setup JDK
+        if: steps.tag_check.outputs.exists == 'false'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: 📱 Setup Android SDK
+        if: steps.tag_check.outputs.exists == 'false'
         uses: android-actions/setup-android@v3
 
       - name: 🐘 Setup Gradle
+        if: steps.tag_check.outputs.exists == 'false'
         uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-
-      - name: 🧹 Clean project
-        run: ./gradlew clean
 
       - name: 🔨 Build project
-        run: ./gradlew build
-
-      - name: 🧪 Run tests
-        run: ./gradlew test
-
-      - name: 📊 Run quality checks
-        run: ./gradlew runAllChecks
-
-      - name: 📚 Generate documentation
-        run: ./gradlew dokkaHtml
-
-      - name: 📤 Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            shared/build/libs/
-            shared/build/outputs/
-            shared/build/dokka/
-          retention-days: 7
-
-  publish-maven-central:
-    name: 📦 Publish to Maven Central
-    needs: [detect-version-change, build-and-test]
-    if: needs.detect-version-change.outputs.should-release == 'true'
-    runs-on: ubuntu-latest
-    environment: release
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: ☕ Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: 📱 Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: 🐘 Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-
-      - name: 🔑 Setup signing
-        run: |
-          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > signing-key.gpg
-          gpg --batch --import signing-key.gpg
-          rm signing-key.gpg
-
-      - name: 📦 Publish to Maven Central
-        env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-        run: |
-          ./gradlew publishToMavenCentral
-
-      - name: ✅ Verify publication
-        run: |
-          echo "✅ Successfully published KBigNum v${{ needs.detect-version-change.outputs.current-version }} to Maven Central"
-
-  generate-changelog:
-    name: 📝 Generate Changelog
-    needs: [detect-version-change, publish-maven-central]
-    if: needs.detect-version-change.outputs.should-release == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      changelog: ${{ steps.changelog.outputs.changelog }}
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        if: steps.tag_check.outputs.exists == 'false'
+        run: ./gradlew build test
 
       - name: 📝 Generate changelog
+        if: steps.tag_check.outputs.exists == 'false'
         id: changelog
         run: |
-          VERSION="v${{ needs.detect-version-change.outputs.current-version }}"
-          PREVIOUS_VERSION="${{ needs.detect-version-change.outputs.previous-version }}"
+          VERSION="v${{ steps.version.outputs.version }}"
           
-          # Get the previous tag or first commit
-          if [ -n "$PREVIOUS_VERSION" ] && git tag | grep -q "v$PREVIOUS_VERSION"; then
-            PREVIOUS_TAG="v$PREVIOUS_VERSION"
-          else
+          # Get the latest tag or use initial commit
+          PREVIOUS_TAG=$(git tag --sort=-version:refname | head -1)
+          if [ -z "$PREVIOUS_TAG" ]; then
             PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
           fi
           
           echo "📋 Generating changelog from $PREVIOUS_TAG to HEAD"
           
-          # Generate changelog from commits
-          CHANGELOG=$(cat << 'EOF'
-          ## 🚀 What's New in $VERSION
+          # Get commits since last tag
+          COMMITS=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD --no-merges)
           
-          EOF)
-          
-          # Get commits since last version
-          COMMITS=$(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD --no-merges | head -20)
-          
-          if [ -n "$COMMITS" ]; then
-            CHANGELOG+="### 📋 Changes
-          
-          $COMMITS
-          
-          "
-          fi
-          
-          # Add contributors
-          CONTRIBUTORS=$(git log --pretty=format:"%an" $PREVIOUS_TAG..HEAD --no-merges | sort | uniq | sed 's/^/- @/' | head -10)
-          if [ -n "$CONTRIBUTORS" ]; then
-            CHANGELOG+="### 👥 Contributors
-          
-          $CONTRIBUTORS
-          
-          "
-          fi
-          
-          # Add installation instructions
-          CHANGELOG+="### 📦 Installation
-          
-          #### Gradle (Kotlin DSL)
-          \`\`\`kotlin
-          dependencies {
-              implementation(\"io.github.gatrongdev:kbignum:${{ needs.detect-version-change.outputs.current-version }}\")
-          }
-          \`\`\`
-          
-          #### Gradle (Groovy)
-          \`\`\`gradle
-          dependencies {
-              implementation 'io.github.gatrongdev:kbignum:${{ needs.detect-version-change.outputs.current-version }}'
-          }
-          \`\`\`
-          
-          ### 🔗 Links
-          
-          - 📚 [Documentation](https://gatrongdev.github.io/kbignum/)
-          - 🏠 [Homepage](https://github.com/gatrongdev/kbignum)
-          - 📦 [Maven Central](https://central.sonatype.com/artifact/io.github.gatrongdev/kbignum)
-          
-          **Full Changelog**: https://github.com/gatrongdev/kbignum/compare/$PREVIOUS_TAG...$VERSION"
-          
-          # Save changelog to output
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Create changelog
+          CHANGELOG="## 🚀 What's New in $VERSION
 
-  create-release:
-    name: 🎉 Create GitHub Release
-    needs: [detect-version-change, publish-maven-central, generate-changelog]
-    if: needs.detect-version-change.outputs.should-release == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+### 📋 Changes
+$COMMITS
 
-      - name: 📤 Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: ./artifacts
+### 📦 Installation
+
+#### Gradle (Kotlin DSL)
+\`\`\`kotlin
+dependencies {
+    implementation(\"io.github.gatrongdev:kbignum:${{ steps.version.outputs.version }}\")
+}
+\`\`\`
+
+#### Gradle (Groovy)
+\`\`\`gradle
+dependencies {
+    implementation 'io.github.gatrongdev:kbignum:${{ steps.version.outputs.version }}'
+}
+\`\`\`
+
+### 🔗 Links
+- 📚 [Documentation](https://gatrongdev.github.io/kbignum/)
+- 📦 [Maven Central](https://central.sonatype.com/artifact/io.github.gatrongdev/kbignum)
+
+**Full Changelog**: https://github.com/gatrongdev/kbignum/compare/$PREVIOUS_TAG...$VERSION"
+          
+          # Save changelog (escape newlines for GitHub Actions)
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: 🎉 Create GitHub Release
+        if: steps.tag_check.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ needs.detect-version-change.outputs.current-version }}
-          name: 🚀 KBigNum v${{ needs.detect-version-change.outputs.current-version }}
-          body: ${{ needs.generate-changelog.outputs.changelog }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: KBigNum v${{ steps.version.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog }}
           draft: false
-          prerelease: ${{ contains(needs.detect-version-change.outputs.current-version, '-') }}
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
           files: |
-            artifacts/**/*.aar
-            artifacts/**/*.jar
-          generate_release_notes: false
+            shared/build/libs/*.jar
+            shared/build/outputs/**/*.aar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🎊 Success notification
+      - name: ✅ Success
+        if: steps.tag_check.outputs.exists == 'false'
         run: |
-          echo "🎉 Successfully created release v${{ needs.detect-version-change.outputs.current-version }}"
-          echo "📦 Published to Maven Central"
-          echo "🏷️ GitHub release created"
-          echo "📝 Changelog generated"
+          echo "🎉 Successfully created release v${{ steps.version.outputs.version }}"
+          echo "🏷️ Tag: v${{ steps.version.outputs.version }}"
+          echo "🔗 Release URL: https://github.com/gatrongdev/kbignum/releases/tag/v${{ steps.version.outputs.version }}"
 
-  notify-completion:
-    name: 📢 Notify Completion
-    needs: [detect-version-change, create-release]
-    if: always() && needs.detect-version-change.outputs.should-release == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📊 Release Summary
+      - name: ⏭️ Skip release
+        if: steps.tag_check.outputs.exists == 'true'
         run: |
-          echo "## 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: v${{ needs.detect-version-change.outputs.current-version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Previous Version**: ${{ needs.detect-version-change.outputs.previous-version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build Status**: ${{ needs.create-release.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Release Created**: ✅" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔗 Quick Links" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- [📦 Maven Central](https://central.sonatype.com/artifact/io.github.gatrongdev/kbignum)" >> $GITHUB_STEP_SUMMARY
-          echo "- [🏷️ GitHub Release](https://github.com/gatrongdev/kbignum/releases/tag/v${{ needs.detect-version-change.outputs.current-version }})" >> $GITHUB_STEP_SUMMARY
-          echo "- [📚 Documentation](https://gatrongdev.github.io/kbignum/)" >> $GITHUB_STEP_SUMMARY
+          echo "⏭️ Skipping release creation - tag v${{ steps.version.outputs.version }} already exists"
