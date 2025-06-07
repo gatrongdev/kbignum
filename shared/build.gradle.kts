@@ -11,6 +11,9 @@ plugins {
     id("org.jetbrains.kotlinx.kover")
     id("org.jlleitschuh.gradle.ktlint")
     id("io.gitlab.arturbosch.detekt")
+    
+    // Dokka plugin for documentation
+    id("org.jetbrains.dokka")
 }
 
 group = "io.github.gatrongdev"
@@ -151,3 +154,4 @@ tasks.register("runAllChecks") {
     description = "Run all code quality checks"
     dependsOn("test", "ktlintCheck", "detekt", "koverXmlReport")
 }
+
