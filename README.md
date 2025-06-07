@@ -193,13 +193,27 @@ The project includes several code quality tools:
 
 ## Contributing
 
+We welcome contributions! Please see our [Contributing Guide](.github/CONTRIBUTING.md) for detailed information.
+
+### Quick Start for Contributors
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes and add tests
 4. Run code quality checks (`./gradlew runAllChecks`)
-5. Commit your changes (`git commit -am 'Add amazing feature'`)
+5. Use conventional commits (`git commit -m "feat: add amazing feature"`)
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
+
+### Release Process
+
+Releases are automated based on version changes:
+
+1. **Update version**: `./scripts/update-version.sh 1.0.1`
+2. **Commit and push**: The release will be created automatically
+3. **Semantic versioning** is enforced for all releases
+
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for complete guidelines.
 
 ## License
 
