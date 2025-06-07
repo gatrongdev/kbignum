@@ -95,13 +95,24 @@ jobs:
       - name: 📚 Generate documentation
         run: ./gradlew dokkaHtml
 
-      - name: 🚀 Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/main'
+      - name: 📤 Upload Documentation Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.TOKEN }}
-          publish_dir: ./shared/build/dokka/html
-          destination_dir: docs
+          path: './build/dokka/html'
+
+  deploy-docs:
+    name: 🚀 Deploy to GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build-docs
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 🌐 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   dependency-scan:
     name: 🔍 Dependency Scan
