@@ -1,4 +1,4 @@
-package io.github.gatrongdev.kbignum.math.math
+package io.github.gatrongdev.kbignum.math
 
 // Extension functions for converting common types to KBigDecimal
 fun String.toKBigDecimal(): KBigDecimal = KBigDecimalFactory.fromString(this)

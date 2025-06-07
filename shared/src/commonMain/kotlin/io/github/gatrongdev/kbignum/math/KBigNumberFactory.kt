@@ -1,4 +1,4 @@
-package io.github.gatrongdev.kbignum.math.math
+package io.github.gatrongdev.kbignum.math
 
 /**
  * Factory object for creating KBigDecimal instances

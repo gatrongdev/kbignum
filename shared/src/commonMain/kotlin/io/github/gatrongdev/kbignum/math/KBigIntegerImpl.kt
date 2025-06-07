@@ -1,4 +1,4 @@
-package io.github.gatrongdev.kbignum.math.math
+package io.github.gatrongdev.kbignum.math
 
 expect class KBigIntegerImpl(value: String) : KBigInteger {
     companion object {

@@ -1,4 +1,4 @@
-package io.github.gatrongdev.kbignum.math.math
+package io.github.gatrongdev.kbignum.math
 
 import java.math.BigInteger
 

@@ -1,10 +1,5 @@
 package io.github.gatrongdev.kbignum.math
 
-import io.github.gatrongdev.kbignum.math.math.plus
-import io.github.gatrongdev.kbignum.math.math.times
-import io.github.gatrongdev.kbignum.math.math.toKBigDecimal
-import io.github.gatrongdev.kbignum.math.math.toKBigInteger
-
 class Greeting {
     private val platform: Platform = getPlatform()
 

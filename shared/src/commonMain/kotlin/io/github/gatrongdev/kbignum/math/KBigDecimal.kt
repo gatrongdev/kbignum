@@ -1,4 +1,4 @@
-package io.github.gatrongdev.kbignum.math.math
+package io.github.gatrongdev.kbignum.math
 
 interface KBigDecimal : Comparable<KBigDecimal> {
     fun add(other: KBigDecimal): KBigDecimal
