@@ -1,0 +1,85 @@
+name: KMM CI/CD Pipeline
+
+# Kích hoạt workflow khi có push hoặc pull request tới main và dev
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build_test_analyze:
+    name: Build, Test & Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Checkout mã nguồn
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. Thiết lập JDK 17
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # 3. Cấp quyền thực thi cho Gradle Wrapper
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    # 4. Cache Gradle dependencies để tăng tốc build
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    # 5. Build và chạy tất cả các test
+    - name: Build project and run tests
+      run: ./gradlew build test
+
+    # 6. Tạo báo cáo Test Coverage bằng Kover
+    - name: Generate test coverage report
+      run: ./gradlew koverXmlReport
+
+    # 7. Tải báo cáo coverage lên Codecov
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./shared/build/reports/kover/report.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+        verbose: true
+
+    # 8. Kiểm tra code style với ktlint
+    - name: Run ktlint code style check
+      run: ./gradlew ktlintCheck
+
+    # 9. Phân tích static code với detekt
+    - name: Run detekt static analysis
+      run: ./gradlew detekt
+
+    # 10. Upload báo cáo detekt (tùy chọn)
+    - name: Upload detekt reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: detekt-reports
+        path: |
+          **/build/reports/detekt/
+          **/build/reports/ktlint/
+
+    # 11. Upload test results (tùy chọn)
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports
+        path: |
+          **/build/reports/tests/
+          **/build/test-results/

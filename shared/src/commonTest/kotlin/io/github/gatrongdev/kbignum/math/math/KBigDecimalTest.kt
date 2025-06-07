@@ -2,11 +2,10 @@ package io.github.gatrongdev.kbignum.math.math
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class KBigDecimalTest {
-
     @Test
     fun testBasicArithmetic() {
         val a = "123.45".toKBigDecimal()

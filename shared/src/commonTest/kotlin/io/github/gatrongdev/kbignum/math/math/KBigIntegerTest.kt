@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class KBigIntegerTest {
-
     @Test
     fun testBasicOperations() {
         val a = "123456789".toKBigInteger()
@@ -31,7 +30,7 @@ class KBigIntegerTest {
     fun testConversionToPreciseNumber() {
         val bigInt = "123456".toKBigInteger()
         val bigDec = bigInt.toPreciseNumber()
-        
+
         assertEquals("123456", bigDec.toString())
         assertTrue(bigDec is KBigDecimal)
     }

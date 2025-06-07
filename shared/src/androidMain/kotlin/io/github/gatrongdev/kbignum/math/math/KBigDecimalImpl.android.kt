@@ -1,9 +1,5 @@
 package io.github.gatrongdev.kbignum.math.math
 
-import io.github.gatrongdev.kbignum.math.math.KBigDecimal
-import io.github.gatrongdev.kbignum.math.math.KBigDecimalImpl
-import io.github.gatrongdev.kbignum.math.math.KBigInteger
-import io.github.gatrongdev.kbignum.math.math.KBigIntegerImpl
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -41,18 +37,33 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return KBigDecimalImpl(bigDecimal.multiply(otherImpl.bigDecimal).toString())
     }
 
-    actual override fun divide(other: KBigDecimal, scale: Int): KBigDecimal {
+    actual override fun divide(
+        other: KBigDecimal,
+        scale: Int,
+    ): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
         return KBigDecimalImpl(
-            bigDecimal.divide(otherImpl.bigDecimal, scale, RoundingMode.HALF_UP).toString()
+            bigDecimal.divide(
+                otherImpl.bigDecimal,
+                scale,
+                RoundingMode.HALF_UP,
+            ).toString(),
         )
     }
 
-    actual override fun divide(other: KBigDecimal, scale: Int, mode: Int): KBigDecimal {
+    actual override fun divide(
+        other: KBigDecimal,
+        scale: Int,
+        mode: Int,
+    ): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
         val roundingMode = getRoundingMode(mode)
         return KBigDecimalImpl(
-            bigDecimal.divide(otherImpl.bigDecimal, scale, roundingMode).toString()
+            bigDecimal.divide(
+                otherImpl.bigDecimal,
+                scale,
+                roundingMode,
+            ).toString(),
         )
     }
 
@@ -64,7 +75,10 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return bigDecimal.signum()
     }
 
-    actual override fun setScale(scale: Int, roundingMode: Int): KBigDecimal {
+    actual override fun setScale(
+        scale: Int,
+        roundingMode: Int,
+    ): KBigDecimal {
         val mode = getRoundingMode(roundingMode)
         return KBigDecimalImpl(bigDecimal.setScale(scale, mode).toString())
     }

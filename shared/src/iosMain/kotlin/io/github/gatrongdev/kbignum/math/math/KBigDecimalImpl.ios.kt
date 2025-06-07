@@ -41,41 +41,51 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return KBigDecimalImpl(result.stringValue)
     }
 
-    actual override fun divide(other: KBigDecimal, scale: Int): KBigDecimal {
+    actual override fun divide(
+        other: KBigDecimal,
+        scale: Int,
+    ): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
-        val handler = NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
-            NSRoundingMode.NSRoundPlain,
-            scale.toShort(),
-            true,
-            true,
-            true,
-            true
-        )
+        val handler =
+            NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
+                NSRoundingMode.NSRoundPlain,
+                scale.toShort(),
+                true,
+                true,
+                true,
+                true,
+            )
         val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
         return KBigDecimalImpl(result.stringValue)
     }
 
-    actual override fun divide(other: KBigDecimal, scale: Int, mode: Int): KBigDecimal {
+    actual override fun divide(
+        other: KBigDecimal,
+        scale: Int,
+        mode: Int,
+    ): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
         val roundingMode = getRoundingMode(mode)
-        val handler = NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
-            roundingMode,
-            scale.toShort(),
-            true,
-            true,
-            true,
-            true
-        )
+        val handler =
+            NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
+                roundingMode,
+                scale.toShort(),
+                true,
+                true,
+                true,
+                true,
+            )
         val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
         return KBigDecimalImpl(result.stringValue)
     }
 
     actual override fun abs(): KBigDecimal {
-        val result = if (nsDecimalNumber.compare(NSDecimalNumber.zero) < 0) {
-            nsDecimalNumber.decimalNumberByMultiplyingBy(NSDecimalNumber(string = "-1"))
-        } else {
-            nsDecimalNumber
-        }
+        val result =
+            if (nsDecimalNumber.compare(NSDecimalNumber.zero) < 0) {
+                nsDecimalNumber.decimalNumberByMultiplyingBy(NSDecimalNumber(string = "-1"))
+            } else {
+                nsDecimalNumber
+            }
         return KBigDecimalImpl(result.stringValue)
     }
 
@@ -83,16 +93,20 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return nsDecimalNumber.compare(NSDecimalNumber.zero).toInt()
     }
 
-    actual override fun setScale(scale: Int, roundingMode: Int): KBigDecimal {
+    actual override fun setScale(
+        scale: Int,
+        roundingMode: Int,
+    ): KBigDecimal {
         val mode = getRoundingMode(roundingMode)
-        val handler = NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
-            mode,
-            scale.toShort(),
-            true,
-            true,
-            true,
-            true
-        )
+        val handler =
+            NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
+                mode,
+                scale.toShort(),
+                true,
+                true,
+                true,
+                true,
+            )
         val result = nsDecimalNumber.decimalNumberByRoundingAccordingToBehavior(handler)
         return KBigDecimalImpl(result.stringValue)
     }
