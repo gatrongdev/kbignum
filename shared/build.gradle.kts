@@ -11,6 +11,9 @@ plugins {
     id("org.jetbrains.kotlinx.kover")
     id("org.jlleitschuh.gradle.ktlint")
     id("io.gitlab.arturbosch.detekt")
+    
+    // Dokka plugin for documentation
+    id("org.jetbrains.dokka") version "1.9.20"
 }
 
 group = "io.github.gatrongdev"
@@ -148,4 +151,83 @@ tasks.register("runAllChecks") {
     group = "verification"
     description = "Run all code quality checks"
     dependsOn("test", "ktlintCheck", "detekt", "koverXmlReport")
+}
+
+// ==================== Dokka Documentation Configuration ====================
+
+tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>().configureEach {
+    moduleName.set("KBigNum")
+    moduleVersion.set(version.toString())
+    
+    dokkaSourceSets {
+        named("commonMain") {
+            displayName.set("Common")
+            platform.set(org.jetbrains.dokka.Platform.common)
+            
+            // Liên kết đến mã nguồn GitHub
+            sourceLink {
+                localDirectory.set(file("src/commonMain/kotlin"))
+                remoteUrl.set(java.net.URL("https://github.com/gatrongdev/kbignum/tree/main/shared/src/commonMain/kotlin"))
+                remoteLineSuffix.set("#L")
+            }
+            
+            // External documentation links
+            externalDocumentationLink {
+                url.set(java.net.URL("https://kotlinlang.org/api/latest/jvm/stdlib/"))
+            }
+            
+            // Include samples
+            samples.from("src/commonTest/kotlin")
+        }
+        
+        named("androidMain") {
+            displayName.set("Android")
+            platform.set(org.jetbrains.dokka.Platform.jvm)
+            
+            sourceLink {
+                localDirectory.set(file("src/androidMain/kotlin"))
+                remoteUrl.set(java.net.URL("https://github.com/gatrongdev/kbignum/tree/main/shared/src/androidMain/kotlin"))
+                remoteLineSuffix.set("#L")
+            }
+            
+            externalDocumentationLink {
+                url.set(java.net.URL("https://developer.android.com/reference/"))
+            }
+        }
+        
+        named("iosMain") {
+            displayName.set("iOS")
+            platform.set(org.jetbrains.dokka.Platform.native)
+            
+            sourceLink {
+                localDirectory.set(file("src/iosMain/kotlin"))
+                remoteUrl.set(java.net.URL("https://github.com/gatrongdev/kbignum/tree/main/shared/src/iosMain/kotlin"))
+                remoteLineSuffix.set("#L")
+            }
+        }
+    }
+    
+    // Tùy chỉnh giao diện
+    pluginsMapConfiguration.set(mapOf(
+        "org.jetbrains.dokka.base.DokkaBase" to """
+        {
+            "customAssets": ["${file("docs/assets/logo.png")}"],
+            "customStyleSheets": ["${file("docs/assets/custom.css")}"],
+            "footerMessage": "© 2025 Gatrong Dev - KBigNum Library"
+        }
+        """
+    ))
+}
+
+// Tác vụ tùy chỉnh để tạo tài liệu
+tasks.register("generateDocs") {
+    group = "documentation"
+    description = "Generate complete documentation for KBigNum library"
+    dependsOn("dokkaHtml")
+    
+    doLast {
+        println("📚 Documentation generated successfully!")
+        println("📁 Location: ${project.buildDir}/dokka/html/index.html")
+        println("🌐 Ready for deployment to GitHub Pages")
+    }
 }
