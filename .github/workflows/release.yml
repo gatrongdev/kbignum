@@ -107,8 +107,8 @@ jobs:
     needs: version-check
     if: needs.version-check.outputs.should_release == 'true'
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-    
+      release_created: ${{ steps.release_status.outputs.release_created }}
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -201,6 +201,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ✅ Release created
+        id: release_status
         run: |
           echo "release_created=true" >> $GITHUB_OUTPUT
           echo "🎉 Successfully created release v${{ needs.version-check.outputs.version }}"
@@ -324,3 +325,4 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Version v${{ needs.version-check.outputs.version }} already exists." >> $GITHUB_STEP_SUMMARY
           fi
+
