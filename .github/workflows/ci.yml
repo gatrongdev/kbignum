@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  security-events: write
+  pages: write
   actions: read
 
 concurrency:
@@ -102,39 +102,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./shared/build/dokka/html
           destination_dir: docs
-
-  security-scan:
-    name: 🔒 Security Scan
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🔍 Run CodeQL Analysis
-        uses: github/codeql-action/init@v3
-        with:
-          languages: java
-
-      - name: ☕ Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: 📱 Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: 🐘 Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: 🔨 Build for analysis
-        run: ./gradlew shared:compileCommonMainKotlinMetadata shared:compileDebugKotlinAndroid
-
-      - name: 🔍 Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
 
   dependency-scan:
     name: 🔍 Dependency Scan
