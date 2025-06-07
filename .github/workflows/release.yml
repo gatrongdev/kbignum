@@ -75,32 +75,36 @@ jobs:
           COMMITS=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD --no-merges)
           
           # Create changelog
-          CHANGELOG="## 🚀 What's New in $VERSION
+          cat << EOF > changelog.md
+          ## 🚀 What's New in $VERSION
 
-### 📋 Changes
-$COMMITS
+          ### 📋 Changes
+          $COMMITS
 
-### 📦 Installation
+          ### 📦 Installation
 
-#### Gradle (Kotlin DSL)
-\`\`\`kotlin
-dependencies {
-    implementation(\"io.github.gatrongdev:kbignum:${{ steps.version.outputs.version }}\")
-}
-\`\`\`
+          #### Gradle (Kotlin DSL)
+          \`\`\`kotlin
+          dependencies {
+              implementation("io.github.gatrongdev:kbignum:${{ steps.version.outputs.version }}")
+          }
+          \`\`\`
 
-#### Gradle (Groovy)
-\`\`\`gradle
-dependencies {
-    implementation 'io.github.gatrongdev:kbignum:${{ steps.version.outputs.version }}'
-}
-\`\`\`
+          #### Gradle (Groovy)
+          \`\`\`gradle
+          dependencies {
+              implementation 'io.github.gatrongdev:kbignum:${{ steps.version.outputs.version }}'
+          }
+          \`\`\`
 
-### 🔗 Links
-- 📚 [Documentation](https://gatrongdev.github.io/kbignum/)
-- 📦 [Maven Central](https://central.sonatype.com/artifact/io.github.gatrongdev/kbignum)
+          ### 🔗 Links
+          - 📚 [Documentation](https://gatrongdev.github.io/kbignum/)
+          - 📦 [Maven Central](https://central.sonatype.com/artifact/io.github.gatrongdev/kbignum)
 
-**Full Changelog**: https://github.com/gatrongdev/kbignum/compare/$PREVIOUS_TAG...$VERSION"
+          **Full Changelog**: https://github.com/gatrongdev/kbignum/compare/$PREVIOUS_TAG...$VERSION
+          EOF
+          
+          CHANGELOG=$(cat changelog.md)
           
           # Save changelog (escape newlines for GitHub Actions)
           {
