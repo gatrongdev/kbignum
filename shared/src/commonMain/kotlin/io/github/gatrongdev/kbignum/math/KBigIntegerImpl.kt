@@ -17,7 +17,7 @@ expect class KBigIntegerImpl(value: String) : KBigInteger {
 
     override fun toPreciseNumber(): KBigDecimal
 
-    override fun getString(): String
+    // getString() removed - use toString() instead
 
     override fun add(other: KBigInteger): KBigInteger
 
