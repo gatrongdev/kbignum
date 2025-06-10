@@ -43,5 +43,5 @@ expect class KBigDecimalImpl(value: String) : KBigDecimal {
 
     override fun toString(): String
 
-    override fun getString(): String
+    // getString() removed - use toString() instead
 }

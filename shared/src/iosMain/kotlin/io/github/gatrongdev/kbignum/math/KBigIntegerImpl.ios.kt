@@ -34,9 +34,7 @@ actual class KBigIntegerImpl actual constructor(value: String) : KBigInteger {
         return KBigDecimalImpl(nsNumber.stringValue)
     }
 
-    actual override fun getString(): String {
-        return nsNumber.stringValue
-    }
+    // getString() removed - use toString() instead
 
     actual override fun add(other: KBigInteger): KBigInteger {
         val otherImpl = other as KBigIntegerImpl

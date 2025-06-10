@@ -96,9 +96,7 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return bigDecimal.toString()
     }
 
-    actual override fun getString(): String {
-        return bigDecimal.toString()
-    }
+    // getString() removed - use toString() instead
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

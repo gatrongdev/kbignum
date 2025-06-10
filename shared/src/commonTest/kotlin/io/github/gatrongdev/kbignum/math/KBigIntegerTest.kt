@@ -45,7 +45,6 @@ class KBigIntegerTest {
     @Test
     fun testStringValue() {
         val bigInt = "999999999999999999".toKBigInteger()
-        assertEquals("999999999999999999", bigInt.getString())
         assertEquals("999999999999999999", bigInt.toString())
     }
 }
