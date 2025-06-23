@@ -2,7 +2,7 @@ plugins {
     //trick: for the same plugin versions in all sub-modules
     alias(libs.plugins.androidLibrary).apply(false)
     alias(libs.plugins.kotlinMultiplatform).apply(false)
-    id("com.vanniktech.maven.publish") version "0.30.0"
+    id("com.vanniktech.maven.publish") version "0.33.0"
     
     // Code quality and security plugins
     id("org.jetbrains.kotlinx.kover") version "0.8.3" apply false
