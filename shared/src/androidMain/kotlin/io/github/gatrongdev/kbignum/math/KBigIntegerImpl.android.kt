@@ -22,6 +22,10 @@ actual class KBigIntegerImpl actual constructor(value: String) : KBigInteger {
     }
 
     actual override fun toLong(): Long {
+        // Check if the value is within Long range
+        if (bigInteger < BigInteger.valueOf(Long.MIN_VALUE) || bigInteger > BigInteger.valueOf(Long.MAX_VALUE)) {
+            throw ArithmeticException("BigInteger out of long range")
+        }
         return bigInteger.toLong()
     }
 
