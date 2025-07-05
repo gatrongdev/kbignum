@@ -2,12 +2,9 @@ package io.github.gatrongdev.kbignum.math
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 
 class KBigNumberExtensionsTest {
-
     // STRING TO BIGNUMBER CONVERSION TESTS
     @Test
     fun stringToKBigDecimal_withValidDecimalString_succeeds() {
@@ -21,7 +18,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun stringToKBigDecimal_withValidIntegerString_succeeds() {
         // Arrange
@@ -34,7 +31,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun stringToKBigDecimal_withLeadingPlusSign_isParsedCorrectly() {
         // Arrange
@@ -47,7 +44,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun stringToKBigDecimal_withWhitespace_isTrimmedAndParsedCorrectly() {
         // Arrange
@@ -60,7 +57,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun stringToKBigDecimal_withInvalidString_throwsNumberFormatException() {
         // Arrange
@@ -71,7 +68,7 @@ class KBigNumberExtensionsTest {
             invalidString.toKBigDecimal()
         }
     }
-    
+
     @Test
     fun stringToKBigInteger_withValidIntegerString_succeeds() {
         // Arrange
@@ -84,7 +81,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun stringToKBigInteger_withLeadingPlusSign_isParsedCorrectly() {
         // Arrange
@@ -97,7 +94,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun stringToKBigInteger_withWhitespace_isTrimmedAndParsedCorrectly() {
         // Arrange
@@ -110,7 +107,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun stringToKBigInteger_withDecimalString_throwsNumberFormatException() {
         // Arrange
@@ -121,7 +118,7 @@ class KBigNumberExtensionsTest {
             decimalString.toKBigInteger()
         }
     }
-    
+
     @Test
     fun stringToKBigInteger_withInvalidString_throwsNumberFormatException() {
         // Arrange
@@ -132,7 +129,7 @@ class KBigNumberExtensionsTest {
             invalidString.toKBigInteger()
         }
     }
-    
+
     // PRIMITIVE TO BIGNUMBER CONVERSION TESTS
     @Test
     fun intToKBigDecimal_convertsCorrectly() {
@@ -146,7 +143,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun intToKBigInteger_convertsCorrectly() {
         // Arrange
@@ -159,7 +156,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun longToKBigDecimal_convertsCorrectly() {
         // Arrange
@@ -172,7 +169,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun longToKBigInteger_convertsCorrectly() {
         // Arrange
@@ -185,7 +182,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun doubleToKBigDecimal_withStandardValue_convertsCorrectly() {
         // Arrange
@@ -198,7 +195,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun doubleToKBigDecimal_withSpecialValues_handlesCorrectly() {
         // Arrange
@@ -213,7 +210,7 @@ class KBigNumberExtensionsTest {
             infinityValue.toString().toKBigDecimal()
         }
     }
-    
+
     @Test
     fun floatToKBigDecimal_convertsCorrectly() {
         // Arrange
@@ -226,7 +223,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     // OPERATORS TESTS
     @Test
     fun plusOperator_onTwoKBigIntegers_matchesAddMethod() {
@@ -241,7 +238,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(methodResult.toString(), operatorResult.toString())
     }
-    
+
     @Test
     fun minusOperator_onTwoKBigDecimals_matchesSubtractMethod() {
         // Arrange
@@ -255,7 +252,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(methodResult.toString(), operatorResult.toString())
     }
-    
+
     @Test
     fun timesOperator_onTwoKBigIntegers_matchesMultiplyMethod() {
         // Arrange
@@ -269,7 +266,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(methodResult.toString(), operatorResult.toString())
     }
-    
+
     @Test
     fun divOperator_onTwoKBigIntegers_matchesDivideMethod() {
         // Arrange
@@ -283,7 +280,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(methodResult.toString(), operatorResult.toString())
     }
-    
+
     @Test
     fun remOperator_onTwoKBigIntegers_matchesModMethod() {
         // Arrange
@@ -297,7 +294,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(methodResult.toString(), operatorResult.toString())
     }
-    
+
     @Test
     fun plusOperator_onTwoKBigDecimals_matchesAddMethod() {
         // Arrange
@@ -311,7 +308,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(methodResult.toString(), operatorResult.toString())
     }
-    
+
     @Test
     fun timesOperator_onTwoKBigDecimals_matchesMultiplyMethod() {
         // Arrange
@@ -325,7 +322,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(methodResult.toString(), operatorResult.toString())
     }
-    
+
     @Test
     fun divOperator_onTwoKBigDecimals_matchesDivideMethod() {
         // Arrange
@@ -339,7 +336,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(methodResult.toString(), operatorResult.toString())
     }
-    
+
     @Test
     fun minusOperator_onTwoKBigIntegers_matchesSubtractMethod() {
         // Arrange
@@ -353,7 +350,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(methodResult.toString(), operatorResult.toString())
     }
-    
+
     // UTILITY FUNCTIONS TESTS
     @Test
     fun max_returnsTheLargerOfTwoNumbers() {
@@ -367,7 +364,7 @@ class KBigNumberExtensionsTest {
         // Assert
         assertEquals(larger, actual)
     }
-    
+
     @Test
     fun min_returnsTheSmallerOfTwoNumbers() {
         // Arrange

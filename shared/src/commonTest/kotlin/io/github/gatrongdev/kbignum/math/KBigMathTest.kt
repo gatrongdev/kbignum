@@ -2,12 +2,11 @@ package io.github.gatrongdev.kbignum.math
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class KBigMathTest {
-    
     // SQRT FUNCTION TESTS
     @Test
     fun sqrt_onPerfectSquare_returnsExactIntegerRoot() {
@@ -21,7 +20,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected.toString(), actual.toString())
     }
-    
+
     @Test
     fun sqrt_onNonPerfectSquare_returnsCorrectlyRoundedResult() {
         // Arrange
@@ -33,7 +32,7 @@ class KBigMathTest {
         // Assert
         assertTrue(actual.toString().startsWith("1.4"))
     }
-    
+
     @Test
     fun sqrt_onDecimalNumber_returnsCorrectResult() {
         // Arrange
@@ -46,7 +45,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected.toString(), actual.toString())
     }
-    
+
     @Test
     fun sqrt_onZero_returnsZero() {
         // Arrange
@@ -58,7 +57,7 @@ class KBigMathTest {
         // Assert
         assertTrue(actual.isZero())
     }
-    
+
     @Test
     fun sqrt_onVerySmallDecimal_returnsResultWithHighPrecision() {
         // Arrange
@@ -70,7 +69,7 @@ class KBigMathTest {
         // Assert
         assertEquals("0.01", actual.toString())
     }
-    
+
     @Test
     fun sqrt_onNegativeNumber_throwsArithmeticException() {
         // Arrange
@@ -81,7 +80,7 @@ class KBigMathTest {
             KBigMath.sqrt(negative)
         }
     }
-    
+
     // FACTORIAL FUNCTION TESTS
     @Test
     fun factorial_ofZero_returnsOne() {
@@ -95,7 +94,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun factorial_ofPositiveInteger_returnsCorrectResult() {
         // Arrange
@@ -108,7 +107,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun factorial_ofLargeInteger_handlesCorrectly() {
         // Arrange
@@ -121,7 +120,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun factorial_ofNegativeInteger_throwsArithmeticException() {
         // Arrange
@@ -132,7 +131,7 @@ class KBigMathTest {
             KBigMath.factorial(negative)
         }
     }
-    
+
     // GCD FUNCTION TESTS
     @Test
     fun gcd_ofTwoPositiveIntegers_returnsCorrectResult() {
@@ -147,7 +146,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun gcd_ofCoprimeIntegers_returnsOne() {
         // Arrange
@@ -161,7 +160,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun gcd_withZero_returnsTheOtherNumber() {
         // Arrange
@@ -172,7 +171,7 @@ class KBigMathTest {
         assertEquals(number, KBigMath.gcd(number, zero))
         assertEquals(number, KBigMath.gcd(zero, number))
     }
-    
+
     @Test
     fun gcd_withNegativeNumbers_returnsPositiveGcd() {
         // Arrange
@@ -186,7 +185,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     // LCM FUNCTION TESTS
     @Test
     fun lcm_ofTwoPositiveIntegers_returnsCorrectResult() {
@@ -201,7 +200,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun lcm_withZero_returnsZero() {
         // Arrange
@@ -212,7 +211,7 @@ class KBigMathTest {
         assertTrue(KBigMath.lcm(number, zero).isZero())
         assertTrue(KBigMath.lcm(zero, number).isZero())
     }
-    
+
     @Test
     fun lcm_verifiesGcdLcmProperty() {
         // Arrange
@@ -227,7 +226,7 @@ class KBigMathTest {
         // Assert
         assertEquals(product, gcd.multiply(lcm))
     }
-    
+
     // ISPRIME FUNCTION TESTS
     @Test
     fun isPrime_onPrimeNumber_returnsTrue() {
@@ -240,7 +239,7 @@ class KBigMathTest {
         // Assert
         assertTrue(actual)
     }
-    
+
     @Test
     fun isPrime_onCompositeNumber_returnsFalse() {
         // Arrange
@@ -252,7 +251,7 @@ class KBigMathTest {
         // Assert
         assertFalse(actual)
     }
-    
+
     @Test
     fun isPrime_onZeroAndOne_returnsFalse() {
         // Arrange
@@ -263,7 +262,7 @@ class KBigMathTest {
         assertFalse(KBigMath.isPrime(zero))
         assertFalse(KBigMath.isPrime(one))
     }
-    
+
     @Test
     fun isPrime_onNegativeNumber_returnsFalse() {
         // Arrange
@@ -275,7 +274,7 @@ class KBigMathTest {
         // Assert
         assertFalse(actual)
     }
-    
+
     @Test
     fun isPrime_onLargePrimeNumber_returnsTrue() {
         // Arrange
@@ -287,7 +286,7 @@ class KBigMathTest {
         // Assert
         assertTrue(actual)
     }
-    
+
     // POW FUNCTION TESTS
     @Test
     fun pow_withPositiveExponent_returnsCorrectResult() {
@@ -302,7 +301,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun pow_withZeroExponent_returnsOne() {
         // Arrange
@@ -316,7 +315,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun pow_withOneExponent_returnsBase() {
         // Arrange
@@ -329,7 +328,7 @@ class KBigMathTest {
         // Assert
         assertEquals(base, actual)
     }
-    
+
     @Test
     fun pow_withZeroBase_returnsZero() {
         // Arrange
@@ -342,7 +341,7 @@ class KBigMathTest {
         // Assert
         assertTrue(actual.isZero())
     }
-    
+
     @Test
     fun pow_withZeroBaseAndZeroExponent_returnsOne() {
         // Arrange
@@ -356,7 +355,7 @@ class KBigMathTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun pow_withNegativeBase_returnsCorrectlySignedResult() {
         // Arrange
@@ -372,7 +371,7 @@ class KBigMathTest {
         assertEquals("16", evenResult.toString())
         assertEquals("-8", oddResult.toString())
     }
-    
+
     @Test
     fun pow_withNegativeExponent_throwsArithmeticException() {
         // Arrange

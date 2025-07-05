@@ -36,11 +36,12 @@ object KBigMath {
         val result = x.setScale(scale, 4)
         // Remove trailing zeros for cleaner output
         val resultStr = result.toString()
-        val cleanStr = if (resultStr.contains('.')) {
-            resultStr.trimEnd('0').trimEnd('.')
-        } else {
-            resultStr
-        }
+        val cleanStr =
+            if (resultStr.contains('.')) {
+                resultStr.trimEnd('0').trimEnd('.')
+            } else {
+                resultStr
+            }
         return if (cleanStr.isEmpty() || cleanStr == "-") {
             KBigDecimalFactory.ZERO
         } else {

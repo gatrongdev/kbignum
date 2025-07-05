@@ -2,12 +2,11 @@ package io.github.gatrongdev.kbignum.math
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 
 class KBigDecimalTest {
-    
     // ADD FUNCTION TESTS
     @Test
     fun add_twoPositiveNumbers_returnsCorrectSum() {
@@ -22,7 +21,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun add_positiveAndNegativeNumbers_returnsCorrectSum() {
         // Arrange
@@ -36,7 +35,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun add_twoNegativeNumbers_returnsCorrectSum() {
         // Arrange
@@ -50,7 +49,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun add_numberToZero_returnsTheNumberItself() {
         // Arrange
@@ -64,7 +63,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun add_zeroToNumber_returnsTheNumberItself() {
         // Arrange
@@ -78,7 +77,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun add_numbersWithDifferentScales_returnsCorrectSumAndScale() {
         // Arrange
@@ -92,7 +91,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun add_largeNumbers_handlesCorrectlyWithoutOverflow() {
         // Arrange
@@ -107,7 +106,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     // SUBTRACT FUNCTION TESTS
     @Test
     fun subtract_positiveNumbers_returnsCorrectDifference() {
@@ -122,7 +121,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun subtract_positiveAndNegativeNumbers_returnsCorrectDifference() {
         // Arrange
@@ -136,7 +135,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun subtract_twoNegativeNumbers_returnsCorrectDifference() {
         // Arrange
@@ -150,7 +149,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun subtract_numberFromItself_returnsZero() {
         // Arrange
@@ -163,7 +162,7 @@ class KBigDecimalTest {
         // Assert
         assertTrue(actual.isZero())
     }
-    
+
     @Test
     fun subtract_zeroFromNumber_returnsTheNumberItself() {
         // Arrange
@@ -177,7 +176,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun subtract_numberFromZero_returnsTheNegatedNumber() {
         // Arrange
@@ -191,7 +190,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun subtract_numbersWithDifferentScales_returnsCorrectDifferenceAndScale() {
         // Arrange
@@ -205,7 +204,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     // MULTIPLY FUNCTION TESTS
     @Test
     fun multiply_twoPositiveNumbers_returnsCorrectProduct() {
@@ -220,7 +219,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun multiply_positiveAndNegativeNumbers_returnsCorrectProduct() {
         // Arrange
@@ -234,7 +233,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun multiply_twoNegativeNumbers_returnsCorrectProduct() {
         // Arrange
@@ -248,7 +247,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun multiply_byZero_returnsZero() {
         // Arrange
@@ -261,7 +260,7 @@ class KBigDecimalTest {
         // Assert
         assertTrue(actual.isZero())
     }
-    
+
     @Test
     fun multiply_byOne_returnsTheNumberItself() {
         // Arrange
@@ -275,7 +274,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun multiply_byNegativeOne_returnsTheNegatedNumber() {
         // Arrange
@@ -289,7 +288,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun multiply_numbersWithDifferentScales_returnsCorrectProductAndScale() {
         // Arrange
@@ -303,7 +302,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun multiply_largeNumbers_handlesCorrectlyWithoutOverflow() {
         // Arrange
@@ -317,7 +316,7 @@ class KBigDecimalTest {
         val actualStr = actual.toString()
         assertTrue(actualStr.startsWith("246913578024691357802469135780"))
     }
-    
+
     // DIVIDE FUNCTION TESTS
     @Test
     fun divide_byIntegerDivisor_returnsCorrectQuotient() {
@@ -332,7 +331,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_numberByItself_returnsOne() {
         // Arrange
@@ -345,7 +344,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_numberByOne_returnsItself() {
         // Arrange
@@ -359,7 +358,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_zeroByNumber_returnsZero() {
         // Arrange
@@ -372,7 +371,7 @@ class KBigDecimalTest {
         // Assert
         assertTrue(actual.isZero())
     }
-    
+
     @Test
     fun divide_byZero_throwsArithmeticException() {
         // Arrange
@@ -384,7 +383,7 @@ class KBigDecimalTest {
             number.divide(zero, 2, RoundingMode.HALF_UP)
         }
     }
-    
+
     @Test
     fun divide_positiveAndNegativeNumbers_returnsCorrectlySignedQuotient() {
         // Arrange
@@ -398,7 +397,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_twoNegativeNumbers_returnsCorrectlySignedQuotient() {
         // Arrange
@@ -412,7 +411,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_withRoundingNeeded_appliesUpCorrectly() {
         // Arrange
@@ -426,7 +425,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_withRoundingNeeded_appliesDownCorrectly() {
         // Arrange
@@ -440,7 +439,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_withRoundingNeeded_appliesCeilingCorrectly() {
         // Arrange
@@ -454,7 +453,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_withRoundingNeeded_appliesFloorCorrectly() {
         // Arrange
@@ -468,7 +467,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_withRoundingNeeded_appliesHalfUpCorrectly() {
         // Arrange
@@ -482,7 +481,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_withRoundingNeeded_appliesHalfDownCorrectly() {
         // Arrange
@@ -496,7 +495,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_withRoundingNeeded_appliesHalfEvenCorrectly() {
         // Arrange
@@ -510,7 +509,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun divide_whenRoundingIsUnnecessaryButModeIsSet_doesNotThrowException() {
         // Arrange
@@ -524,7 +523,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     // SETSCALE FUNCTION TESTS
     @Test
     fun setScale_toIncreaseScale_padsWithZeros() {
@@ -539,7 +538,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertEquals(5, actual.scale())
     }
-    
+
     @Test
     fun setScale_toDecreaseScaleWithRoundingUp_roundsCorrectly() {
         // Arrange
@@ -553,7 +552,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertEquals(2, actual.scale())
     }
-    
+
     @Test
     fun setScale_toDecreaseScaleWithRoundingDown_roundsCorrectly() {
         // Arrange
@@ -567,7 +566,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertEquals(2, actual.scale())
     }
-    
+
     @Test
     fun setScale_toDecreaseScaleWithRoundingCeiling_roundsCorrectly() {
         // Arrange
@@ -581,7 +580,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertEquals(2, actual.scale())
     }
-    
+
     @Test
     fun setScale_toDecreaseScaleWithRoundingFloor_roundsCorrectly() {
         // Arrange
@@ -595,7 +594,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertEquals(2, actual.scale())
     }
-    
+
     @Test
     fun setScale_toDecreaseScaleWithRoundingHalfUp_roundsCorrectly() {
         // Arrange
@@ -609,7 +608,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertEquals(2, actual.scale())
     }
-    
+
     @Test
     fun setScale_toDecreaseScaleWithRoundingHalfDown_roundsCorrectly() {
         // Arrange
@@ -623,7 +622,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertEquals(2, actual.scale())
     }
-    
+
     @Test
     fun setScale_toDecreaseScaleWithRoundingHalfEven_roundsToEvenNeighbor() {
         // Arrange
@@ -637,7 +636,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertEquals(2, actual.scale())
     }
-    
+
     @Test
     fun setScale_whenRoundingIsNecessaryButModeIsUnnecessary_throwsArithmeticException() {
         // Arrange
@@ -648,7 +647,7 @@ class KBigDecimalTest {
             number.setScale(2, RoundingMode.UNNECESSARY)
         }
     }
-    
+
     @Test
     fun setScale_whenNoRoundingIsNeededAndModeIsUnnecessary_returnsSameValue() {
         // Arrange
@@ -662,7 +661,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertEquals(2, actual.scale())
     }
-    
+
     // ABS FUNCTION TESTS
     @Test
     fun abs_onPositiveNumber_returnsItself() {
@@ -676,7 +675,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun abs_onNegativeNumber_returnsPositiveCounterpart() {
         // Arrange
@@ -689,7 +688,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun abs_onZero_returnsZero() {
         // Arrange
@@ -703,7 +702,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertTrue(actual.isZero())
     }
-    
+
     // NEGATE FUNCTION TESTS
     @Test
     fun negate_onPositiveNumber_returnsNegativeCounterpart() {
@@ -717,7 +716,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun negate_onNegativeNumber_returnsPositiveCounterpart() {
         // Arrange
@@ -730,7 +729,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun negate_onZero_returnsZero() {
         // Arrange
@@ -744,7 +743,7 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
         assertTrue(actual.isZero())
     }
-    
+
     // COMPARISON TESTS
     @Test
     fun compareTo_aGreaterThanB_returnsPositive() {
@@ -758,7 +757,7 @@ class KBigDecimalTest {
         // Assert
         assertTrue(result > 0)
     }
-    
+
     @Test
     fun compareTo_aLessThanB_returnsNegative() {
         // Arrange
@@ -771,7 +770,7 @@ class KBigDecimalTest {
         // Assert
         assertTrue(result < 0)
     }
-    
+
     @Test
     fun compareTo_aEqualToB_returnsZero() {
         // Arrange
@@ -784,7 +783,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(0, result)
     }
-    
+
     @Test
     fun compareTo_numbersWithDifferentScalesButSameValue_returnsZero() {
         // Arrange
@@ -797,7 +796,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(0, result)
     }
-    
+
     @Test
     fun compareTo_withZero_worksCorrectly() {
         // Arrange
@@ -810,7 +809,7 @@ class KBigDecimalTest {
         assertTrue(negative.compareTo(zero) < 0)
         assertEquals(0, zero.compareTo(zero))
     }
-    
+
     // UTILITY FUNCTION TESTS
     @Test
     fun signum_onPositiveNumber_returnsOne() {
@@ -824,7 +823,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun signum_onNegativeNumber_returnsNegativeOne() {
         // Arrange
@@ -837,7 +836,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun signum_onZero_returnsZero() {
         // Arrange
@@ -850,7 +849,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun isZero_onZero_returnsTrue() {
         // Arrange
@@ -862,7 +861,7 @@ class KBigDecimalTest {
         // Assert
         assertTrue(actual)
     }
-    
+
     @Test
     fun isZero_onNonZero_returnsFalse() {
         // Arrange
@@ -874,7 +873,7 @@ class KBigDecimalTest {
         // Assert
         assertFalse(actual)
     }
-    
+
     @Test
     fun isPositive_onPositive_returnsTrue() {
         // Arrange
@@ -886,7 +885,7 @@ class KBigDecimalTest {
         // Assert
         assertTrue(actual)
     }
-    
+
     @Test
     fun isPositive_onZeroOrNegative_returnsFalse() {
         // Arrange
@@ -897,7 +896,7 @@ class KBigDecimalTest {
         assertFalse(zero.isPositive())
         assertFalse(negative.isPositive())
     }
-    
+
     @Test
     fun isNegative_onNegative_returnsTrue() {
         // Arrange
@@ -909,7 +908,7 @@ class KBigDecimalTest {
         // Assert
         assertTrue(actual)
     }
-    
+
     @Test
     fun isNegative_onZeroOrPositive_returnsFalse() {
         // Arrange
@@ -920,7 +919,7 @@ class KBigDecimalTest {
         assertFalse(zero.isNegative())
         assertFalse(positive.isNegative())
     }
-    
+
     // CONVERSION TESTS
     @Test
     fun toBigInteger_onNumberWithFraction_truncatesCorrectly() {
@@ -934,7 +933,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun toBigInteger_onNegativeNumber_truncatesCorrectly() {
         // Arrange
@@ -947,7 +946,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
-    
+
     @Test
     fun toString_preservesExactRepresentation() {
         // Arrange
@@ -960,7 +959,7 @@ class KBigDecimalTest {
         // Assert
         assertEquals(originalString, actual)
     }
-    
+
     @Test
     fun toString_onNumberWithTrailingZeros_includesTrailingZeros() {
         // Arrange

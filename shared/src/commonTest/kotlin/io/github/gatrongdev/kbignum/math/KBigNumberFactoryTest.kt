@@ -2,12 +2,10 @@ package io.github.gatrongdev.kbignum.math
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class KBigNumberFactoryTest {
-
     // KBIGDECIMAL FACTORY TESTS
     @Test
     fun factoryFromString_withValidInput_returnsCorrectKBigDecimal() {
@@ -21,7 +19,7 @@ class KBigNumberFactoryTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun kBigDecimalFactoryFromString_withInvalidInput_throwsNumberFormatException() {
         // Arrange
@@ -32,7 +30,7 @@ class KBigNumberFactoryTest {
             KBigDecimalFactory.fromString(invalidInput)
         }
     }
-    
+
     @Test
     fun factoryFromInt_returnsCorrectKBigDecimal() {
         // Arrange
@@ -45,7 +43,7 @@ class KBigNumberFactoryTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun factoryFromLong_returnsCorrectKBigDecimal() {
         // Arrange
@@ -58,19 +56,19 @@ class KBigNumberFactoryTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun kBigDecimalFactoryConstants_ZeroOneTen_haveCorrectValues() {
         // Arrange & Act & Assert
         assertEquals("0", KBigDecimalFactory.ZERO.toString())
         assertEquals("1", KBigDecimalFactory.ONE.toString())
         assertEquals("10", KBigDecimalFactory.TEN.toString())
-        
+
         assertTrue(KBigDecimalFactory.ZERO.isZero())
         assertTrue(KBigDecimalFactory.ONE.isPositive())
         assertTrue(KBigDecimalFactory.TEN.isPositive())
     }
-    
+
     // KBIGINTEGER FACTORY TESTS
     @Test
     fun factoryFromString_withValidInteger_returnsCorrectKBigInteger() {
@@ -84,7 +82,7 @@ class KBigNumberFactoryTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun kBigIntegerFactoryFromString_withInvalidInput_throwsNumberFormatException() {
         // Arrange
@@ -95,7 +93,7 @@ class KBigNumberFactoryTest {
             KBigIntegerFactory.fromString(invalidInput)
         }
     }
-    
+
     @Test
     fun factoryFromInt_returnsCorrectKBigInteger() {
         // Arrange
@@ -108,7 +106,7 @@ class KBigNumberFactoryTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun factoryFromLong_returnsCorrectKBigInteger() {
         // Arrange
@@ -121,14 +119,14 @@ class KBigNumberFactoryTest {
         // Assert
         assertEquals(expected, actual.toString())
     }
-    
+
     @Test
     fun kBigIntegerFactoryConstants_ZeroOneTen_haveCorrectValues() {
         // Arrange & Act & Assert
         assertEquals("0", KBigIntegerFactory.ZERO.toString())
         assertEquals("1", KBigIntegerFactory.ONE.toString())
         assertEquals("10", KBigIntegerFactory.TEN.toString())
-        
+
         assertTrue(KBigIntegerFactory.ZERO.isZero())
         assertTrue(KBigIntegerFactory.ONE.isPositive())
         assertTrue(KBigIntegerFactory.TEN.isPositive())
