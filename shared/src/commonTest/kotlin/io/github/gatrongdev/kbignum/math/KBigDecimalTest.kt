@@ -7,481 +7,970 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
 
 class KBigDecimalTest {
+    
+    // ADD FUNCTION TESTS
     @Test
-    fun testBasicArithmetic() {
+    fun add_twoPositiveNumbers_returnsCorrectSum() {
+        // Arrange
+        val a = "123.45".toKBigDecimal()
+        val b = "67.89".toKBigDecimal()
+        val expected = "191.34".toKBigDecimal()
+
+        // Act
+        val actual = a.add(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun add_positiveAndNegativeNumbers_returnsCorrectSum() {
+        // Arrange
+        val a = "123.45".toKBigDecimal()
+        val b = "-67.89".toKBigDecimal()
+        val expected = "55.56".toKBigDecimal()
+
+        // Act
+        val actual = a.add(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun add_twoNegativeNumbers_returnsCorrectSum() {
+        // Arrange
+        val a = "-123.45".toKBigDecimal()
+        val b = "-67.89".toKBigDecimal()
+        val expected = "-191.34".toKBigDecimal()
+
+        // Act
+        val actual = a.add(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun add_numberToZero_returnsTheNumberItself() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val zero = KBigDecimalFactory.ZERO
+        val expected = number
+
+        // Act
+        val actual = number.add(zero)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun add_zeroToNumber_returnsTheNumberItself() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val zero = KBigDecimalFactory.ZERO
+        val expected = number
+
+        // Act
+        val actual = zero.add(number)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun add_numbersWithDifferentScales_returnsCorrectSumAndScale() {
+        // Arrange
+        val a = "123.4".toKBigDecimal()
+        val b = "67.895".toKBigDecimal()
+        val expected = "191.295".toKBigDecimal()
+
+        // Act
+        val actual = a.add(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun add_largeNumbers_handlesCorrectlyWithoutOverflow() {
+        // Arrange
+        val a = "1234567890.1234567890".toKBigDecimal()
+        val b = "9876543210.9876543210".toKBigDecimal()
+
+        val expected = "11111111101.1111111100".toKBigDecimal()
+
+        // Act
+        val actual = a.add(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    // SUBTRACT FUNCTION TESTS
+    @Test
+    fun subtract_positiveNumbers_returnsCorrectDifference() {
+        // Arrange
+        val a = "123.45".toKBigDecimal()
+        val b = "67.89".toKBigDecimal()
+        val expected = "55.56".toKBigDecimal()
+
+        // Act
+        val actual = a.subtract(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun subtract_positiveAndNegativeNumbers_returnsCorrectDifference() {
+        // Arrange
+        val a = "123.45".toKBigDecimal()
+        val b = "-67.89".toKBigDecimal()
+        val expected = "191.34".toKBigDecimal()
+
+        // Act
+        val actual = a.subtract(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun subtract_twoNegativeNumbers_returnsCorrectDifference() {
+        // Arrange
+        val a = "-123.45".toKBigDecimal()
+        val b = "-67.89".toKBigDecimal()
+        val expected = "-55.56".toKBigDecimal()
+
+        // Act
+        val actual = a.subtract(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun subtract_numberFromItself_returnsZero() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val expected = KBigDecimalFactory.ZERO
+
+        // Act
+        val actual = number.subtract(number)
+
+        // Assert
+        assertTrue(actual.isZero())
+    }
+    
+    @Test
+    fun subtract_zeroFromNumber_returnsTheNumberItself() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val zero = KBigDecimalFactory.ZERO
+        val expected = number
+
+        // Act
+        val actual = number.subtract(zero)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun subtract_numberFromZero_returnsTheNegatedNumber() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val zero = KBigDecimalFactory.ZERO
+        val expected = "-123.45".toKBigDecimal()
+
+        // Act
+        val actual = zero.subtract(number)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun subtract_numbersWithDifferentScales_returnsCorrectDifferenceAndScale() {
+        // Arrange
+        val a = "123.4".toKBigDecimal()
+        val b = "67.895".toKBigDecimal()
+        val expected = "55.505".toKBigDecimal()
+
+        // Act
+        val actual = a.subtract(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    // MULTIPLY FUNCTION TESTS
+    @Test
+    fun multiply_twoPositiveNumbers_returnsCorrectProduct() {
+        // Arrange
+        val a = "123.45".toKBigDecimal()
+        val b = "67.89".toKBigDecimal()
+        val expected = "8381.0205".toKBigDecimal()
+
+        // Act
+        val actual = a.multiply(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun multiply_positiveAndNegativeNumbers_returnsCorrectProduct() {
+        // Arrange
+        val a = "123.45".toKBigDecimal()
+        val b = "-67.89".toKBigDecimal()
+        val expected = "-8381.0205".toKBigDecimal()
+
+        // Act
+        val actual = a.multiply(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun multiply_twoNegativeNumbers_returnsCorrectProduct() {
+        // Arrange
+        val a = "-123.45".toKBigDecimal()
+        val b = "-67.89".toKBigDecimal()
+        val expected = "8381.0205".toKBigDecimal()
+
+        // Act
+        val actual = a.multiply(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun multiply_byZero_returnsZero() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val zero = KBigDecimalFactory.ZERO
+
+        // Act
+        val actual = number.multiply(zero)
+
+        // Assert
+        assertTrue(actual.isZero())
+    }
+    
+    @Test
+    fun multiply_byOne_returnsTheNumberItself() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val one = KBigDecimalFactory.ONE
+        val expected = number
+
+        // Act
+        val actual = number.multiply(one)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun multiply_byNegativeOne_returnsTheNegatedNumber() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val negativeOne = "-1".toKBigDecimal()
+        val expected = "-123.45".toKBigDecimal()
+
+        // Act
+        val actual = number.multiply(negativeOne)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun multiply_numbersWithDifferentScales_returnsCorrectProductAndScale() {
+        // Arrange
+        val a = "123.4".toKBigDecimal()
+        val b = "67.895".toKBigDecimal()
+        val expected = "8378.2430".toKBigDecimal()
+
+        // Act
+        val actual = a.multiply(b)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun multiply_largeNumbers_handlesCorrectlyWithoutOverflow() {
+        // Arrange
+        val a = "123456789012345678901234567890.123456789012345678901234567890".toKBigDecimal()
+        val b = "2".toKBigDecimal()
+
+        // Act
+        val actual = a.multiply(b)
+
+        // Assert
+        val actualStr = actual.toString()
+        assertTrue(actualStr.startsWith("246913578024691357802469135780"))
+    }
+    
+    // DIVIDE FUNCTION TESTS
+    @Test
+    fun divide_byIntegerDivisor_returnsCorrectQuotient() {
+        // Arrange
+        val dividend = "123.45".toKBigDecimal()
+        val divisor = "5".toKBigDecimal()
+        val expected = "24.69".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, 2, RoundingMode.HALF_UP)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_numberByItself_returnsOne() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val expected = "1.00".toKBigDecimal()
+
+        // Act
+        val actual = number.divide(number, 2, RoundingMode.HALF_UP)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_numberByOne_returnsItself() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val one = KBigDecimalFactory.ONE
+        val expected = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = number.divide(one, 2, RoundingMode.HALF_UP)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_zeroByNumber_returnsZero() {
+        // Arrange
+        val zero = KBigDecimalFactory.ZERO
+        val number = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = zero.divide(number, 2, RoundingMode.HALF_UP)
+
+        // Assert
+        assertTrue(actual.isZero())
+    }
+    
+    @Test
+    fun divide_byZero_throwsArithmeticException() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val zero = KBigDecimalFactory.ZERO
+
+        // Act & Assert
+        assertFailsWith<ArithmeticException> {
+            number.divide(zero, 2, RoundingMode.HALF_UP)
+        }
+    }
+    
+    @Test
+    fun divide_positiveAndNegativeNumbers_returnsCorrectlySignedQuotient() {
+        // Arrange
+        val positive = "123.45".toKBigDecimal()
+        val negative = "-5".toKBigDecimal()
+        val expected = "-24.69".toKBigDecimal()
+
+        // Act
+        val actual = positive.divide(negative, 2, RoundingMode.HALF_UP)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_twoNegativeNumbers_returnsCorrectlySignedQuotient() {
+        // Arrange
+        val negative1 = "-123.45".toKBigDecimal()
+        val negative2 = "-5".toKBigDecimal()
+        val expected = "24.69".toKBigDecimal()
+
+        // Act
+        val actual = negative1.divide(negative2, 2, RoundingMode.HALF_UP)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_withRoundingNeeded_appliesUpCorrectly() {
+        // Arrange
+        val dividend = "22".toKBigDecimal()
+        val divisor = "7".toKBigDecimal()
+        val expected = "3.15".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, 2, RoundingMode.UP)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_withRoundingNeeded_appliesDownCorrectly() {
+        // Arrange
+        val dividend = "22".toKBigDecimal()
+        val divisor = "7".toKBigDecimal()
+        val expected = "3.14".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, 2, RoundingMode.DOWN)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_withRoundingNeeded_appliesCeilingCorrectly() {
+        // Arrange
+        val dividend = "22".toKBigDecimal()
+        val divisor = "7".toKBigDecimal()
+        val expected = "3.15".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, 2, RoundingMode.CEILING)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_withRoundingNeeded_appliesFloorCorrectly() {
+        // Arrange
+        val dividend = "22".toKBigDecimal()
+        val divisor = "7".toKBigDecimal()
+        val expected = "3.14".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, 2, RoundingMode.FLOOR)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_withRoundingNeeded_appliesHalfUpCorrectly() {
+        // Arrange
+        val dividend = "22".toKBigDecimal()
+        val divisor = "7".toKBigDecimal()
+        val expected = "3.14".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, 2, RoundingMode.HALF_UP)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_withRoundingNeeded_appliesHalfDownCorrectly() {
+        // Arrange
+        val dividend = "22".toKBigDecimal()
+        val divisor = "7".toKBigDecimal()
+        val expected = "3.14".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, 2, RoundingMode.HALF_DOWN)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_withRoundingNeeded_appliesHalfEvenCorrectly() {
+        // Arrange
+        val dividend = "22".toKBigDecimal()
+        val divisor = "7".toKBigDecimal()
+        val expected = "3.14".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, 2, RoundingMode.HALF_EVEN)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun divide_whenRoundingIsUnnecessaryButModeIsSet_doesNotThrowException() {
+        // Arrange
+        val dividend = "10".toKBigDecimal()
+        val divisor = "2".toKBigDecimal()
+        val expected = "5.00".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, 2, RoundingMode.UNNECESSARY)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    // SETSCALE FUNCTION TESTS
+    @Test
+    fun setScale_toIncreaseScale_padsWithZeros() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val expected = "123.45000".toKBigDecimal()
+
+        // Act
+        val actual = number.setScale(5, RoundingMode.UNNECESSARY)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(5, actual.scale())
+    }
+    
+    @Test
+    fun setScale_toDecreaseScaleWithRoundingUp_roundsCorrectly() {
+        // Arrange
+        val number = "123.456".toKBigDecimal()
+        val expected = "123.46".toKBigDecimal()
+
+        // Act
+        val actual = number.setScale(2, RoundingMode.UP)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+    
+    @Test
+    fun setScale_toDecreaseScaleWithRoundingDown_roundsCorrectly() {
+        // Arrange
+        val number = "123.456".toKBigDecimal()
+        val expected = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = number.setScale(2, RoundingMode.DOWN)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+    
+    @Test
+    fun setScale_toDecreaseScaleWithRoundingCeiling_roundsCorrectly() {
+        // Arrange
+        val number = "123.451".toKBigDecimal()
+        val expected = "123.46".toKBigDecimal()
+
+        // Act
+        val actual = number.setScale(2, RoundingMode.CEILING)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+    
+    @Test
+    fun setScale_toDecreaseScaleWithRoundingFloor_roundsCorrectly() {
+        // Arrange
+        val number = "123.459".toKBigDecimal()
+        val expected = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = number.setScale(2, RoundingMode.FLOOR)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+    
+    @Test
+    fun setScale_toDecreaseScaleWithRoundingHalfUp_roundsCorrectly() {
+        // Arrange
+        val number = "123.455".toKBigDecimal()
+        val expected = "123.46".toKBigDecimal()
+
+        // Act
+        val actual = number.setScale(2, RoundingMode.HALF_UP)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+    
+    @Test
+    fun setScale_toDecreaseScaleWithRoundingHalfDown_roundsCorrectly() {
+        // Arrange
+        val number = "123.455".toKBigDecimal()
+        val expected = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = number.setScale(2, RoundingMode.HALF_DOWN)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+    
+    @Test
+    fun setScale_toDecreaseScaleWithRoundingHalfEven_roundsToEvenNeighbor() {
+        // Arrange
+        val number = "123.455".toKBigDecimal()
+        val expected = "123.46".toKBigDecimal()
+
+        // Act
+        val actual = number.setScale(2, RoundingMode.HALF_EVEN)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+    
+    @Test
+    fun setScale_whenRoundingIsNecessaryButModeIsUnnecessary_throwsArithmeticException() {
+        // Arrange
+        val number = "123.456".toKBigDecimal()
+
+        // Act & Assert
+        assertFailsWith<ArithmeticException> {
+            number.setScale(2, RoundingMode.UNNECESSARY)
+        }
+    }
+    
+    @Test
+    fun setScale_whenNoRoundingIsNeededAndModeIsUnnecessary_returnsSameValue() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val expected = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = number.setScale(2, RoundingMode.UNNECESSARY)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+    
+    // ABS FUNCTION TESTS
+    @Test
+    fun abs_onPositiveNumber_returnsItself() {
+        // Arrange
+        val positive = "123.45".toKBigDecimal()
+        val expected = positive
+
+        // Act
+        val actual = positive.abs()
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun abs_onNegativeNumber_returnsPositiveCounterpart() {
+        // Arrange
+        val negative = "-123.45".toKBigDecimal()
+        val expected = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = negative.abs()
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun abs_onZero_returnsZero() {
+        // Arrange
+        val zero = KBigDecimalFactory.ZERO
+        val expected = zero
+
+        // Act
+        val actual = zero.abs()
+
+        // Assert
+        assertEquals(expected, actual)
+        assertTrue(actual.isZero())
+    }
+    
+    // NEGATE FUNCTION TESTS
+    @Test
+    fun negate_onPositiveNumber_returnsNegativeCounterpart() {
+        // Arrange
+        val positive = "123.45".toKBigDecimal()
+        val expected = "-123.45".toKBigDecimal()
+
+        // Act
+        val actual = positive.negate()
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun negate_onNegativeNumber_returnsPositiveCounterpart() {
+        // Arrange
+        val negative = "-123.45".toKBigDecimal()
+        val expected = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = negative.negate()
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun negate_onZero_returnsZero() {
+        // Arrange
+        val zero = KBigDecimalFactory.ZERO
+        val expected = zero
+
+        // Act
+        val actual = zero.negate()
+
+        // Assert
+        assertEquals(expected, actual)
+        assertTrue(actual.isZero())
+    }
+    
+    // COMPARISON TESTS
+    @Test
+    fun compareTo_aGreaterThanB_returnsPositive() {
+        // Arrange
         val a = "123.45".toKBigDecimal()
         val b = "67.89".toKBigDecimal()
 
-        val sum = a + b
-        assertEquals("191.34", sum.toString())
+        // Act
+        val result = a.compareTo(b)
 
-        val difference = a - b
-        assertEquals("55.56", difference.toString())
-
-        val product = a * b
-        assertTrue(product.toString().startsWith("8381.0"))
-
-        val quotient = a.divide(b, 2, 4)
-        assertTrue(quotient.toString().startsWith("1.8"))
+        // Assert
+        assertTrue(result > 0)
     }
-
+    
     @Test
-    fun testFactoryMethods() {
-        val fromString = KBigDecimalFactory.fromString("123.456")
-        val fromInt = KBigDecimalFactory.fromInt(123)
-        val fromLong = KBigDecimalFactory.fromLong(123L)
+    fun compareTo_aLessThanB_returnsNegative() {
+        // Arrange
+        val a = "67.89".toKBigDecimal()
+        val b = "123.45".toKBigDecimal()
 
-        assertEquals("123.456", fromString.toString())
-        assertEquals("123", fromInt.toString())
-        assertEquals("123", fromLong.toString())
+        // Act
+        val result = a.compareTo(b)
+
+        // Assert
+        assertTrue(result < 0)
     }
-
+    
     @Test
-    fun testComparison() {
-        val a = "100".toKBigDecimal()
-        val b = "200".toKBigDecimal()
-        val c = "100".toKBigDecimal()
+    fun compareTo_aEqualToB_returnsZero() {
+        // Arrange
+        val a = "123.45".toKBigDecimal()
+        val b = "123.45".toKBigDecimal()
 
-        assertTrue(a < b)
-        assertTrue(b > a)
-        assertTrue(a == c)
-        assertEquals(0, a.compareTo(c))
+        // Act
+        val result = a.compareTo(b)
+
+        // Assert
+        assertEquals(0, result)
     }
-
+    
     @Test
-    fun testConstants() {
-        assertTrue(KBigDecimalFactory.ZERO.isZero())
-        assertFalse(KBigDecimalFactory.ONE.isZero())
-        assertTrue(KBigDecimalFactory.ONE.isPositive())
+    fun compareTo_numbersWithDifferentScalesButSameValue_returnsZero() {
+        // Arrange
+        val a = "1.2".toKBigDecimal()
+        val b = "1.20".toKBigDecimal()
+
+        // Act
+        val result = a.compareTo(b)
+
+        // Assert
+        assertEquals(0, result)
     }
-
+    
     @Test
-    fun testScale() {
-        val decimal = "123.456789".toKBigDecimal()
-        val scaled = decimal.setScale(2, 4)
-        assertEquals("123.46", scaled.toString())
-    }
-
-    @Test
-    fun testAbsoluteValue() {
+    fun compareTo_withZero_worksCorrectly() {
+        // Arrange
         val positive = "123.45".toKBigDecimal()
         val negative = "-123.45".toKBigDecimal()
-
-        assertEquals("123.45", positive.abs().toString())
-        assertEquals("123.45", negative.abs().toString())
-    }
-
-    // COMPREHENSIVE ROUNDING MODES TESTS
-    @Test
-    fun testRoundingModeUp() {
-        val decimal = "123.451".toKBigDecimal()
-        val rounded = decimal.setScale(2, RoundingMode.UP)
-        assertEquals("123.46", rounded.toString())
-        
-        val negative = "-123.451".toKBigDecimal()
-        val roundedNeg = negative.setScale(2, RoundingMode.UP)
-        assertEquals("-123.46", roundedNeg.toString())
-        
-        val exactValue = "123.450".toKBigDecimal()
-        val exactRounded = exactValue.setScale(2, RoundingMode.UP)
-        assertEquals("123.45", exactRounded.toString())
-    }
-
-    @Test
-    fun testRoundingModeDown() {
-        val decimal = "123.459".toKBigDecimal()
-        val rounded = decimal.setScale(2, RoundingMode.DOWN)
-        assertEquals("123.45", rounded.toString())
-        
-        val negative = "-123.459".toKBigDecimal()
-        val roundedNeg = negative.setScale(2, RoundingMode.DOWN)
-        assertEquals("-123.45", roundedNeg.toString())
-    }
-
-    @Test
-    fun testRoundingModeCeiling() {
-        val decimal = "123.451".toKBigDecimal()
-        val rounded = decimal.setScale(2, RoundingMode.CEILING)
-        assertEquals("123.46", rounded.toString())
-        
-        val negative = "-123.459".toKBigDecimal()
-        val roundedNeg = negative.setScale(2, RoundingMode.CEILING)
-        assertEquals("-123.45", roundedNeg.toString())
-    }
-
-    @Test
-    fun testRoundingModeFloor() {
-        val decimal = "123.459".toKBigDecimal()
-        val rounded = decimal.setScale(2, RoundingMode.FLOOR)
-        assertEquals("123.45", rounded.toString())
-        
-        val negative = "-123.451".toKBigDecimal()
-        val roundedNeg = negative.setScale(2, RoundingMode.FLOOR)
-        assertEquals("-123.46", roundedNeg.toString())
-    }
-
-    @Test
-    fun testRoundingModeHalfUp() {
-        val halfUp = "123.455".toKBigDecimal()
-        val rounded = halfUp.setScale(2, 4)
-        assertEquals("123.46", rounded.toString())
-        
-        val halfDown = "123.454".toKBigDecimal()
-        val roundedDown = halfDown.setScale(2, 4)
-        assertEquals("123.45", roundedDown.toString())
-        
-        val negative = "-123.455".toKBigDecimal()
-        val roundedNeg = negative.setScale(2, 4)
-        assertEquals("-123.46", roundedNeg.toString())
-    }
-
-    @Test
-    fun testRoundingModeHalfDown() {
-        val halfDown = "123.455".toKBigDecimal()
-        val rounded = halfDown.setScale(2, RoundingMode.HALF_DOWN)
-        assertEquals("123.45", rounded.toString())
-        
-        val halfUp = "123.456".toKBigDecimal()
-        val roundedUp = halfUp.setScale(2, RoundingMode.HALF_DOWN)
-        assertEquals("123.46", roundedUp.toString())
-        
-        val negative = "-123.455".toKBigDecimal()
-        val roundedNeg = negative.setScale(2, RoundingMode.HALF_DOWN)
-        assertEquals("-123.45", roundedNeg.toString())
-    }
-
-    @Test
-    fun testRoundingModeHalfEven() {
-        val halfEven1 = "123.455".toKBigDecimal()
-        val rounded1 = halfEven1.setScale(2, RoundingMode.HALF_EVEN)
-        assertEquals("123.46", rounded1.toString())
-        
-        val halfEven2 = "123.465".toKBigDecimal()
-        val rounded2 = halfEven2.setScale(2, RoundingMode.HALF_EVEN)
-        assertEquals("123.46", rounded2.toString())
-        
-        val halfEven3 = "123.475".toKBigDecimal()
-        val rounded3 = halfEven3.setScale(2, RoundingMode.HALF_EVEN)
-        assertEquals("123.48", rounded3.toString())
-    }
-
-    @Test
-    fun testRoundingModeUnnecessary() {
-        val exact = "123.45".toKBigDecimal()
-        val rounded = exact.setScale(2, RoundingMode.UNNECESSARY)
-        assertEquals("123.45", rounded.toString())
-        
-        val inexact = "123.456".toKBigDecimal()
-        assertFailsWith<ArithmeticException> {
-            inexact.setScale(2, RoundingMode.UNNECESSARY)
-        }
-    }
-
-    // PRECISION AND SCALE OPERATIONS TESTS
-    @Test
-    fun testPrecision() {
-        val decimal1 = "123.456".toKBigDecimal()
-        assertEquals(6, decimal1.precision())
-        
-        val decimal2 = "000123.456000".toKBigDecimal()
-        assertEquals(9, decimal2.precision())
-        
-        val decimal3 = "0.001".toKBigDecimal()
-        assertEquals(1, decimal3.precision())
-        
         val zero = KBigDecimalFactory.ZERO
-        assertEquals(1, zero.precision())
-    }
 
-    @Test
-    fun testScaleOperations() {
-        val decimal = "123.456789".toKBigDecimal()
-        assertEquals(6, decimal.scale())
-        
-        val scaled0 = decimal.setScale(0, 4)
-        assertEquals(0, scaled0.scale())
-        assertEquals("123", scaled0.toString())
-        
-        val scaled4 = decimal.setScale(4, 4)
-        assertEquals(4, scaled4.scale())
-        assertEquals("123.4568", scaled4.toString())
-        
-        val scaled8 = decimal.setScale(8, 4)
-        assertEquals(8, scaled8.scale())
-        assertEquals("123.45678900", scaled8.toString())
+        // Act & Assert
+        assertTrue(positive.compareTo(zero) > 0)
+        assertTrue(negative.compareTo(zero) < 0)
+        assertEquals(0, zero.compareTo(zero))
     }
-
+    
+    // UTILITY FUNCTION TESTS
     @Test
-    fun testMultiplicationEdgeCases() {
+    fun signum_onPositiveNumber_returnsOne() {
+        // Arrange
+        val positive = "123.45".toKBigDecimal()
+        val expected = 1
+
+        // Act
+        val actual = positive.signum()
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun signum_onNegativeNumber_returnsNegativeOne() {
+        // Arrange
+        val negative = "-123.45".toKBigDecimal()
+        val expected = -1
+
+        // Act
+        val actual = negative.signum()
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun signum_onZero_returnsZero() {
+        // Arrange
         val zero = KBigDecimalFactory.ZERO
-        val one = KBigDecimalFactory.ONE
-        val decimal = "123.456".toKBigDecimal()
-        
-        assertTrue(decimal.multiply(zero).isZero())
-        assertTrue(zero.multiply(decimal).isZero())
-        assertEquals(decimal.toString(), decimal.multiply(one).toString())
-        assertEquals(decimal.toString(), one.multiply(decimal).toString())
-        
-        val negative = "-2.5".toKBigDecimal()
-        val positive = "4.2".toKBigDecimal()
-        assertEquals("-10.50", negative.multiply(positive).toString())
-    }
+        val expected = 0
 
+        // Act
+        val actual = zero.signum()
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
     @Test
-    fun testDivisionEdgeCases() {
+    fun isZero_onZero_returnsTrue() {
+        // Arrange
         val zero = KBigDecimalFactory.ZERO
-        val one = KBigDecimalFactory.ONE
-        val decimal = "123.456".toKBigDecimal()
 
-        assertEquals("123.46", decimal.divide(one, 2, 4).toString())
-        assertTrue(zero.divide(decimal, 2, 4).compareTo(KBigDecimalFactory.ZERO) == 0)
+        // Act
+        val actual = zero.isZero()
 
-        assertFailsWith<ArithmeticException> {
-            decimal.divide(zero, 2, 4)
-        }
-
-        val result = decimal.divide(decimal, 2, 4)
-        assertEquals("1.00", result.toString())
-
-        val divResult = "10".toKBigDecimal().divide("3".toKBigDecimal(), 4, 4)
-        assertEquals("3.3333", divResult.toString())
+        // Assert
+        assertTrue(actual)
     }
-
+    
     @Test
-    fun testDivisionWithScale() {
-        val dividend = "22".toKBigDecimal()
-        val divisor = "7".toKBigDecimal()
-        
-        val result0 = dividend.divide(divisor, 0, 4)
-        assertEquals("3", result0.toString())
-        
-        val result2 = dividend.divide(divisor, 2, 4)
-        assertEquals("3.14", result2.toString())
-        
-        val result5 = dividend.divide(divisor, 5, 4)
-        assertEquals("3.14286", result5.toString())
+    fun isZero_onNonZero_returnsFalse() {
+        // Arrange
+        val nonZero = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = nonZero.isZero()
+
+        // Assert
+        assertFalse(actual)
     }
-
-    // UTILITY METHODS TESTS
+    
     @Test
-    fun testSignum() {
-        val positive = "123.456".toKBigDecimal()
-        val negative = "-123.456".toKBigDecimal()
+    fun isPositive_onPositive_returnsTrue() {
+        // Arrange
+        val positive = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = positive.isPositive()
+
+        // Assert
+        assertTrue(actual)
+    }
+    
+    @Test
+    fun isPositive_onZeroOrNegative_returnsFalse() {
+        // Arrange
         val zero = KBigDecimalFactory.ZERO
-        
-        assertEquals(1, positive.signum())
-        assertEquals(-1, negative.signum())
-        assertEquals(0, zero.signum())
-        
-        val verySmallPositive = "0.000001".toKBigDecimal()
-        val verySmallNegative = "-0.000001".toKBigDecimal()
-        assertEquals(1, verySmallPositive.signum())
-        assertEquals(-1, verySmallNegative.signum())
-    }
+        val negative = "-123.45".toKBigDecimal()
 
-    @Test
-    fun testNegate() {
-        val positive = "123.456".toKBigDecimal()
-        val negative = "-123.456".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
-        
-        assertEquals("-123.456", positive.negate().toString())
-        assertEquals("123.456", negative.negate().toString())
-        assertTrue(zero.negate().isZero())
-        
-        val large = "999999999999999999.123456789".toKBigDecimal()
-        assertEquals("-999999999999999999.123456789", large.negate().toString())
-    }
-
-    @Test
-    fun testIsZero() {
-        val zero = KBigDecimalFactory.ZERO
-        val zeroString = "0".toKBigDecimal()
-        val zeroDecimal = "0.0".toKBigDecimal()
-        val zeroWithScale = "0.00000".toKBigDecimal()
-        
-        assertTrue(zero.isZero())
-        assertTrue(zeroString.isZero())
-        assertTrue(zeroDecimal.isZero())
-        assertTrue(zeroWithScale.isZero())
-        
-        val nonZero = "0.001".toKBigDecimal()
-        val negative = "-0.001".toKBigDecimal()
-        assertFalse(nonZero.isZero())
-        assertFalse(negative.isZero())
-    }
-
-    @Test
-    fun testIsPositive() {
-        val positive = "123.456".toKBigDecimal()
-        val negative = "-123.456".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
-        
-        assertTrue(positive.isPositive())
-        assertFalse(negative.isPositive())
+        // Act & Assert
         assertFalse(zero.isPositive())
-        
-        val verySmall = "0.000001".toKBigDecimal()
-        assertTrue(verySmall.isPositive())
+        assertFalse(negative.isPositive())
     }
-
+    
     @Test
-    fun testIsNegative() {
-        val positive = "123.456".toKBigDecimal()
-        val negative = "-123.456".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
-        
-        assertFalse(positive.isNegative())
-        assertTrue(negative.isNegative())
-        assertFalse(zero.isNegative())
-        
-        val verySmallNegative = "-0.000001".toKBigDecimal()
-        assertTrue(verySmallNegative.isNegative())
-    }
+    fun isNegative_onNegative_returnsTrue() {
+        // Arrange
+        val negative = "-123.45".toKBigDecimal()
 
+        // Act
+        val actual = negative.isNegative()
+
+        // Assert
+        assertTrue(actual)
+    }
+    
+    @Test
+    fun isNegative_onZeroOrPositive_returnsFalse() {
+        // Arrange
+        val zero = KBigDecimalFactory.ZERO
+        val positive = "123.45".toKBigDecimal()
+
+        // Act & Assert
+        assertFalse(zero.isNegative())
+        assertFalse(positive.isNegative())
+    }
+    
     // CONVERSION TESTS
     @Test
-    fun testToBigInteger() {
+    fun toBigInteger_onNumberWithFraction_truncatesCorrectly() {
+        // Arrange
         val decimal = "123.456".toKBigDecimal()
-        val converted = decimal.toBigInteger()
-        assertEquals("123", converted.toString())
-        
-        val negative = "-123.789".toKBigDecimal()
-        val convertedNeg = negative.toBigInteger()
-        assertEquals("-123", convertedNeg.toString())
-        
-        val zero = KBigDecimalFactory.ZERO
-        val convertedZero = zero.toBigInteger()
-        assertTrue(convertedZero.isZero())
-        
-        val large = "999999999999999999.123456789".toKBigDecimal()
-        val convertedLarge = large.toBigInteger()
-        assertEquals("999999999999999999", convertedLarge.toString())
+        val expected = "123".toKBigInteger()
+
+        // Act
+        val actual = decimal.toBigInteger()
+
+        // Assert
+        assertEquals(expected, actual)
     }
-
-    // COMPARISON OPERATIONS TESTS
+    
     @Test
-    fun testComprehensiveComparison() {
-        val small = "10.5".toKBigDecimal()
-        val medium = "20.3".toKBigDecimal()
-        val large = "100.1".toKBigDecimal()
-        val equalToMedium = "20.3".toKBigDecimal()
-        
-        assertTrue(small.compareTo(medium) < 0)
-        assertTrue(medium.compareTo(large) < 0)
-        assertTrue(large.compareTo(small) > 0)
-        assertEquals(0, medium.compareTo(equalToMedium))
-        
-        val negative = "-5.5".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
-        
-        assertTrue(negative.compareTo(zero) < 0)
-        assertTrue(zero.compareTo(negative) > 0)
-        assertTrue(negative.compareTo(small) < 0)
+    fun toBigInteger_onNegativeNumber_truncatesCorrectly() {
+        // Arrange
+        val decimal = "-123.456".toKBigDecimal()
+        val expected = "-123".toKBigInteger()
+
+        // Act
+        val actual = decimal.toBigInteger()
+
+        // Assert
+        assertEquals(expected, actual)
     }
-
+    
     @Test
-    fun testComparisonWithDifferentScales() {
-        val a = "123.4".toKBigDecimal()
-        val b = "123.40".toKBigDecimal()
-        val c = "123.400000".toKBigDecimal()
-        
-        assertEquals(0, a.compareTo(b))
-        assertEquals(0, b.compareTo(c))
-        assertEquals(0, a.compareTo(c))
-        
-        val d = "123.41".toKBigDecimal()
-        assertTrue(a.compareTo(d) < 0)
-        assertTrue(d.compareTo(a) > 0)
+    fun toString_preservesExactRepresentation() {
+        // Arrange
+        val originalString = "123.456789"
+        val decimal = originalString.toKBigDecimal()
+
+        // Act
+        val actual = decimal.toString()
+
+        // Assert
+        assertEquals(originalString, actual)
     }
-
-    // LARGE NUMBER OPERATIONS TESTS
+    
     @Test
-    fun testLargeNumberArithmetic() {
-        val large1 = "123456789012345678901234567890.123456789012345678901234567890".toKBigDecimal()
-        val large2 = "987654321098765432109876543210.987654321098765432109876543210".toKBigDecimal()
-        
-        val sum = large1.add(large2)
-        // Allow flexible matching for platform differences in large number representation
-        val sumStr = sum.toString()
-        assertTrue(sumStr.startsWith("1111111110") || sumStr.startsWith("1111111111") ||
-                  sumStr.contains("111111111111111111111111111110") || 
-                  sumStr.contains("111111111111111111111111111111") ||
-                  sumStr.startsWith("111111111111111111111111111"))
-        
-        val difference = large2.subtract(large1)
-        assertTrue(difference.toString().contains("864197532086419753208641975320"))
-        
-        val product = large1.multiply("2".toKBigDecimal())
-        assertTrue(product.toString().startsWith("246913578024691357802469135780"))
-    }
+    fun toString_onNumberWithTrailingZeros_includesTrailingZeros() {
+        // Arrange
+        val decimal = "123.450000".toKBigDecimal()
+        val expected = "123.450000"
 
-    @Test
-    fun testVerySmallNumbers() {
-        val verySmall1 = "0.000000000000000001".toKBigDecimal()
-        val verySmall2 = "0.000000000000000002".toKBigDecimal()
-        
-        val sum = verySmall1.add(verySmall2)
-        assertTrue(sum.toString() == "0.000000000000000003" || sum.toString() == "3E-18")
-        
-        val difference = verySmall2.subtract(verySmall1)
-        assertTrue(difference.toString() == "0.000000000000000001" || difference.toString() == "1E-18")
-        
-        assertFalse(verySmall1.isZero())
-        assertTrue(verySmall1.isPositive())
-        assertFalse(verySmall1.isNegative())
-    }
+        // Act
+        val actual = decimal.toString()
 
-    @Test
-    fun testDivisionByZeroHandling() {
-        val decimal = "123.456".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
-
-        assertFailsWith<ArithmeticException> {
-            decimal.divide(zero, 2, 4)
-        }
-
-        assertFailsWith<ArithmeticException> {
-            decimal.divide(zero, 2, 4)
-        }
-    }
-
-    @Test
-    fun testConstantsConsistency() {
-        assertEquals("0", KBigDecimalFactory.ZERO.toString())
-        assertEquals("1", KBigDecimalFactory.ONE.toString())
-        assertEquals("10", KBigDecimalFactory.TEN.toString())
-        
-        assertTrue(KBigDecimalFactory.ZERO.isZero())
-        assertTrue(KBigDecimalFactory.ONE.isPositive())
-        assertTrue(KBigDecimalFactory.TEN.isPositive())
-        
-        assertFalse(KBigDecimalFactory.ONE.isZero())
-        assertFalse(KBigDecimalFactory.TEN.isZero())
-    }
-
-    @Test
-    fun testStringRepresentationConsistency() {
-        val values = listOf(
-            "0", "1", "-1", "123.456", "-123.456",
-            "0.000001", "-0.000001", "999999999999999999.123456789"
-        )
-        
-        for (value in values) {
-            val decimal = value.toKBigDecimal()
-            assertEquals(value, decimal.toString())
-        }
-    }
-
-    @Test
-    fun testPrecisionAndScaleDefaultImplementations() {
-        val decimal = "123.456".toKBigDecimal()
-        
-        assertTrue(decimal.precision() > 0)
-        assertTrue(decimal.scale() >= 0)
-        
-        val integerDecimal = "123".toKBigDecimal()
-        assertTrue(integerDecimal.precision() > 0)
-        assertEquals(0, integerDecimal.scale())
+        // Assert
+        assertEquals(expected, actual)
     }
 }

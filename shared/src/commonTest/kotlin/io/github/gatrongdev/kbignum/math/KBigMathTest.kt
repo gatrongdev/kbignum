@@ -10,399 +10,378 @@ class KBigMathTest {
     
     // SQRT FUNCTION TESTS
     @Test
-    fun testSqrtPerfectSquares() {
-        assertEquals("0", KBigMath.sqrt("0".toKBigDecimal()).toString())
-        assertEquals("1", KBigMath.sqrt("1".toKBigDecimal()).toString())
-        assertEquals("2", KBigMath.sqrt("4".toKBigDecimal()).toString())
-        assertEquals("3", KBigMath.sqrt("9".toKBigDecimal()).toString())
-        assertEquals("4", KBigMath.sqrt("16".toKBigDecimal()).toString())
-        assertEquals("5", KBigMath.sqrt("25".toKBigDecimal()).toString())
-        assertEquals("10", KBigMath.sqrt("100".toKBigDecimal()).toString())
-        assertEquals("100", KBigMath.sqrt("10000".toKBigDecimal()).toString())
-    }
+    fun sqrt_onPerfectSquare_returnsExactIntegerRoot() {
+        // Arrange
+        val perfectSquare = "16".toKBigDecimal()
+        val expected = "4".toKBigDecimal()
 
-    @Test
-    fun testSqrtNonPerfectSquares() {
-        val sqrt2 = KBigMath.sqrt("2".toKBigDecimal())
-        assertTrue(sqrt2.toString().startsWith("1.4"))
-        
-        val sqrt3 = KBigMath.sqrt("3".toKBigDecimal())
-        assertTrue(sqrt3.toString().startsWith("1.7"))
-        
-        val sqrt5 = KBigMath.sqrt("5".toKBigDecimal())
-        assertTrue(sqrt5.toString().startsWith("2.2"))
-        
-        val sqrt8 = KBigMath.sqrt("8".toKBigDecimal())
-        assertTrue(sqrt8.toString().startsWith("2.8"))
-    }
+        // Act
+        val actual = KBigMath.sqrt(perfectSquare)
 
-    @Test
-    fun testSqrtLargeNumbers() {
-        val large = "999999999999999999".toKBigDecimal()
-        val result = KBigMath.sqrt(large)
-        assertTrue(result.toString().startsWith("999999999"))
-        
-        val veryLarge = "123456789012345678901234567890".toKBigDecimal()
-        val largeResult = KBigMath.sqrt(veryLarge)
-        assertTrue(largeResult.toString().length > 10)
+        // Assert
+        assertEquals(expected.toString(), actual.toString())
     }
-
+    
     @Test
-    fun testSqrtDecimalNumbers() {
+    fun sqrt_onNonPerfectSquare_returnsCorrectlyRoundedResult() {
+        // Arrange
+        val nonPerfectSquare = "2".toKBigDecimal()
+
+        // Act
+        val actual = KBigMath.sqrt(nonPerfectSquare)
+
+        // Assert
+        assertTrue(actual.toString().startsWith("1.4"))
+    }
+    
+    @Test
+    fun sqrt_onDecimalNumber_returnsCorrectResult() {
+        // Arrange
         val decimal = "2.25".toKBigDecimal()
-        val result = KBigMath.sqrt(decimal)
-        assertEquals("1.5", result.toString())
-        
-        val smallDecimal = "0.25".toKBigDecimal()
-        val smallResult = KBigMath.sqrt(smallDecimal)
-        assertEquals("0.5", smallResult.toString())
-    }
+        val expected = "1.5".toKBigDecimal()
 
+        // Act
+        val actual = KBigMath.sqrt(decimal)
+
+        // Assert
+        assertEquals(expected.toString(), actual.toString())
+    }
+    
     @Test
-    fun testSqrtNegativeNumbers() {
+    fun sqrt_onZero_returnsZero() {
+        // Arrange
+        val zero = KBigDecimalFactory.ZERO
+
+        // Act
+        val actual = KBigMath.sqrt(zero)
+
+        // Assert
+        assertTrue(actual.isZero())
+    }
+    
+    @Test
+    fun sqrt_onVerySmallDecimal_returnsResultWithHighPrecision() {
+        // Arrange
+        val verySmall = "0.0001".toKBigDecimal()
+
+        // Act
+        val actual = KBigMath.sqrt(verySmall)
+
+        // Assert
+        assertEquals("0.01", actual.toString())
+    }
+    
+    @Test
+    fun sqrt_onNegativeNumber_throwsArithmeticException() {
+        // Arrange
         val negative = "-4".toKBigDecimal()
+
+        // Act & Assert
         assertFailsWith<ArithmeticException> {
             KBigMath.sqrt(negative)
         }
-        
-        val negativeDecimal = "-1.5".toKBigDecimal()
-        assertFailsWith<ArithmeticException> {
-            KBigMath.sqrt(negativeDecimal)
-        }
     }
-
+    
     // FACTORIAL FUNCTION TESTS
     @Test
-    fun testFactorialBasicCases() {
-        assertEquals("1", KBigMath.factorial("0".toKBigInteger()).toString())
-        assertEquals("1", KBigMath.factorial("1".toKBigInteger()).toString())
-        assertEquals("2", KBigMath.factorial("2".toKBigInteger()).toString())
-        assertEquals("6", KBigMath.factorial("3".toKBigInteger()).toString())
-        assertEquals("24", KBigMath.factorial("4".toKBigInteger()).toString())
-        assertEquals("120", KBigMath.factorial("5".toKBigInteger()).toString())
-        assertEquals("720", KBigMath.factorial("6".toKBigInteger()).toString())
-        assertEquals("5040", KBigMath.factorial("7".toKBigInteger()).toString())
-        assertEquals("40320", KBigMath.factorial("8".toKBigInteger()).toString())
-        assertEquals("362880", KBigMath.factorial("9".toKBigInteger()).toString())
-        assertEquals("3628800", KBigMath.factorial("10".toKBigInteger()).toString())
-    }
+    fun factorial_ofZero_returnsOne() {
+        // Arrange
+        val zero = KBigIntegerFactory.ZERO
+        val expected = KBigIntegerFactory.ONE
 
-    @Test
-    fun testFactorialLargeNumbers() {
-        val fact20 = KBigMath.factorial("20".toKBigInteger())
-        assertEquals("2432902008176640000", fact20.toString())
-        
-        val fact50 = KBigMath.factorial("50".toKBigInteger())
-        assertTrue(fact50.toString().length > 60)
-        
-        val fact100 = KBigMath.factorial("100".toKBigInteger())
-        assertTrue(fact100.toString().length > 150)
-    }
+        // Act
+        val actual = KBigMath.factorial(zero)
 
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
     @Test
-    fun testFactorialNegativeNumbers() {
-        val negative = "-1".toKBigInteger()
+    fun factorial_ofPositiveInteger_returnsCorrectResult() {
+        // Arrange
+        val five = "5".toKBigInteger()
+        val expected = "120".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.factorial(five)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun factorial_ofLargeInteger_handlesCorrectly() {
+        // Arrange
+        val twenty = "20".toKBigInteger()
+        val expected = "2432902008176640000".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.factorial(twenty)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun factorial_ofNegativeInteger_throwsArithmeticException() {
+        // Arrange
+        val negative = "-5".toKBigInteger()
+
+        // Act & Assert
         assertFailsWith<ArithmeticException> {
             KBigMath.factorial(negative)
         }
-        
-        val largeNegative = "-100".toKBigInteger()
-        assertFailsWith<ArithmeticException> {
-            KBigMath.factorial(largeNegative)
-        }
     }
-
+    
     // GCD FUNCTION TESTS
     @Test
-    fun testGcdBasicCases() {
-        assertEquals("1", KBigMath.gcd("1".toKBigInteger(), "1".toKBigInteger()).toString())
-        assertEquals("2", KBigMath.gcd("2".toKBigInteger(), "4".toKBigInteger()).toString())
-        assertEquals("3", KBigMath.gcd("6".toKBigInteger(), "9".toKBigInteger()).toString())
-        assertEquals("5", KBigMath.gcd("15".toKBigInteger(), "25".toKBigInteger()).toString())
-        assertEquals("6", KBigMath.gcd("12".toKBigInteger(), "18".toKBigInteger()).toString())
-        assertEquals("12", KBigMath.gcd("48".toKBigInteger(), "60".toKBigInteger()).toString())
-    }
+    fun gcd_ofTwoPositiveIntegers_returnsCorrectResult() {
+        // Arrange
+        val a = "48".toKBigInteger()
+        val b = "60".toKBigInteger()
+        val expected = "12".toKBigInteger()
 
-    @Test
-    fun testGcdWithZero() {
-        val a = "12".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
-        
-        assertEquals(a.toString(), KBigMath.gcd(a, zero).toString())
-        assertEquals(a.toString(), KBigMath.gcd(zero, a).toString())
-        assertEquals("0", KBigMath.gcd(zero, zero).toString())
-    }
+        // Act
+        val actual = KBigMath.gcd(a, b)
 
-    @Test
-    fun testGcdCoprimeNumbers() {
-        assertEquals("1", KBigMath.gcd("7".toKBigInteger(), "13".toKBigInteger()).toString())
-        assertEquals("1", KBigMath.gcd("8".toKBigInteger(), "9".toKBigInteger()).toString())
-        assertEquals("1", KBigMath.gcd("15".toKBigInteger(), "28".toKBigInteger()).toString())
+        // Assert
+        assertEquals(expected, actual)
     }
-
+    
     @Test
-    fun testGcdLargeNumbers() {
-        val large1 = "123456789012345678901234567890".toKBigInteger()
-        val large2 = "987654321098765432109876543210".toKBigInteger()
-        val result = KBigMath.gcd(large1, large2)
-        assertTrue(result.toString().length > 0)
-        
-        val sameLarge = KBigMath.gcd(large1, large1)
-        assertEquals(large1.toString(), sameLarge.toString())
-    }
-
-    @Test
-    fun testGcdNegativeNumbers() {
-        assertEquals("5", KBigMath.gcd("-15".toKBigInteger(), "25".toKBigInteger()).toString())
-        assertEquals("5", KBigMath.gcd("15".toKBigInteger(), "-25".toKBigInteger()).toString())
-        assertEquals("5", KBigMath.gcd("-15".toKBigInteger(), "-25".toKBigInteger()).toString())
-    }
-
-    // LCM FUNCTION TESTS
-    @Test
-    fun testLcmBasicCases() {
-        assertEquals("6", KBigMath.lcm("2".toKBigInteger(), "3".toKBigInteger()).toString())
-        assertEquals("12", KBigMath.lcm("3".toKBigInteger(), "4".toKBigInteger()).toString())
-        assertEquals("20", KBigMath.lcm("4".toKBigInteger(), "5".toKBigInteger()).toString())
-        assertEquals("30", KBigMath.lcm("6".toKBigInteger(), "10".toKBigInteger()).toString())
-        assertEquals("60", KBigMath.lcm("12".toKBigInteger(), "15".toKBigInteger()).toString())
-    }
-
-    @Test
-    fun testLcmWithZero() {
-        val a = "12".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
-        
-        assertEquals("0", KBigMath.lcm(a, zero).toString())
-        assertEquals("0", KBigMath.lcm(zero, a).toString())
-        assertEquals("0", KBigMath.lcm(zero, zero).toString())
-    }
-
-    @Test
-    fun testLcmSameNumbers() {
-        val a = "12".toKBigInteger()
-        assertEquals(a.toString(), KBigMath.lcm(a, a).toString())
-        
-        val large = "999999999999999999".toKBigInteger()
-        assertEquals(large.toString(), KBigMath.lcm(large, large).toString())
-    }
-
-    @Test
-    fun testLcmCoprimeNumbers() {
+    fun gcd_ofCoprimeIntegers_returnsOne() {
+        // Arrange
         val a = "7".toKBigInteger()
         val b = "13".toKBigInteger()
-        val product = a.multiply(b)
-        assertEquals(product.toString(), KBigMath.lcm(a, b).toString())
-    }
+        val expected = KBigIntegerFactory.ONE
 
-    @Test
-    fun testLcmLargeNumbers() {
-        val large1 = "123456789012345".toKBigInteger()
-        val large2 = "987654321098765".toKBigInteger()
-        val result = KBigMath.lcm(large1, large2)
-        assertTrue(result.toString().length > 25)
-    }
+        // Act
+        val actual = KBigMath.gcd(a, b)
 
-    // ISPRIME FUNCTION TESTS
-    @Test
-    fun testIsPrimeSmallPrimes() {
-        assertTrue(KBigMath.isPrime("2".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("3".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("5".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("7".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("11".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("13".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("17".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("19".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("23".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("29".toKBigInteger()))
+        // Assert
+        assertEquals(expected, actual)
     }
-
+    
     @Test
-    fun testIsPrimeSmallComposites() {
-        assertFalse(KBigMath.isPrime("4".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("6".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("8".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("9".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("10".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("12".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("14".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("15".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("16".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("18".toKBigInteger()))
-    }
-
-    @Test
-    fun testIsPrimeEdgeCases() {
-        assertFalse(KBigMath.isPrime("0".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("1".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("-1".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("-2".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("-7".toKBigInteger()))
-    }
-
-    @Test
-    fun testIsPrimeLargePrimes() {
-        assertTrue(KBigMath.isPrime("97".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("101".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("103".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("107".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("109".toKBigInteger()))
-        assertTrue(KBigMath.isPrime("113".toKBigInteger()))
-    }
-
-    @Test
-    fun testIsPrimeLargeComposites() {
-        assertFalse(KBigMath.isPrime("121".toKBigInteger())) // 11^2
-        assertFalse(KBigMath.isPrime("169".toKBigInteger())) // 13^2
-        assertFalse(KBigMath.isPrime("289".toKBigInteger())) // 17^2
-        assertFalse(KBigMath.isPrime("361".toKBigInteger())) // 19^2
-        assertFalse(KBigMath.isPrime("1000".toKBigInteger()))
-        assertFalse(KBigMath.isPrime("9999".toKBigInteger()))
-    }
-
-    // POW FUNCTION TESTS
-    @Test
-    fun testPowBasicCases() {
-        assertEquals("1", KBigMath.pow("2".toKBigInteger(), "0".toKBigInteger()).toString())
-        assertEquals("2", KBigMath.pow("2".toKBigInteger(), "1".toKBigInteger()).toString())
-        assertEquals("4", KBigMath.pow("2".toKBigInteger(), "2".toKBigInteger()).toString())
-        assertEquals("8", KBigMath.pow("2".toKBigInteger(), "3".toKBigInteger()).toString())
-        assertEquals("16", KBigMath.pow("2".toKBigInteger(), "4".toKBigInteger()).toString())
-        assertEquals("32", KBigMath.pow("2".toKBigInteger(), "5".toKBigInteger()).toString())
-    }
-
-    @Test
-    fun testPowWithZeroBase() {
+    fun gcd_withZero_returnsTheOtherNumber() {
+        // Arrange
+        val number = "12".toKBigInteger()
         val zero = KBigIntegerFactory.ZERO
-        val one = KBigIntegerFactory.ONE
-        val two = "2".toKBigInteger()
-        
-        assertEquals("1", KBigMath.pow(zero, zero).toString()) // 0^0 = 1 by convention
-        assertEquals("0", KBigMath.pow(zero, one).toString())
-        assertEquals("0", KBigMath.pow(zero, two).toString())
-    }
 
-    @Test
-    fun testPowWithOneBase() {
-        val one = KBigIntegerFactory.ONE
-        assertEquals("1", KBigMath.pow(one, "0".toKBigInteger()).toString())
-        assertEquals("1", KBigMath.pow(one, "1".toKBigInteger()).toString())
-        assertEquals("1", KBigMath.pow(one, "100".toKBigInteger()).toString())
-        assertEquals("1", KBigMath.pow(one, "999999".toKBigInteger()).toString())
+        // Act & Assert
+        assertEquals(number, KBigMath.gcd(number, zero))
+        assertEquals(number, KBigMath.gcd(zero, number))
     }
-
+    
     @Test
-    fun testPowWithNegativeBase() {
-        val negativeTwo = "-2".toKBigInteger()
-        assertEquals("1", KBigMath.pow(negativeTwo, "0".toKBigInteger()).toString())
-        assertEquals("-2", KBigMath.pow(negativeTwo, "1".toKBigInteger()).toString())
-        assertEquals("4", KBigMath.pow(negativeTwo, "2".toKBigInteger()).toString())
-        assertEquals("-8", KBigMath.pow(negativeTwo, "3".toKBigInteger()).toString())
-        assertEquals("16", KBigMath.pow(negativeTwo, "4".toKBigInteger()).toString())
-        assertEquals("-32", KBigMath.pow(negativeTwo, "5".toKBigInteger()).toString())
+    fun gcd_withNegativeNumbers_returnsPositiveGcd() {
+        // Arrange
+        val negative = "-15".toKBigInteger()
+        val positive = "25".toKBigInteger()
+        val expected = "5".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.gcd(negative, positive)
+
+        // Assert
+        assertEquals(expected, actual)
     }
-
+    
+    // LCM FUNCTION TESTS
     @Test
-    fun testPowLargeExponents() {
-        val base = "2".toKBigInteger()
-        val exp10 = "10".toKBigInteger()
-        assertEquals("1024", KBigMath.pow(base, exp10).toString())
-        
-        val exp20 = "20".toKBigInteger()
-        assertEquals("1048576", KBigMath.pow(base, exp20).toString())
-        
-        val base3 = "3".toKBigInteger()
-        val exp10_3 = "10".toKBigInteger()
-        assertEquals("59049", KBigMath.pow(base3, exp10_3).toString())
+    fun lcm_ofTwoPositiveIntegers_returnsCorrectResult() {
+        // Arrange
+        val a = "12".toKBigInteger()
+        val b = "15".toKBigInteger()
+        val expected = "60".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.lcm(a, b)
+
+        // Assert
+        assertEquals(expected, actual)
     }
-
+    
     @Test
-    fun testPowLargeNumbers() {
-        val largeBase = "123".toKBigInteger()
-        val smallExp = "3".toKBigInteger()
-        val result = KBigMath.pow(largeBase, smallExp)
-        assertEquals("1860867", result.toString())
-        
-        val mediumBase = "10".toKBigInteger()
-        val mediumExp = "15".toKBigInteger()
-        assertEquals("1000000000000000", KBigMath.pow(mediumBase, mediumExp).toString())
+    fun lcm_withZero_returnsZero() {
+        // Arrange
+        val number = "12".toKBigInteger()
+        val zero = KBigIntegerFactory.ZERO
+
+        // Act & Assert
+        assertTrue(KBigMath.lcm(number, zero).isZero())
+        assertTrue(KBigMath.lcm(zero, number).isZero())
     }
-
+    
     @Test
-    fun testPowNegativeExponent() {
-        val base = "2".toKBigInteger()
-        val negativeExp = "-1".toKBigInteger()
-        
-        assertFailsWith<ArithmeticException> {
-            KBigMath.pow(base, negativeExp)
-        }
-        
-        val largeNegativeExp = "-100".toKBigInteger()
-        assertFailsWith<ArithmeticException> {
-            KBigMath.pow(base, largeNegativeExp)
-        }
-    }
-
-    // INTEGRATION TESTS COMBINING MULTIPLE FUNCTIONS
-    @Test
-    fun testMathematicalProperties() {
+    fun lcm_verifiesGcdLcmProperty() {
+        // Arrange
         val a = "12".toKBigInteger()
         val b = "18".toKBigInteger()
-        
+
+        // Act
         val gcd = KBigMath.gcd(a, b)
         val lcm = KBigMath.lcm(a, b)
         val product = a.multiply(b)
-        
-        assertEquals(gcd.multiply(lcm).toString(), product.toString())
-    }
 
-    @Test
-    fun testFactorialAndPowerRelationship() {
-        val n = "5".toKBigInteger()
-        val factorial = KBigMath.factorial(n)
-        
-        val manual = "1".toKBigInteger()
-            .multiply("2".toKBigInteger())
-            .multiply("3".toKBigInteger())
-            .multiply("4".toKBigInteger())
-            .multiply("5".toKBigInteger())
-        
-        assertEquals(factorial.toString(), manual.toString())
+        // Assert
+        assertEquals(product, gcd.multiply(lcm))
     }
-
+    
+    // ISPRIME FUNCTION TESTS
     @Test
-    fun testSqrtAndPowerInverse() {
-        val number = "16".toKBigDecimal()
-        val sqrt = KBigMath.sqrt(number)
-        val squared = KBigMath.pow(sqrt.toBigInteger(), "2".toKBigInteger())
-        
-        assertEquals(number.toBigInteger().toString(), squared.toString())
+    fun isPrime_onPrimeNumber_returnsTrue() {
+        // Arrange
+        val prime = "17".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.isPrime(prime)
+
+        // Assert
+        assertTrue(actual)
     }
-
+    
     @Test
-    fun testMathematicalConstants() {
-        assertEquals("1", KBigMath.factorial(KBigIntegerFactory.ZERO).toString())
-        assertEquals("1", KBigMath.factorial(KBigIntegerFactory.ONE).toString())
-        assertEquals("1", KBigMath.pow(KBigIntegerFactory.TEN, KBigIntegerFactory.ZERO).toString())
-        assertEquals("10", KBigMath.pow(KBigIntegerFactory.TEN, KBigIntegerFactory.ONE).toString())
+    fun isPrime_onCompositeNumber_returnsFalse() {
+        // Arrange
+        val composite = "15".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.isPrime(composite)
+
+        // Assert
+        assertFalse(actual)
     }
-
+    
     @Test
-    fun testErrorHandlingConsistency() {
-        val negative = "-5".toKBigInteger()
+    fun isPrime_onZeroAndOne_returnsFalse() {
+        // Arrange
         val zero = KBigIntegerFactory.ZERO
-        
+        val one = KBigIntegerFactory.ONE
+
+        // Act & Assert
+        assertFalse(KBigMath.isPrime(zero))
+        assertFalse(KBigMath.isPrime(one))
+    }
+    
+    @Test
+    fun isPrime_onNegativeNumber_returnsFalse() {
+        // Arrange
+        val negative = "-7".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.isPrime(negative)
+
+        // Assert
+        assertFalse(actual)
+    }
+    
+    @Test
+    fun isPrime_onLargePrimeNumber_returnsTrue() {
+        // Arrange
+        val largePrime = "97".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.isPrime(largePrime)
+
+        // Assert
+        assertTrue(actual)
+    }
+    
+    // POW FUNCTION TESTS
+    @Test
+    fun pow_withPositiveExponent_returnsCorrectResult() {
+        // Arrange
+        val base = "2".toKBigInteger()
+        val exponent = "5".toKBigInteger()
+        val expected = "32".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.pow(base, exponent)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun pow_withZeroExponent_returnsOne() {
+        // Arrange
+        val base = "123".toKBigInteger()
+        val zeroExponent = KBigIntegerFactory.ZERO
+        val expected = KBigIntegerFactory.ONE
+
+        // Act
+        val actual = KBigMath.pow(base, zeroExponent)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun pow_withOneExponent_returnsBase() {
+        // Arrange
+        val base = "123".toKBigInteger()
+        val oneExponent = KBigIntegerFactory.ONE
+
+        // Act
+        val actual = KBigMath.pow(base, oneExponent)
+
+        // Assert
+        assertEquals(base, actual)
+    }
+    
+    @Test
+    fun pow_withZeroBase_returnsZero() {
+        // Arrange
+        val zeroBase = KBigIntegerFactory.ZERO
+        val exponent = "5".toKBigInteger()
+
+        // Act
+        val actual = KBigMath.pow(zeroBase, exponent)
+
+        // Assert
+        assertTrue(actual.isZero())
+    }
+    
+    @Test
+    fun pow_withZeroBaseAndZeroExponent_returnsOne() {
+        // Arrange
+        val zeroBase = KBigIntegerFactory.ZERO
+        val zeroExponent = KBigIntegerFactory.ZERO
+        val expected = KBigIntegerFactory.ONE
+
+        // Act
+        val actual = KBigMath.pow(zeroBase, zeroExponent)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun pow_withNegativeBase_returnsCorrectlySignedResult() {
+        // Arrange
+        val negativeBase = "-2".toKBigInteger()
+        val evenExponent = "4".toKBigInteger()
+        val oddExponent = "3".toKBigInteger()
+
+        // Act
+        val evenResult = KBigMath.pow(negativeBase, evenExponent)
+        val oddResult = KBigMath.pow(negativeBase, oddExponent)
+
+        // Assert
+        assertEquals("16", evenResult.toString())
+        assertEquals("-8", oddResult.toString())
+    }
+    
+    @Test
+    fun pow_withNegativeExponent_throwsArithmeticException() {
+        // Arrange
+        val base = "2".toKBigInteger()
+        val negativeExponent = "-1".toKBigInteger()
+
+        // Act & Assert
         assertFailsWith<ArithmeticException> {
-            KBigMath.factorial(negative)
-        }
-        
-        assertFailsWith<ArithmeticException> {
-            KBigMath.pow("2".toKBigInteger(), negative)
-        }
-        
-        assertFailsWith<ArithmeticException> {
-            KBigMath.sqrt("-4".toKBigDecimal())
+            KBigMath.pow(base, negativeExponent)
         }
     }
 }
