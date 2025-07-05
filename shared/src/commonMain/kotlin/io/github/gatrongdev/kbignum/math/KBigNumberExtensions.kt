@@ -186,7 +186,7 @@ fun KBigDecimal.pow(exponent: Int): KBigDecimal {
     var exp = exponent
 
     if (exp < 0) {
-        throw IllegalArgumentException("Negative exponent not supported")
+        throw ArithmeticException("Negative exponent not supported")
     }
 
     while (exp > 0) {
@@ -215,7 +215,7 @@ fun KBigInteger.pow(exponent: Int): KBigInteger {
     var exp = exponent
 
     if (exp < 0) {
-        throw IllegalArgumentException("Negative exponent not supported")
+        throw ArithmeticException("Negative exponent not supported")
     }
 
     while (exp > 0) {

@@ -96,6 +96,14 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return bigDecimal.toString()
     }
 
+    override fun scale(): Int {
+        return bigDecimal.scale()
+    }
+
+    override fun precision(): Int {
+        return bigDecimal.precision()
+    }
+
     // getString() removed - use toString() instead
 
     override fun equals(other: Any?): Boolean {

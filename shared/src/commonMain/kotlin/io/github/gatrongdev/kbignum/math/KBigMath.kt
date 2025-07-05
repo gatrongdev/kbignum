@@ -17,7 +17,7 @@ object KBigMath {
         scale: Int = 10,
     ): KBigDecimal {
         if (value.signum() < 0) {
-            throw IllegalArgumentException("Cannot calculate square root of negative number")
+            throw ArithmeticException("Cannot calculate square root of negative number")
         }
 
         if (value.isZero()) {
@@ -33,7 +33,20 @@ object KBigMath {
             x = x.add(value.divide(x, scale + 2, 4)).divide(two, scale + 2, 4)
         } while (x.subtract(previous).abs().compareTo(KBigDecimalFactory.fromString("1E-${scale + 1}")) > 0)
 
-        return x.setScale(scale, 4)
+        val result = x.setScale(scale, 4)
+        // Remove trailing zeros for cleaner output
+        val resultStr = result.toString()
+        val cleanStr =
+            if (resultStr.contains('.')) {
+                resultStr.trimEnd('0').trimEnd('.')
+            } else {
+                resultStr
+            }
+        return if (cleanStr.isEmpty() || cleanStr == "-") {
+            KBigDecimalFactory.ZERO
+        } else {
+            KBigDecimalFactory.fromString(cleanStr)
+        }
     }
 
     /**
@@ -45,7 +58,7 @@ object KBigMath {
      */
     fun factorial(n: KBigInteger): KBigInteger {
         if (n.signum() < 0) {
-            throw IllegalArgumentException("Factorial is not defined for negative numbers")
+            throw ArithmeticException("Factorial is not defined for negative numbers")
         }
 
         var result = KBigIntegerFactory.ONE
@@ -146,7 +159,7 @@ object KBigMath {
         exponent: KBigInteger,
     ): KBigInteger {
         if (exponent.signum() < 0) {
-            throw IllegalArgumentException("Negative exponent not supported for integer power")
+            throw ArithmeticException("Negative exponent not supported for integer power")
         }
 
         if (exponent.isZero()) {
