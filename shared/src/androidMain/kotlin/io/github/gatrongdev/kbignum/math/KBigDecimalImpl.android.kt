@@ -37,6 +37,24 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return KBigDecimalImpl(bigDecimal.multiply(otherImpl.bigDecimal).toString())
     }
 
+    actual override fun divide(other: KBigDecimal): KBigDecimal {
+        val otherImpl = other as KBigDecimalImpl
+        if (otherImpl.bigDecimal.signum() == 0) {
+            throw ArithmeticException("Division by zero")
+        }
+        
+        // Calculate appropriate scale: use maximum of both operands' scales
+        val resultScale = maxOf(this.scale(), otherImpl.scale())
+        
+        return KBigDecimalImpl(
+            bigDecimal.divide(
+                otherImpl.bigDecimal,
+                resultScale,
+                RoundingMode.HALF_UP,
+            ).toString(),
+        )
+    }
+
     actual override fun divide(
         other: KBigDecimal,
         scale: Int,

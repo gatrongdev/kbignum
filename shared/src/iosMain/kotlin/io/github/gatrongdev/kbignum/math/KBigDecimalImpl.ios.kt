@@ -150,6 +150,28 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return resultImpl
     }
 
+    actual override fun divide(other: KBigDecimal): KBigDecimal {
+        val otherImpl = other as KBigDecimalImpl
+        if (otherImpl.nsDecimalNumber.isEqualToNumber(NSDecimalNumber.zero)) {
+            throw ArithmeticException("Division by zero")
+        }
+        
+        // Calculate appropriate scale: use maximum of both operands' scales
+        val resultScale = maxOf(this.scale(), otherImpl.scale())
+        
+        val handler =
+            NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
+                NSRoundingMode.NSRoundPlain,
+                resultScale.toShort(),
+                true,
+                true,
+                true,
+                true,
+            )
+        val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
+        return KBigDecimalImpl(result, resultScale)
+    }
+
     actual override fun divide(
         other: KBigDecimal,
         scale: Int,
