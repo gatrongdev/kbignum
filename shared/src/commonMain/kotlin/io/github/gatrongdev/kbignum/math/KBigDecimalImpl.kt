@@ -17,6 +17,8 @@ expect class KBigDecimalImpl(value: String) : KBigDecimal {
 
     override fun multiply(other: KBigDecimal): KBigDecimal
 
+    override fun divide(other: KBigDecimal): KBigDecimal
+
     override fun divide(
         other: KBigDecimal,
         scale: Int,

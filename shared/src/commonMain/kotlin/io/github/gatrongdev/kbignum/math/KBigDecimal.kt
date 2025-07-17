@@ -29,6 +29,14 @@ interface KBigDecimal : Comparable<KBigDecimal> {
     /**
      * Returns a KBigDecimal that is the quotient of this divided by the specified value.
      * @param other The divisor
+     * @return The result of the division with the maximum scale of the two operands
+     * @throws ArithmeticException if other is zero
+     */
+    fun divide(other: KBigDecimal): KBigDecimal
+
+    /**
+     * Returns a KBigDecimal that is the quotient of this divided by the specified value.
+     * @param other The divisor
      * @param scale The number of digits to the right of the decimal point in the result
      * @return The result of the division with the specified scale
      * @throws ArithmeticException if other is zero
