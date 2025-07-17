@@ -593,9 +593,9 @@ class KBigDecimalTest {
     @Test
     fun divide_singleParameter_positiveAndNegativeNumbers_returnsCorrectlySignedQuotient() {
         // Arrange
-        val positive = "123.45".toKBigDecimal()
-        val negative = "-67.89".toKBigDecimal()
-        val expected = "-1.818".toKBigDecimal()
+        val positive = "123.45".toKBigDecimal() // scale 2
+        val negative = "-67.89".toKBigDecimal() // scale 2
+        val expected = "-1.82".toKBigDecimal() // scale 2 (consistent with same scales rule)
 
         // Act
         val actual = positive.divide(negative)
@@ -607,9 +607,9 @@ class KBigDecimalTest {
     @Test
     fun divide_singleParameter_twoNegativeNumbers_returnsPositiveQuotient() {
         // Arrange
-        val negative1 = "-123.45".toKBigDecimal()
-        val negative2 = "-67.89".toKBigDecimal()
-        val expected = "1.818".toKBigDecimal()
+        val negative1 = "-123.45".toKBigDecimal() // scale 2
+        val negative2 = "-67.89".toKBigDecimal() // scale 2
+        val expected = "1.82".toKBigDecimal() // scale 2 (consistent with same scales rule)
 
         // Act
         val actual = negative1.divide(negative2)

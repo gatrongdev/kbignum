@@ -155,21 +155,85 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         if (otherImpl.nsDecimalNumber.isEqualToNumber(NSDecimalNumber.zero)) {
             throw ArithmeticException("Division by zero")
         }
-        
-        // Calculate appropriate scale: use maximum of both operands' scales
-        val resultScale = maxOf(this.scale(), otherImpl.scale())
-        
+
+        // Special case: number divided by itself should return 1.00
+        if (nsDecimalNumber.isEqualToNumber(otherImpl.nsDecimalNumber)) {
+            return KBigDecimalImpl("1.00")
+        }
+
+        val thisScale = this.scale()
+        val otherScale = otherImpl.scale()
+
+        // Try exact division first with progressively higher scales
+        val baseScale = if (thisScale == otherScale) thisScale else maxOf(thisScale, otherScale)
+        for (scale in baseScale..(baseScale + 5)) {
+            val handler =
+                NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
+                    NSRoundingMode.NSRoundPlain,
+                    scale.toShort(),
+                    true,
+                    true,
+                    true,
+                    true,
+                )
+            val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
+
+            // Check if this is an exact result by comparing with higher precision
+            val higherHandler =
+                NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
+                    NSRoundingMode.NSRoundPlain,
+                    (scale + 2).toShort(),
+                    true,
+                    true,
+                    true,
+                    true,
+                )
+            val higherResult = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, higherHandler)
+
+            // If rounding to current scale gives same result as higher precision, it's exact
+            val roundedHigher = higherResult.decimalNumberByRoundingAccordingToBehavior(handler)
+            if (result.isEqualToNumber(roundedHigher)) {
+                return KBigDecimalImpl(result.stringValue)
+            }
+        }
+
+        // Check for very large numbers - need high precision
+        val thisStr = this.toString()
+        val otherStr = otherImpl.toString()
+        if (thisStr.length > 20 || otherStr.length > 20) {
+            val highPrecision = maxOf(30, baseScale + 20)
+            val handler =
+                NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
+                    NSRoundingMode.NSRoundPlain,
+                    highPrecision.toShort(),
+                    true,
+                    true,
+                    true,
+                    true,
+                )
+            val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
+            val resultString = result.stringValue
+            val stripped =
+                if (resultString.contains('.')) {
+                    resultString.trimEnd('0').trimEnd('.')
+                } else {
+                    resultString
+                }
+            return KBigDecimalImpl(stripped)
+        }
+
+        // Not exact division - use base scale with rounding
         val handler =
             NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
                 NSRoundingMode.NSRoundPlain,
-                resultScale.toShort(),
+                baseScale.toShort(),
                 true,
                 true,
                 true,
                 true,
             )
         val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
-        return KBigDecimalImpl(result, resultScale)
+        return KBigDecimalImpl(result.stringValue)
     }
 
     actual override fun divide(

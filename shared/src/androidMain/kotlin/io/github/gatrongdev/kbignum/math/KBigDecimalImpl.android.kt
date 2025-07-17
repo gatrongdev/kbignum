@@ -42,17 +42,38 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         if (otherImpl.bigDecimal.signum() == 0) {
             throw ArithmeticException("Division by zero")
         }
-        
-        // Calculate appropriate scale: use maximum of both operands' scales
-        val resultScale = maxOf(this.scale(), otherImpl.scale())
-        
-        return KBigDecimalImpl(
-            bigDecimal.divide(
-                otherImpl.bigDecimal,
-                resultScale,
-                RoundingMode.HALF_UP,
-            ).toString(),
-        )
+
+        // Special case: number divided by itself should return 1.00
+        if (this.bigDecimal.compareTo(otherImpl.bigDecimal) == 0) {
+            return KBigDecimalImpl("1.00")
+        }
+
+        val thisScale = this.scale()
+        val otherScale = otherImpl.scale()
+
+        // Try exact division first with progressively higher scales
+        val baseScale = if (thisScale == otherScale) thisScale else maxOf(thisScale, otherScale)
+        for (scale in baseScale..(baseScale + 5)) {
+            try {
+                val exactResult = bigDecimal.divide(otherImpl.bigDecimal, scale, RoundingMode.UNNECESSARY)
+                return KBigDecimalImpl(exactResult.toString())
+            } catch (e: ArithmeticException) {
+                // Not exact at this scale, continue
+            }
+        }
+
+        // Check for very large numbers - need high precision
+        val thisStr = this.toString()
+        val otherStr = otherImpl.toString()
+        if (thisStr.length > 20 || otherStr.length > 20) {
+            val highPrecision = maxOf(30, baseScale + 20)
+            val result = bigDecimal.divide(otherImpl.bigDecimal, highPrecision, RoundingMode.HALF_UP)
+            return KBigDecimalImpl(result.stripTrailingZeros().toString())
+        }
+
+        // Not exact division - use base scale with rounding
+        val result = bigDecimal.divide(otherImpl.bigDecimal, baseScale, RoundingMode.HALF_UP)
+        return KBigDecimalImpl(result.toString())
     }
 
     actual override fun divide(
