@@ -58,6 +58,7 @@ val sum = bigDecimal1 + bigDecimal2
 val difference = bigDecimal1 - bigDecimal2
 val product = bigDecimal1 * bigDecimal2
 val quotient = bigDecimal1.divide(bigDecimal2, 10) // 10 decimal places
+val simpleQuotient = bigDecimal1.divide(bigDecimal2) // uses automatic scale
 
 // Advanced operations
 val sqrt = KBigMath.sqrt(bigDecimal1, 10)
@@ -102,6 +103,7 @@ Interface for arbitrary precision decimal numbers:
 - `add(other: KBigDecimal): KBigDecimal`
 - `subtract(other: KBigDecimal): KBigDecimal`
 - `multiply(other: KBigDecimal): KBigDecimal`
+- `divide(other: KBigDecimal): KBigDecimal`
 - `divide(other: KBigDecimal, scale: Int): KBigDecimal`
 - `abs(): KBigDecimal`
 - `signum(): Int`

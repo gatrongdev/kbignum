@@ -43,7 +43,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: 🐘 Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
@@ -85,13 +85,13 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: 🐘 Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: 🧪 Generate coverage report
         run: ./gradlew test koverXmlReport
 
       - name: 📊 Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./shared/build/reports/kover/report.xml

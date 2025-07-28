@@ -524,6 +524,143 @@ class KBigDecimalTest {
         assertEquals(expected, actual)
     }
 
+    // SINGLE-PARAMETER DIVIDE FUNCTION TESTS
+    @Test
+    fun divide_singleParameter_byIntegerDivisor_returnsCorrectQuotient() {
+        // Arrange
+        val dividend = "123.45".toKBigDecimal()
+        val divisor = "2".toKBigDecimal()
+        val expected = "61.725".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun divide_singleParameter_numberByItself_returnsOne() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val expected = "1.00".toKBigDecimal()
+
+        // Act
+        val actual = number.divide(number)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun divide_singleParameter_numberByOne_returnsItself() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val one = "1".toKBigDecimal()
+
+        // Act
+        val actual = number.divide(one)
+
+        // Assert
+        assertEquals(number, actual)
+    }
+
+    @Test
+    fun divide_singleParameter_zeroByNumber_returnsZero() {
+        // Arrange
+        val zero = KBigDecimalFactory.ZERO
+        val number = "123.45".toKBigDecimal()
+
+        // Act
+        val actual = zero.divide(number)
+
+        // Assert
+        assertTrue(actual.isZero())
+    }
+
+    @Test
+    fun divide_singleParameter_byZero_throwsArithmeticException() {
+        // Arrange
+        val number = "123.45".toKBigDecimal()
+        val zero = KBigDecimalFactory.ZERO
+
+        // Act & Assert
+        assertFailsWith<ArithmeticException> {
+            number.divide(zero)
+        }
+    }
+
+    @Test
+    fun divide_singleParameter_positiveAndNegativeNumbers_returnsCorrectlySignedQuotient() {
+        // Arrange
+        val positive = "123.45".toKBigDecimal() // scale 2
+        val negative = "-67.89".toKBigDecimal() // scale 2
+        val expected = "-1.82".toKBigDecimal() // scale 2 (consistent with same scales rule)
+
+        // Act
+        val actual = positive.divide(negative)
+
+        // Assert
+        assertEquals(expected.toString(), actual.toString())
+    }
+
+    @Test
+    fun divide_singleParameter_twoNegativeNumbers_returnsPositiveQuotient() {
+        // Arrange
+        val negative1 = "-123.45".toKBigDecimal() // scale 2
+        val negative2 = "-67.89".toKBigDecimal() // scale 2
+        val expected = "1.82".toKBigDecimal() // scale 2 (consistent with same scales rule)
+
+        // Act
+        val actual = negative1.divide(negative2)
+
+        // Assert
+        assertEquals(expected.toString(), actual.toString())
+    }
+
+    @Test
+    fun divide_singleParameter_withDifferentScales_usesMaxScale() {
+        // Arrange
+        val dividend = "123.4567".toKBigDecimal() // scale 4
+        val divisor = "12.34".toKBigDecimal() // scale 2
+        // Expected scale should be max(4, 2) = 4
+
+        // Act
+        val actual = dividend.divide(divisor)
+
+        // Assert
+        assertEquals(4, actual.scale())
+        assertTrue(actual.toString().startsWith("10.00"))
+    }
+
+    @Test
+    fun divide_singleParameter_withSameScales_maintainsScale() {
+        // Arrange
+        val dividend = "123.45".toKBigDecimal() // scale 2
+        val divisor = "12.34".toKBigDecimal() // scale 2
+        // Expected scale should be max(2, 2) = 2
+
+        // Act
+        val actual = dividend.divide(divisor)
+
+        // Assert
+        assertEquals(2, actual.scale())
+        assertTrue(actual.toString().startsWith("10.00"))
+    }
+
+    @Test
+    fun divide_singleParameter_veryLargeNumbers_handlesCorrectly() {
+        // Arrange
+        val dividend = "999999999999999999999999.123456789".toKBigDecimal()
+        val divisor = "999999999999999999999999".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor)
+
+        // Assert
+        assertTrue(actual.toString().startsWith("1.000000000000000000000000123"))
+    }
+
     // SETSCALE FUNCTION TESTS
     @Test
     fun setScale_toIncreaseScale_padsWithZeros() {
