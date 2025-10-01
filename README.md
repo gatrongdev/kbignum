@@ -66,7 +66,7 @@ val currencyResult = bigDecimal1.divide(bigDecimal2, DivisionStrategy.CURRENCY)
 val preciseResult = bigDecimal1.divide(bigDecimal2, DivisionStrategy.SCIENTIFIC)
 
 // Division with custom configuration
-val customResult = bigDecimal1.divide(bigDecimal2, DivisionConfig(scale = 10, roundingMode = RoundingMode.HALF_UP))
+val customResult = bigDecimal1.divide(bigDecimal2, DivisionConfig(scale = 10, rounding = KBRoundingMode.HalfUp))
 
 // Advanced operations
 val sqrt = KBigMath.sqrt(bigDecimal1, 10)
@@ -98,7 +98,7 @@ val lcm = KBigMath.lcm(bigInteger1, bigInteger2)
 val power = KBigMath.pow(bigDecimal1, 5)
 
 // Precision control
-val scaled = bigDecimal1.setScale(5, RoundingMode.HALF_UP)
+val scaled = bigDecimal1.setScale(5, KBRoundingMode.HalfUp)
 val precision = bigDecimal1.precision()
 
 // Division strategies (v0.0.17+)
@@ -111,7 +111,7 @@ val exchangeRate = price.divide(quantity, DivisionStrategy.EXCHANGE_RATE)  // 33
 val cryptoAmount = price.divide(quantity, DivisionStrategy.CRYPTOCURRENCY) // 33.33333333
 
 // Use precision scale constants
-val interestRate = price.divide(quantity, PrecisionScale.INTEREST_RATE, RoundingMode.HALF_UP)
+val interestRate = price.divide(quantity, PrecisionScale.INTEREST_RATE, KBRoundingMode.HalfUp)
 ```
 
 ## API Reference
@@ -129,6 +129,7 @@ Interface for arbitrary precision decimal numbers:
 - `divide(other: KBigDecimal, config: DivisionConfig): KBigDecimal` *(v0.0.17+)*
 - `abs(): KBigDecimal`
 - `signum(): Int`
+- `setScale(scale: Int, rounding: KBRoundingMode): KBigDecimal`
 - `setScale(scale: Int, roundingMode: Int): KBigDecimal`
 
 ### Division Helpers (v0.0.17+)
@@ -144,7 +145,14 @@ Interface for arbitrary precision decimal numbers:
 - `CRYPTOCURRENCY`, `EXACT`
 
 **DivisionConfig** - Custom configuration:
+- `DivisionConfig(scale: Int, rounding: KBRoundingMode = KBRoundingMode.HalfUp)`
 - `DivisionConfig(scale: Int, roundingMode: Int = RoundingMode.HALF_UP)`
+
+### Rounding Modes (v0.0.18+)
+
+- Prefer `KBRoundingMode` for type-safe semantics that stay in sync across Android and iOS implementations.
+- Legacy integer constants from `RoundingMode` remain available for compatibility and can be converted with `toKBRoundingMode()` / `toLegacyCode()` helpers.
+- All rounding-aware APIs now expose overloads accepting `KBRoundingMode` (e.g., `setScale` and `divide`).
 
 ### KBigInteger
 
@@ -174,6 +182,14 @@ Utility class for advanced mathematical operations:
 - **Minimum API Level**: 21
 - **Implementation**: Uses Java's `BigDecimal` and `BigInteger`
 - **Output**: AAR library files
+
+#### Android SDK configuration
+- SDK levels are centralized in the root `gradle.properties` (`android.compileSdk`, `android.minSdk`, `android.targetSdk`).
+- Override them per build by supplying Gradle properties, e.g.:
+    ```bash
+    ./gradlew :shared:assembleRelease -Pandroid.compileSdk=34 -Pandroid.targetSdk=34
+    ```
+- Module builds automatically pick up the configured values; no manual edits inside `shared/build.gradle.kts` are required.
 
 ### iOS
 - **Minimum Version**: 13.0

@@ -1116,7 +1116,7 @@ class KBigDecimalTest {
         // Arrange
         val dividend = "100".toKBigDecimal()
         val divisor = "3".toKBigDecimal()
-        val config = DivisionConfig(scale = 4, roundingMode = RoundingMode.HALF_UP)
+        val config = DivisionConfig(scale = 4, rounding = KBRoundingMode.HalfUp)
         val expected = "33.3333".toKBigDecimal()
 
         // Act
@@ -1282,7 +1282,52 @@ class KBigDecimalTest {
 
         // Assert
         assertEquals(expected, actual)
+        assertEquals(KBRoundingMode.HalfUp, config.rounding)
         assertEquals(RoundingMode.HALF_UP, config.roundingMode)
+    }
+
+    @Test
+    fun setScale_negativeWithCeiling_roundsTowardPositiveInfinity() {
+        // Arrange
+        val value = "-12.34".toKBigDecimal()
+        // Act
+        val result = value.setScale(1, KBRoundingMode.Ceiling)
+        // Assert
+        assertEquals("-12.3", result.toString())
+    }
+
+    @Test
+    fun setScale_negativeWithFloor_roundsTowardNegativeInfinity() {
+        // Arrange
+        val value = "-12.34".toKBigDecimal()
+        // Act
+        val result = value.setScale(1, KBRoundingMode.Floor)
+        // Assert
+        assertEquals("-12.4", result.toString())
+    }
+
+    @Test
+    fun divide_halfDownTies_roundsTowardZero() {
+        // Arrange
+        val dividend = "5".toKBigDecimal()
+        val divisor = "4".toKBigDecimal()
+        // Act
+        val positive = dividend.divide(divisor, 1, KBRoundingMode.HalfDown)
+        val negative = dividend.negate().divide(divisor, 1, KBRoundingMode.HalfDown)
+        // Assert
+        assertEquals("1.2", positive.toString())
+        assertEquals("-1.2", negative.toString())
+    }
+
+    @Test
+    fun divide_ceilingForNegativeValue_movesTowardPositiveInfinity() {
+        // Arrange
+        val dividend = "-5".toKBigDecimal()
+        val divisor = "4".toKBigDecimal()
+        // Act
+        val result = dividend.divide(divisor, 1, KBRoundingMode.Ceiling)
+        // Assert
+        assertEquals("-1.2", result.toString())
     }
 
     @Test

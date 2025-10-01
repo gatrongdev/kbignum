@@ -96,7 +96,7 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         mode: Int,
     ): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
-        val roundingMode = getRoundingMode(mode)
+        val roundingMode = getRoundingMode(mode.toKBRoundingMode())
         return KBigDecimalImpl(
             bigDecimal.divide(
                 otherImpl.bigDecimal,
@@ -118,7 +118,7 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         scale: Int,
         roundingMode: Int,
     ): KBigDecimal {
-        val mode = getRoundingMode(roundingMode)
+        val mode = getRoundingMode(roundingMode.toKBRoundingMode())
         return KBigDecimalImpl(bigDecimal.setScale(scale, mode).toString())
     }
 
@@ -155,17 +155,15 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return bigDecimal.hashCode()
     }
 
-    private fun getRoundingMode(mode: Int): RoundingMode {
-        return when (mode) {
-            0 -> RoundingMode.UP
-            1 -> RoundingMode.DOWN
-            2 -> RoundingMode.CEILING
-            3 -> RoundingMode.FLOOR
-            4 -> RoundingMode.HALF_UP
-            5 -> RoundingMode.HALF_DOWN
-            6 -> RoundingMode.HALF_EVEN
-            7 -> RoundingMode.UNNECESSARY
-            else -> RoundingMode.HALF_UP
+    private fun getRoundingMode(mode: KBRoundingMode): RoundingMode =
+        when (mode) {
+            KBRoundingMode.Up -> RoundingMode.UP
+            KBRoundingMode.Down -> RoundingMode.DOWN
+            KBRoundingMode.Ceiling -> RoundingMode.CEILING
+            KBRoundingMode.Floor -> RoundingMode.FLOOR
+            KBRoundingMode.HalfUp -> RoundingMode.HALF_UP
+            KBRoundingMode.HalfDown -> RoundingMode.HALF_DOWN
+            KBRoundingMode.HalfEven -> RoundingMode.HALF_EVEN
+            KBRoundingMode.Unnecessary -> RoundingMode.UNNECESSARY
         }
-    }
 }

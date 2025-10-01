@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Introduced `KBRoundingMode` for type-safe, cross-platform rounding semantics with helpers to convert from legacy integer constants.
+
+### Changed
+- Centralized Android SDK level configuration in root `gradle.properties`, allowing modules to pick up overrides via `-Pandroid.*` Gradle properties.
+
 ## [0.0.17] - 2025-01-XX
 
 ### Added

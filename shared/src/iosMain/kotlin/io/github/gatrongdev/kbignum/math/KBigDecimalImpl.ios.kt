@@ -2,12 +2,14 @@ package io.github.gatrongdev.kbignum.math
 
 import platform.Foundation.NSDecimalNumber
 import platform.Foundation.NSDecimalNumberHandler
+import platform.Foundation.NSOrderedSame
 import platform.Foundation.NSRoundingMode
 
 actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
     private val nsDecimalNumber: NSDecimalNumber
     private val originalString: String = value
     private var intendedScale: Int? = null
+    private val negativeOne = NSDecimalNumber(string = "-1")
 
     init {
         // Validate input format first
@@ -226,17 +228,7 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
             throw ArithmeticException("Division by zero")
         }
 
-        val handler =
-            NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
-                NSRoundingMode.NSRoundPlain,
-                scale.toShort(),
-                true,
-                true,
-                true,
-                true,
-            )
-        val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
-        return KBigDecimalImpl(result, scale)
+        return divide(other, scale, KBRoundingMode.HalfUp)
     }
 
     actual override fun divide(
@@ -249,48 +241,18 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
             throw ArithmeticException("Division by zero")
         }
 
-        // Handle UNNECESSARY rounding mode
-        if (mode == 7) {
-            // First check if the result would be exact
-            val highPrecisionHandler =
-                NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
-                    NSRoundingMode.NSRoundPlain,
-                    (scale + 10).toShort(),
-                    true,
-                    true,
-                    true,
-                    true,
-                )
-            val highPrecisionResult = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, highPrecisionHandler)
-            // Check if truncating to scale would lose precision
-            val truncatedStr = formatToScale(highPrecisionResult.stringValue, scale)
-            val truncatedResult = NSDecimalNumber(string = truncatedStr)
-
-            if (!highPrecisionResult.isEqualToNumber(truncatedResult)) {
-                throw ArithmeticException("Rounding necessary")
-            }
-
-            return KBigDecimalImpl(truncatedResult, scale)
-        }
-
-        val roundingMode = getRoundingMode(mode)
-        val handler =
-            NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
-                roundingMode,
-                scale.toShort(),
-                true,
-                true,
-                true,
-                true,
-            )
-        val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
-        return KBigDecimalImpl(result, scale)
+        val rounding = mode.toKBRoundingMode()
+        val highPrecisionScale = (scale + 18).coerceAtLeast(scale + 6)
+        val highPrecisionHandler = createHandler(NSRoundingMode.NSRoundPlain, highPrecisionScale)
+        val intermediate = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, highPrecisionHandler)
+        val rounded = roundDecimal(intermediate, scale, rounding)
+        return KBigDecimalImpl(rounded, scale)
     }
 
     actual override fun abs(): KBigDecimal {
         val result =
             if (nsDecimalNumber.compare(NSDecimalNumber.zero) < 0) {
-                nsDecimalNumber.decimalNumberByMultiplyingBy(NSDecimalNumber(string = "-1"))
+                negate(nsDecimalNumber)
             } else {
                 nsDecimalNumber
             }
@@ -307,42 +269,17 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
     ): KBigDecimal {
         val currentScale = scale()
 
-        // If same scale, return as is
         if (currentScale == scale) {
             return this
         }
 
-        // If increasing scale, just add zeros
         if (currentScale < scale) {
             return KBigDecimalImpl(nsDecimalNumber, scale)
         }
 
-        // Handle UNNECESSARY rounding mode
-        if (roundingMode == 7) {
-            val str = nsDecimalNumber.stringValue
-            val decimalIndex = str.indexOf('.')
-            if (decimalIndex != -1 && decimalIndex + scale + 1 < str.length) {
-                val digitsToRemove = str.substring(decimalIndex + scale + 1)
-                if (digitsToRemove.any { it != '0' }) {
-                    throw ArithmeticException("Rounding necessary")
-                }
-            }
-            return KBigDecimalImpl(nsDecimalNumber, scale)
-        }
-
-        // For other rounding modes, use NSDecimalNumberHandler
-        val mode = getRoundingMode(roundingMode)
-        val handler =
-            NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
-                mode,
-                scale.toShort(),
-                true,
-                true,
-                true,
-                true,
-            )
-        val result = nsDecimalNumber.decimalNumberByRoundingAccordingToBehavior(handler)
-        return KBigDecimalImpl(result, scale)
+        val rounding = roundingMode.toKBRoundingMode()
+        val rounded = roundDecimal(nsDecimalNumber, scale, rounding)
+        return KBigDecimalImpl(rounded, scale)
     }
 
     actual override fun toBigInteger(): KBigInteger {
@@ -483,17 +420,112 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         }
     }
 
-    private fun getRoundingMode(mode: Int): NSRoundingMode {
+    private fun createHandler(
+        mode: NSRoundingMode,
+        scale: Int,
+    ): NSDecimalNumberHandler =
+        NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
+            mode,
+            scale.toShort(),
+            false,
+            false,
+            false,
+            false,
+        )
+
+    private fun roundDecimal(
+        value: NSDecimalNumber,
+        scale: Int,
+        mode: KBRoundingMode,
+    ): NSDecimalNumber {
+        if (mode == KBRoundingMode.Unnecessary) {
+            val formatted = formatToScale(value.stringValue, scale)
+            val formattedNumber = NSDecimalNumber(string = formatted)
+            if (!value.isEqualToNumber(formattedNumber)) {
+                throw ArithmeticException("Rounding necessary")
+            }
+            return formattedNumber
+        }
+
         return when (mode) {
-            0 -> NSRoundingMode.NSRoundUp // UP
-            1 -> NSRoundingMode.NSRoundDown // DOWN
-            2 -> NSRoundingMode.NSRoundUp // CEILING
-            3 -> NSRoundingMode.NSRoundDown // FLOOR
-            4 -> NSRoundingMode.NSRoundPlain // HALF_UP
-            5 -> NSRoundingMode.NSRoundDown // HALF_DOWN
-            6 -> NSRoundingMode.NSRoundBankers // HALF_EVEN
-            7 -> throw ArithmeticException("Rounding necessary") // UNNECESSARY
-            else -> NSRoundingMode.NSRoundPlain
+            KBRoundingMode.Up -> roundAwayFromZero(value, scale)
+            KBRoundingMode.Down -> roundTowardsZero(value, scale)
+            KBRoundingMode.Ceiling -> roundUsing(NSRoundingMode.NSRoundUp, value, scale)
+            KBRoundingMode.Floor -> roundUsing(NSRoundingMode.NSRoundDown, value, scale)
+            KBRoundingMode.HalfUp -> roundUsing(NSRoundingMode.NSRoundPlain, value, scale)
+            KBRoundingMode.HalfDown -> roundHalfDown(value, scale)
+            KBRoundingMode.HalfEven -> roundUsing(NSRoundingMode.NSRoundBankers, value, scale)
+            KBRoundingMode.Unnecessary -> value // already handled above
         }
     }
+
+    private fun roundUsing(
+        mode: NSRoundingMode,
+        value: NSDecimalNumber,
+        scale: Int,
+    ): NSDecimalNumber = value.decimalNumberByRoundingAccordingToBehavior(createHandler(mode, scale))
+
+    private fun roundTowardsZero(
+        value: NSDecimalNumber,
+        scale: Int,
+    ): NSDecimalNumber {
+        if (value.compare(NSDecimalNumber.zero) >= 0) {
+            return roundUsing(NSRoundingMode.NSRoundDown, value, scale)
+        }
+
+        val positive = negate(value)
+        val roundedPositive = roundUsing(NSRoundingMode.NSRoundDown, positive, scale)
+        return negate(roundedPositive)
+    }
+
+    private fun roundAwayFromZero(
+        value: NSDecimalNumber,
+        scale: Int,
+    ): NSDecimalNumber {
+        return if (value.compare(NSDecimalNumber.zero) >= 0) {
+            roundUsing(NSRoundingMode.NSRoundUp, value, scale)
+        } else {
+            roundUsing(NSRoundingMode.NSRoundDown, value, scale)
+        }
+    }
+
+    private fun roundHalfDown(
+        value: NSDecimalNumber,
+        scale: Int,
+    ): NSDecimalNumber {
+        val nearest = roundUsing(NSRoundingMode.NSRoundPlain, value, scale)
+        if (!isHalfway(value, scale)) {
+            return nearest
+        }
+        return roundTowardsZero(value, scale)
+    }
+
+    private fun isHalfway(
+        value: NSDecimalNumber,
+        scale: Int,
+    ): Boolean {
+        if (scale < 0) return false
+
+        val power = tenToPower(scale)
+        val scaled = value.decimalNumberByMultiplyingBy(power)
+        val truncated = roundTowardsZero(scaled, 0)
+        val delta = scaled.decimalNumberBySubtracting(truncated)
+        val absDelta =
+            if (delta.compare(NSDecimalNumber.zero) < 0) {
+                negate(delta)
+            } else {
+                delta
+            }
+        val half = NSDecimalNumber(string = "0.5")
+        return absDelta.compare(half) == NSOrderedSame
+    }
+
+    private fun tenToPower(power: Int): NSDecimalNumber {
+        if (power <= 0) return NSDecimalNumber(string = "1")
+        val builder = StringBuilder("1")
+        repeat(power) { builder.append('0') }
+        return NSDecimalNumber(string = builder.toString())
+    }
+
+    private fun negate(value: NSDecimalNumber): NSDecimalNumber = value.decimalNumberByMultiplyingBy(negativeOne)
 }

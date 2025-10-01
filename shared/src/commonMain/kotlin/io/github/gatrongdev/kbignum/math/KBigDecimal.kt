@@ -61,6 +61,15 @@ interface KBigDecimal : Comparable<KBigDecimal> {
     ): KBigDecimal
 
     /**
+     * Rounds the division result using the provided [KBRoundingMode].
+     */
+    fun divide(
+        other: KBigDecimal,
+        scale: Int,
+        rounding: KBRoundingMode,
+    ): KBigDecimal = divide(other, scale, rounding.toLegacyCode())
+
+    /**
      * Returns a KBigDecimal that is the quotient of this divided by the specified value using a division configuration.
      * This is a convenient method that accepts a DivisionConfig or DivisionStrategy preset.
      *
@@ -79,7 +88,7 @@ interface KBigDecimal : Comparable<KBigDecimal> {
      * // Result: 33.33
      *
      * // Using custom config
-     * val result = price.divide(quantity, DivisionConfig(scale = 4, roundingMode = RoundingMode.HALF_EVEN))
+     * val result = price.divide(quantity, DivisionConfig(scale = 4, rounding = KBRoundingMode.HalfEven))
      * // Result: 33.3333
      * ```
      */
@@ -111,6 +120,14 @@ interface KBigDecimal : Comparable<KBigDecimal> {
         scale: Int,
         roundingMode: Int,
     ): KBigDecimal
+
+    /**
+     * Returns a KBigDecimal with the specified scale using a type-safe rounding mode.
+     */
+    fun setScale(
+        scale: Int,
+        rounding: KBRoundingMode,
+    ): KBigDecimal = setScale(scale, rounding.toLegacyCode())
 
     /**
      * Converts this KBigDecimal to a KBigInteger by discarding the fractional part.

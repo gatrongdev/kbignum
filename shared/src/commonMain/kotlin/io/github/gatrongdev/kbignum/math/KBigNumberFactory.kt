@@ -152,8 +152,16 @@ object PrecisionScale {
  */
 data class DivisionConfig(
     val scale: Int,
-    val roundingMode: Int = RoundingMode.HALF_UP,
-)
+    val rounding: KBRoundingMode = KBRoundingMode.HalfUp,
+) {
+    val roundingMode: Int get() = rounding.legacyCode
+
+    @Deprecated("Use rounding-based constructor", ReplaceWith("DivisionConfig(scale, roundingMode.toKBRoundingMode())"))
+    constructor(
+        scale: Int,
+        roundingMode: Int,
+    ) : this(scale, roundingMode.toKBRoundingMode())
+}
 
 /**
  * Predefined division strategies for common use cases.
@@ -168,7 +176,7 @@ object DivisionStrategy {
     val CURRENCY =
         DivisionConfig(
             scale = PrecisionScale.CURRENCY,
-            roundingMode = RoundingMode.HALF_UP,
+            rounding = KBRoundingMode.HalfUp,
         )
 
     /**
@@ -179,7 +187,7 @@ object DivisionStrategy {
     val FINANCIAL =
         DivisionConfig(
             scale = PrecisionScale.CURRENCY,
-            roundingMode = RoundingMode.HALF_EVEN,
+            rounding = KBRoundingMode.HalfEven,
         )
 
     /**
@@ -190,7 +198,7 @@ object DivisionStrategy {
     val EXCHANGE_RATE =
         DivisionConfig(
             scale = PrecisionScale.EXCHANGE_RATE,
-            roundingMode = RoundingMode.HALF_UP,
+            rounding = KBRoundingMode.HalfUp,
         )
 
     /**
@@ -201,7 +209,7 @@ object DivisionStrategy {
     val PERCENTAGE =
         DivisionConfig(
             scale = PrecisionScale.PERCENTAGE,
-            roundingMode = RoundingMode.HALF_UP,
+            rounding = KBRoundingMode.HalfUp,
         )
 
     /**
@@ -212,7 +220,7 @@ object DivisionStrategy {
     val SCIENTIFIC =
         DivisionConfig(
             scale = PrecisionScale.SCIENTIFIC,
-            roundingMode = RoundingMode.HALF_UP,
+            rounding = KBRoundingMode.HalfUp,
         )
 
     /**
@@ -223,7 +231,7 @@ object DivisionStrategy {
     val HIGH_PRECISION =
         DivisionConfig(
             scale = PrecisionScale.HIGH_PRECISION,
-            roundingMode = RoundingMode.HALF_UP,
+            rounding = KBRoundingMode.HalfUp,
         )
 
     /**
@@ -234,7 +242,7 @@ object DivisionStrategy {
     val INTEREST_RATE =
         DivisionConfig(
             scale = PrecisionScale.INTEREST_RATE,
-            roundingMode = RoundingMode.HALF_UP,
+            rounding = KBRoundingMode.HalfUp,
         )
 
     /**
@@ -245,7 +253,7 @@ object DivisionStrategy {
     val CRYPTOCURRENCY =
         DivisionConfig(
             scale = PrecisionScale.CRYPTOCURRENCY,
-            roundingMode = RoundingMode.HALF_UP,
+            rounding = KBRoundingMode.HalfUp,
         )
 
     /**
@@ -256,6 +264,6 @@ object DivisionStrategy {
     val EXACT =
         DivisionConfig(
             scale = 0,
-            roundingMode = RoundingMode.UNNECESSARY,
+            rounding = KBRoundingMode.Unnecessary,
         )
 }

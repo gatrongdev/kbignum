@@ -1,4 +1,5 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
@@ -18,6 +19,14 @@ plugins {
 
 group = "io.github.gatrongdev"
 version = "0.0.17"
+
+fun Project.requiredIntProperty(name: String): Int =
+    providers.gradleProperty(name).orNull?.toIntOrNull()
+        ?: error("Required Gradle property '$name' is missing or not an Int")
+
+val androidCompileSdk = project.requiredIntProperty("android.compileSdk")
+val androidMinSdk = project.requiredIntProperty("android.minSdk")
+val androidTargetSdk = project.requiredIntProperty("android.targetSdk")
 
 kotlin {
     androidTarget {
@@ -55,9 +64,10 @@ kotlin {
 
 android {
     namespace = "io.github.gatrongdev.kbignum"
-    compileSdk = 35
+    compileSdk = androidCompileSdk
     defaultConfig {
-        minSdk = 21
+        minSdk = androidMinSdk
+        targetSdk = androidTargetSdk
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
