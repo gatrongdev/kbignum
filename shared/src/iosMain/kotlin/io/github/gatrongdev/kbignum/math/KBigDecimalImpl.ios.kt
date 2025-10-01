@@ -161,44 +161,11 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
             return KBigDecimalImpl("1.00")
         }
 
-        val thisScale = this.scale()
+        val thisScale = scale()
         val otherScale = otherImpl.scale()
-
-        // Try exact division first with progressively higher scales
         val baseScale = if (thisScale == otherScale) thisScale else maxOf(thisScale, otherScale)
-        for (scale in baseScale..(baseScale + 5)) {
-            val handler =
-                NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
-                    NSRoundingMode.NSRoundPlain,
-                    scale.toShort(),
-                    true,
-                    true,
-                    true,
-                    true,
-                )
-            val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
 
-            // Check if this is an exact result by comparing with higher precision
-            val higherHandler =
-                NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
-                    NSRoundingMode.NSRoundPlain,
-                    (scale + 2).toShort(),
-                    true,
-                    true,
-                    true,
-                    true,
-                )
-            val higherResult = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, higherHandler)
-
-            // If rounding to current scale gives same result as higher precision, it's exact
-            val roundedHigher = higherResult.decimalNumberByRoundingAccordingToBehavior(handler)
-            if (result.isEqualToNumber(roundedHigher)) {
-                return KBigDecimalImpl(result.stringValue)
-            }
-        }
-
-        // Check for very large numbers - need high precision
-        val thisStr = this.toString()
+        val thisStr = toString()
         val otherStr = otherImpl.toString()
         if (thisStr.length > 20 || otherStr.length > 20) {
             val highPrecision = maxOf(30, baseScale + 20)
@@ -212,18 +179,32 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
                     true,
                 )
             val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
-            val resultString = result.stringValue
-            val stripped =
-                if (resultString.contains('.')) {
-                    resultString.trimEnd('0').trimEnd('.')
-                } else {
-                    resultString
-                }
-            return KBigDecimalImpl(stripped)
+            val normalizedLarge = normalizeDecimalString(result.stringValue)
+            return KBigDecimalImpl(normalizedLarge)
         }
 
-        // Not exact division - use base scale with rounding
-        val handler =
+        val maxExactScale = baseScale + 5
+        val highPrecisionScale = maxOf(maxExactScale + 10, 30)
+
+        val highPrecisionHandler =
+            NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
+                NSRoundingMode.NSRoundPlain,
+                highPrecisionScale.toShort(),
+                true,
+                true,
+                true,
+                true,
+            )
+        val highPrecisionResult =
+            nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, highPrecisionHandler)
+        val normalized = normalizeDecimalString(highPrecisionResult.stringValue)
+        val normalizedScale = scaleOfString(normalized)
+
+        if (normalizedScale <= maxExactScale) {
+            return KBigDecimalImpl(normalized)
+        }
+
+        val fallbackHandler =
             NSDecimalNumberHandler.decimalNumberHandlerWithRoundingMode(
                 NSRoundingMode.NSRoundPlain,
                 baseScale.toShort(),
@@ -232,8 +213,8 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
                 true,
                 true,
             )
-        val result = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, handler)
-        return KBigDecimalImpl(result.stringValue)
+        val fallbackResult = nsDecimalNumber.decimalNumberByDividingBy(otherImpl.nsDecimalNumber, fallbackHandler)
+        return KBigDecimalImpl(fallbackResult, baseScale)
     }
 
     actual override fun divide(
@@ -474,6 +455,31 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
             } else {
                 "$integerPart.$adjustedFractional"
             }
+        }
+    }
+
+    private fun normalizeDecimalString(value: String): String {
+        if (value.contains('E') || value.contains('e')) {
+            return value
+        }
+
+        var normalized = value
+        if (normalized.contains('.')) {
+            normalized = normalized.trimEnd('0')
+            if (normalized.endsWith('.')) {
+                normalized = normalized.dropLast(1)
+            }
+        }
+
+        return if (normalized.isEmpty()) "0" else normalized
+    }
+
+    private fun scaleOfString(value: String): Int {
+        val decimalIndex = value.indexOf('.')
+        return if (decimalIndex == -1) {
+            0
+        } else {
+            value.length - decimalIndex - 1
         }
     }
 

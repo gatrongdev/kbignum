@@ -1109,4 +1109,194 @@ class KBigDecimalTest {
         // Assert
         assertEquals(expected, actual)
     }
+
+    // DIVISIONCONFIG AND DIVISIONSTRATEGY TESTS
+    @Test
+    fun divide_withDivisionConfig_appliesConfiguredScaleAndMode() {
+        // Arrange
+        val dividend = "100".toKBigDecimal()
+        val divisor = "3".toKBigDecimal()
+        val config = DivisionConfig(scale = 4, roundingMode = RoundingMode.HALF_UP)
+        val expected = "33.3333".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, config)
+
+        // Assert
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun divide_withCurrencyStrategy_appliesCurrencyPrecision() {
+        // Arrange
+        val dividend = "100".toKBigDecimal()
+        val divisor = "3".toKBigDecimal()
+        val expected = "33.33".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, DivisionStrategy.CURRENCY)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+
+    @Test
+    fun divide_withFinancialStrategy_appliesBankersRounding() {
+        // Arrange
+        val dividend = "100".toKBigDecimal()
+        val divisor = "3".toKBigDecimal()
+        val expected = "33.33".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, DivisionStrategy.FINANCIAL)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+
+    @Test
+    fun divide_withExchangeRateStrategy_applies4DecimalPlaces() {
+        // Arrange
+        val dividend = "100".toKBigDecimal()
+        val divisor = "1.2345".toKBigDecimal()
+        val expected = "81.0045".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, DivisionStrategy.EXCHANGE_RATE)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(4, actual.scale())
+    }
+
+    @Test
+    fun divide_withPercentageStrategy_applies2DecimalPlaces() {
+        // Arrange
+        val dividend = "50".toKBigDecimal()
+        val divisor = "3".toKBigDecimal()
+        val expected = "16.67".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, DivisionStrategy.PERCENTAGE)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(2, actual.scale())
+    }
+
+    @Test
+    fun divide_withScientificStrategy_applies10DecimalPlaces() {
+        // Arrange
+        val dividend = "22".toKBigDecimal()
+        val divisor = "7".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, DivisionStrategy.SCIENTIFIC)
+
+        // Assert
+        assertEquals(10, actual.scale())
+        assertTrue(actual.toString().startsWith("3.14"))
+    }
+
+    @Test
+    fun divide_withHighPrecisionStrategy_applies20DecimalPlaces() {
+        // Arrange
+        val dividend = "1".toKBigDecimal()
+        val divisor = "3".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, DivisionStrategy.HIGH_PRECISION)
+
+        // Assert
+        assertEquals(20, actual.scale())
+        assertTrue(actual.toString().startsWith("0.33333333333333333333"))
+    }
+
+    @Test
+    fun divide_withInterestRateStrategy_applies6DecimalPlaces() {
+        // Arrange
+        val dividend = "5".toKBigDecimal()
+        val divisor = "12".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, DivisionStrategy.INTEREST_RATE)
+
+        // Assert
+        assertEquals(6, actual.scale())
+        assertTrue(actual.toString().startsWith("0.41666"))
+    }
+
+    @Test
+    fun divide_withCryptocurrencyStrategy_applies8DecimalPlaces() {
+        // Arrange
+        val dividend = "1".toKBigDecimal()
+        val divisor = "3".toKBigDecimal()
+        val expected = "0.33333333".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, DivisionStrategy.CRYPTOCURRENCY)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(8, actual.scale())
+    }
+
+    @Test
+    fun divide_withExactStrategy_exactDivision_returnsExactResult() {
+        // Arrange
+        val dividend = "10".toKBigDecimal()
+        val divisor = "2".toKBigDecimal()
+        val expected = "5".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, DivisionStrategy.EXACT)
+
+        // Assert
+        assertEquals(expected.toString(), actual.toString())
+    }
+
+    @Test
+    fun divide_withExactStrategy_nonExactDivision_throwsArithmeticException() {
+        // Arrange
+        val dividend = "10".toKBigDecimal()
+        val divisor = "3".toKBigDecimal()
+
+        // Act & Assert
+        assertFailsWith<ArithmeticException> {
+            dividend.divide(divisor, DivisionStrategy.EXACT)
+        }
+    }
+
+    @Test
+    fun divisionConfig_withDefaultRoundingMode_usesHalfUp() {
+        // Arrange
+        val config = DivisionConfig(scale = 2)
+        val dividend = "100".toKBigDecimal()
+        val divisor = "3".toKBigDecimal()
+        val expected = "33.33".toKBigDecimal()
+
+        // Act
+        val actual = dividend.divide(divisor, config)
+
+        // Assert
+        assertEquals(expected, actual)
+        assertEquals(RoundingMode.HALF_UP, config.roundingMode)
+    }
+
+    @Test
+    fun precisionScale_currencyConstant_equals2() {
+        assertEquals(2, PrecisionScale.CURRENCY)
+    }
+
+    @Test
+    fun precisionScale_exchangeRateConstant_equals4() {
+        assertEquals(4, PrecisionScale.EXCHANGE_RATE)
+    }
+
+    @Test
+    fun precisionScale_cryptocurrencyConstant_equals8() {
+        assertEquals(8, PrecisionScale.CRYPTOCURRENCY)
+    }
 }

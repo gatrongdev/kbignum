@@ -61,6 +61,34 @@ interface KBigDecimal : Comparable<KBigDecimal> {
     ): KBigDecimal
 
     /**
+     * Returns a KBigDecimal that is the quotient of this divided by the specified value using a division configuration.
+     * This is a convenient method that accepts a DivisionConfig or DivisionStrategy preset.
+     *
+     * @param other The divisor
+     * @param config The division configuration specifying scale and rounding mode
+     * @return The result of the division with the configured scale and rounding mode
+     * @throws ArithmeticException if other is zero or if rounding is necessary but the rounding mode is UNNECESSARY
+     *
+     * Example usage:
+     * ```
+     * val price = "100.00".toKBigDecimal()
+     * val quantity = "3".toKBigDecimal()
+     *
+     * // Using predefined strategy
+     * val pricePerItem = price.divide(quantity, DivisionStrategy.CURRENCY)
+     * // Result: 33.33
+     *
+     * // Using custom config
+     * val result = price.divide(quantity, DivisionConfig(scale = 4, roundingMode = RoundingMode.HALF_EVEN))
+     * // Result: 33.3333
+     * ```
+     */
+    fun divide(
+        other: KBigDecimal,
+        config: DivisionConfig,
+    ): KBigDecimal = divide(other, config.scale, config.roundingMode)
+
+    /**
      * Returns the absolute value of this KBigDecimal.
      * @return The absolute value (always non-negative)
      */

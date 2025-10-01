@@ -27,7 +27,7 @@ Add to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("io.github.gatrongdev:kbignum:0.0.1")
+    implementation("io.github.gatrongdev:kbignum:0.0.17")
 }
 ```
 
@@ -37,7 +37,7 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'io.github.gatrongdev:kbignum:0.0.1'
+    implementation 'io.github.gatrongdev:kbignum:0.0.17'
 }
 ```
 
@@ -57,8 +57,16 @@ val bigInteger = "12345678901234567890".toKBigInteger()
 val sum = bigDecimal1 + bigDecimal2
 val difference = bigDecimal1 - bigDecimal2
 val product = bigDecimal1 * bigDecimal2
-val quotient = bigDecimal1.divide(bigDecimal2, 10) // 10 decimal places
-val simpleQuotient = bigDecimal1.divide(bigDecimal2) // uses automatic scale
+
+// Division with automatic scale
+val simpleQuotient = bigDecimal1.divide(bigDecimal2)
+
+// Division with predefined strategies (v0.0.17+)
+val currencyResult = bigDecimal1.divide(bigDecimal2, DivisionStrategy.CURRENCY)
+val preciseResult = bigDecimal1.divide(bigDecimal2, DivisionStrategy.SCIENTIFIC)
+
+// Division with custom configuration
+val customResult = bigDecimal1.divide(bigDecimal2, DivisionConfig(scale = 10, roundingMode = RoundingMode.HALF_UP))
 
 // Advanced operations
 val sqrt = KBigMath.sqrt(bigDecimal1, 10)
@@ -92,6 +100,18 @@ val power = KBigMath.pow(bigDecimal1, 5)
 // Precision control
 val scaled = bigDecimal1.setScale(5, RoundingMode.HALF_UP)
 val precision = bigDecimal1.precision()
+
+// Division strategies (v0.0.17+)
+val price = "100.00".toKBigDecimal()
+val quantity = "3".toKBigDecimal()
+
+// Use predefined strategies
+val pricePerItem = price.divide(quantity, DivisionStrategy.CURRENCY)       // 33.33
+val exchangeRate = price.divide(quantity, DivisionStrategy.EXCHANGE_RATE)  // 33.3333
+val cryptoAmount = price.divide(quantity, DivisionStrategy.CRYPTOCURRENCY) // 33.33333333
+
+// Use precision scale constants
+val interestRate = price.divide(quantity, PrecisionScale.INTEREST_RATE, RoundingMode.HALF_UP)
 ```
 
 ## API Reference
@@ -105,9 +125,26 @@ Interface for arbitrary precision decimal numbers:
 - `multiply(other: KBigDecimal): KBigDecimal`
 - `divide(other: KBigDecimal): KBigDecimal`
 - `divide(other: KBigDecimal, scale: Int): KBigDecimal`
+- `divide(other: KBigDecimal, scale: Int, mode: Int): KBigDecimal`
+- `divide(other: KBigDecimal, config: DivisionConfig): KBigDecimal` *(v0.0.17+)*
 - `abs(): KBigDecimal`
 - `signum(): Int`
 - `setScale(scale: Int, roundingMode: Int): KBigDecimal`
+
+### Division Helpers (v0.0.17+)
+
+**PrecisionScale** - Constants for common decimal places:
+- `CURRENCY` (2), `EXCHANGE_RATE` (4), `PERCENTAGE` (2)
+- `SCIENTIFIC` (10), `HIGH_PRECISION` (20), `INTEREST_RATE` (6)
+- `CRYPTOCURRENCY` (8)
+
+**DivisionStrategy** - Predefined strategies:
+- `CURRENCY`, `FINANCIAL`, `EXCHANGE_RATE`, `PERCENTAGE`
+- `SCIENTIFIC`, `HIGH_PRECISION`, `INTEREST_RATE`
+- `CRYPTOCURRENCY`, `EXACT`
+
+**DivisionConfig** - Custom configuration:
+- `DivisionConfig(scale: Int, roundingMode: Int = RoundingMode.HALF_UP)`
 
 ### KBigInteger
 
