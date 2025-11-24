@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: ☕ Setup JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v4
@@ -73,7 +73,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: ☕ Setup JDK
         uses: actions/setup-java@v4
@@ -104,7 +104,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🔍 Security scan summary
         run: |
