@@ -9,3 +9,17 @@ captures
 local.properties
 xcuserdata
 /.kotlin/
+
+# Rust build artifacts
+rust-bignum/target/
+**/.cargo/
+rust-bignum/Cargo.lock
+
+# Compiled native libraries (rebuild from source)
+libs/ios/*.a
+!libs/ios/.gitkeep
+libs/android/*.so
+!libs/android/.gitkeep
+
+# Kotlin Native cinterop generated files
+**/cinterop/build/

@@ -31,12 +31,58 @@ kotlin {
     }
 
     val xcf = XCFramework()
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64(),
-    ).forEach {
-        it.binaries.framework {
+
+    // iOS Device (ARM64)
+    iosArm64().apply {
+        compilations.getByName("main") {
+            val kbignumFfi by cinterops.creating {
+                defFile(project.file("src/nativeInterop/cinterop/kbignum_ffi.def"))
+                packageName("io.github.gatrongdev.kbignum.ffi")
+                includeDirs.headerFilterOnly(project.file("src/nativeInterop/cinterop"))
+
+                extraOpts("-libraryPath", project.file("../libs/ios").absolutePath)
+                extraOpts("-staticLibrary", "libkbignum_ffi_arm64.a")
+            }
+        }
+        binaries.framework {
+            baseName = "shared"
+            xcf.add(this)
+            isStatic = true
+        }
+    }
+
+    // iOS Simulator (ARM64 - M1/M2 Macs)
+    iosSimulatorArm64().apply {
+        compilations.getByName("main") {
+            val kbignumFfi by cinterops.creating {
+                defFile(project.file("src/nativeInterop/cinterop/kbignum_ffi.def"))
+                packageName("io.github.gatrongdev.kbignum.ffi")
+                includeDirs.headerFilterOnly(project.file("src/nativeInterop/cinterop"))
+
+                extraOpts("-libraryPath", project.file("../libs/ios").absolutePath)
+                extraOpts("-staticLibrary", "libkbignum_ffi_sim.a")
+            }
+        }
+        binaries.framework {
+            baseName = "shared"
+            xcf.add(this)
+            isStatic = true
+        }
+    }
+
+    // iOS Simulator (x86_64 - Intel Macs)
+    iosX64().apply {
+        compilations.getByName("main") {
+            val kbignumFfi by cinterops.creating {
+                defFile(project.file("src/nativeInterop/cinterop/kbignum_ffi.def"))
+                packageName("io.github.gatrongdev.kbignum.ffi")
+                includeDirs.headerFilterOnly(project.file("src/nativeInterop/cinterop"))
+
+                extraOpts("-libraryPath", project.file("../libs/ios").absolutePath)
+                extraOpts("-staticLibrary", "libkbignum_ffi_sim.a")
+            }
+        }
+        binaries.framework {
             baseName = "shared"
             xcf.add(this)
             isStatic = true

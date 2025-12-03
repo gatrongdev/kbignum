@@ -1,0 +1,5 @@
+headers = kbignum_ffi.h
+headerFilter = kbignum_ffi.h
+package = io.github.gatrongdev.kbignum.ffi
+
+staticLibraries = libkbignum_ffi.a
