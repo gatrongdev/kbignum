@@ -1,9 +1,10 @@
 package io.github.gatrongdev.kbignum.math
 
 import java.math.BigDecimal
-import java.math.RoundingMode
+import java.math.RoundingMode as JavaRoundingMode
 
 actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
+
     private val bigDecimal: BigDecimal = BigDecimal(value)
 
     actual companion object {
@@ -55,7 +56,7 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         val baseScale = if (thisScale == otherScale) thisScale else maxOf(thisScale, otherScale)
         for (scale in baseScale..(baseScale + 5)) {
             try {
-                val exactResult = bigDecimal.divide(otherImpl.bigDecimal, scale, RoundingMode.UNNECESSARY)
+                val exactResult = bigDecimal.divide(otherImpl.bigDecimal, scale, JavaRoundingMode.UNNECESSARY)
                 return KBigDecimalImpl(exactResult.toString())
             } catch (e: ArithmeticException) {
                 // Not exact at this scale, continue
@@ -67,12 +68,12 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         val otherStr = otherImpl.toString()
         if (thisStr.length > 20 || otherStr.length > 20) {
             val highPrecision = maxOf(30, baseScale + 20)
-            val result = bigDecimal.divide(otherImpl.bigDecimal, highPrecision, RoundingMode.HALF_UP)
+            val result = bigDecimal.divide(otherImpl.bigDecimal, highPrecision, JavaRoundingMode.HALF_UP)
             return KBigDecimalImpl(result.stripTrailingZeros().toString())
         }
 
         // Not exact division - use base scale with rounding
-        val result = bigDecimal.divide(otherImpl.bigDecimal, baseScale, RoundingMode.HALF_UP)
+        val result = bigDecimal.divide(otherImpl.bigDecimal, baseScale, JavaRoundingMode.HALF_UP)
         return KBigDecimalImpl(result.toString())
     }
 
@@ -85,7 +86,7 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
             bigDecimal.divide(
                 otherImpl.bigDecimal,
                 scale,
-                RoundingMode.HALF_UP,
+                JavaRoundingMode.HALF_UP,
             ).toString(),
         )
     }
@@ -93,7 +94,7 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
     actual override fun divide(
         other: KBigDecimal,
         scale: Int,
-        mode: Int,
+        mode: RoundingMode,
     ): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
         val roundingMode = getRoundingMode(mode)
@@ -106,6 +107,7 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         )
     }
 
+
     actual override fun abs(): KBigDecimal {
         return KBigDecimalImpl(bigDecimal.abs().toString())
     }
@@ -116,7 +118,7 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
 
     actual override fun setScale(
         scale: Int,
-        roundingMode: Int,
+        roundingMode: RoundingMode,
     ): KBigDecimal {
         val mode = getRoundingMode(roundingMode)
         return KBigDecimalImpl(bigDecimal.setScale(scale, mode).toString())
@@ -155,17 +157,17 @@ actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
         return bigDecimal.hashCode()
     }
 
-    private fun getRoundingMode(mode: Int): RoundingMode {
+    private fun getRoundingMode(mode: RoundingMode): JavaRoundingMode {
         return when (mode) {
-            0 -> RoundingMode.UP
-            1 -> RoundingMode.DOWN
-            2 -> RoundingMode.CEILING
-            3 -> RoundingMode.FLOOR
-            4 -> RoundingMode.HALF_UP
-            5 -> RoundingMode.HALF_DOWN
-            6 -> RoundingMode.HALF_EVEN
-            7 -> RoundingMode.UNNECESSARY
-            else -> RoundingMode.HALF_UP
+            RoundingMode.UP -> JavaRoundingMode.UP
+            RoundingMode.DOWN -> JavaRoundingMode.DOWN
+            RoundingMode.CEILING -> JavaRoundingMode.CEILING
+            RoundingMode.FLOOR -> JavaRoundingMode.FLOOR
+            RoundingMode.HALF_UP -> JavaRoundingMode.HALF_UP
+            RoundingMode.HALF_DOWN -> JavaRoundingMode.HALF_DOWN
+            RoundingMode.HALF_EVEN -> JavaRoundingMode.HALF_EVEN
+            RoundingMode.UNNECESSARY -> JavaRoundingMode.UNNECESSARY
         }
     }
 }
+

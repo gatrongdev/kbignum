@@ -57,7 +57,7 @@ interface KBigDecimal : Comparable<KBigDecimal> {
     fun divide(
         other: KBigDecimal,
         scale: Int,
-        mode: Int,
+        mode: RoundingMode,
     ): KBigDecimal
 
     /**
@@ -81,8 +81,9 @@ interface KBigDecimal : Comparable<KBigDecimal> {
      */
     fun setScale(
         scale: Int,
-        roundingMode: Int,
+        roundingMode: RoundingMode,
     ): KBigDecimal
+
 
     /**
      * Converts this KBigDecimal to a KBigInteger by discarding the fractional part.

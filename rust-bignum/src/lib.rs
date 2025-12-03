@@ -3,14 +3,33 @@ use num_traits::{Zero, One, ToPrimitive, Signed};
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::str::FromStr;
+use std::slice;
 
 // ==================== Memory Management ====================
+
+#[repr(C)]
+pub struct ByteArrayResult {
+    pub data: *mut u8,
+    pub len: usize,
+}
 
 #[no_mangle]
 pub extern "C" fn bigint_free_string(s: *mut c_char) {
     if !s.is_null() {
         unsafe {
             let _ = CString::from_raw(s);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_free_byte_result(ptr: *mut ByteArrayResult) {
+    if !ptr.is_null() {
+        unsafe {
+            let result = Box::from_raw(ptr);
+            // Reconstruct Vec to drop it and free memory
+            let _ = Vec::from_raw_parts(result.data, result.len, result.len);
+            // result (Box) is dropped here
         }
     }
 }
@@ -45,7 +64,129 @@ fn bigint_from_str(s: &str) -> Result<BigInt, String> {
     BigInt::from_str(s_clean).map_err(|e| format!("Invalid number: {}", e))
 }
 
-// ==================== BigInteger Operations ====================
+fn bytes_to_bigint(data: *const u8, len: usize) -> BigInt {
+    let bytes = unsafe { slice::from_raw_parts(data, len) };
+    BigInt::from_signed_bytes_be(bytes)
+}
+
+fn bigint_to_byte_result(n: BigInt) -> *mut ByteArrayResult {
+    let bytes = n.to_signed_bytes_be();
+    let mut buf = bytes.into_boxed_slice();
+    let data = buf.as_mut_ptr();
+    let len = buf.len();
+    std::mem::forget(buf); // Prevent deallocation
+
+    let result = Box::new(ByteArrayResult { data, len });
+    Box::into_raw(result)
+}
+
+// ==================== BigInteger Operations (Bytes) ====================
+
+#[no_mangle]
+pub extern "C" fn bigint_from_string_bytes(s: *const c_char) -> *mut ByteArrayResult {
+    unsafe {
+        let s_str = match c_str_to_string(s) {
+            Ok(val) => val,
+            Err(_) => return std::ptr::null_mut(),
+        };
+        match bigint_from_str(&s_str) {
+            Ok(n) => bigint_to_byte_result(n),
+            Err(_) => std::ptr::null_mut(),
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_to_string_bytes(data: *const u8, len: usize) -> *mut c_char {
+    let n = bytes_to_bigint(data, len);
+    string_to_c_str(n.to_string())
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_add_bytes(
+    a_data: *const u8, a_len: usize,
+    b_data: *const u8, b_len: usize
+) -> *mut ByteArrayResult {
+    let a = bytes_to_bigint(a_data, a_len);
+    let b = bytes_to_bigint(b_data, b_len);
+    bigint_to_byte_result(a + b)
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_subtract_bytes(
+    a_data: *const u8, a_len: usize,
+    b_data: *const u8, b_len: usize
+) -> *mut ByteArrayResult {
+    let a = bytes_to_bigint(a_data, a_len);
+    let b = bytes_to_bigint(b_data, b_len);
+    bigint_to_byte_result(a - b)
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_multiply_bytes(
+    a_data: *const u8, a_len: usize,
+    b_data: *const u8, b_len: usize
+) -> *mut ByteArrayResult {
+    let a = bytes_to_bigint(a_data, a_len);
+    let b = bytes_to_bigint(b_data, b_len);
+    bigint_to_byte_result(a * b)
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_divide_bytes(
+    a_data: *const u8, a_len: usize,
+    b_data: *const u8, b_len: usize
+) -> *mut ByteArrayResult {
+    let a = bytes_to_bigint(a_data, a_len);
+    let b = bytes_to_bigint(b_data, b_len);
+    if b.is_zero() {
+        return std::ptr::null_mut();
+    }
+    bigint_to_byte_result(a / b)
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_mod_bytes(
+    a_data: *const u8, a_len: usize,
+    b_data: *const u8, b_len: usize
+) -> *mut ByteArrayResult {
+    let a = bytes_to_bigint(a_data, a_len);
+    let b = bytes_to_bigint(b_data, b_len);
+    if b.is_zero() {
+        return std::ptr::null_mut();
+    }
+    bigint_to_byte_result(a % b)
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_abs_bytes(data: *const u8, len: usize) -> *mut ByteArrayResult {
+    let n = bytes_to_bigint(data, len);
+    bigint_to_byte_result(n.abs())
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_signum_bytes(data: *const u8, len: usize) -> i32 {
+    let n = bytes_to_bigint(data, len);
+    if n.is_zero() { 0 } else if n > BigInt::zero() { 1 } else { -1 }
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_compare_bytes(
+    a_data: *const u8, a_len: usize,
+    b_data: *const u8, b_len: usize
+) -> i32 {
+    let a = bytes_to_bigint(a_data, a_len);
+    let b = bytes_to_bigint(b_data, b_len);
+    if a < b { -1 } else if a > b { 1 } else { 0 }
+}
+
+#[no_mangle]
+pub extern "C" fn bigint_to_long_bytes(data: *const u8, len: usize) -> i64 {
+    let n = bytes_to_bigint(data, len);
+    n.to_i64().unwrap_or(0)
+}
+
+// ==================== BigInteger Operations (Legacy String) ====================
 
 #[no_mangle]
 pub extern "C" fn bigint_add(a: *const c_char, b: *const c_char) -> *mut c_char {

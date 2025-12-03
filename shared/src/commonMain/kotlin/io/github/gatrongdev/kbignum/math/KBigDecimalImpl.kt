@@ -27,7 +27,7 @@ expect class KBigDecimalImpl(value: String) : KBigDecimal {
     override fun divide(
         other: KBigDecimal,
         scale: Int,
-        mode: Int,
+        mode: RoundingMode,
     ): KBigDecimal
 
     override fun abs(): KBigDecimal
@@ -36,8 +36,9 @@ expect class KBigDecimalImpl(value: String) : KBigDecimal {
 
     override fun setScale(
         scale: Int,
-        roundingMode: Int,
+        roundingMode: RoundingMode,
     ): KBigDecimal
+
 
     override fun toBigInteger(): KBigInteger
 

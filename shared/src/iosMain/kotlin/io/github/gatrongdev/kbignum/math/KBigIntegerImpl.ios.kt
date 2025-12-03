@@ -4,16 +4,33 @@ import io.github.gatrongdev.kbignum.ffi.*
 import kotlinx.cinterop.*
 
 @OptIn(ExperimentalForeignApi::class)
-actual class KBigIntegerImpl actual constructor(value: String) : KBigInteger {
-    private val stringValue: String
+actual class KBigIntegerImpl : KBigInteger {
+    private val bytes: ByteArray
 
-    init {
+    actual constructor(value: String) {
         if (!isValidIntegerString(value)) {
             throw NumberFormatException("Invalid number format: $value")
         }
         // Remove leading '+' sign for normalization
         val trimmed = value.trim()
-        stringValue = if (trimmed.startsWith("+")) trimmed.substring(1) else trimmed
+        val cleanValue = if (trimmed.startsWith("+")) trimmed.substring(1) else trimmed
+        
+        bytes = memScoped {
+            val resultPtr = bigint_from_string_bytes(cleanValue.cstr)
+                ?: throw NumberFormatException("Failed to parse BigInteger from string")
+            
+            val result = resultPtr.pointed
+            val data = result.data ?: throw IllegalStateException("Null data pointer")
+            val len = result.len.toInt()
+            
+            val byteArray = data.readBytes(len)
+            bigint_free_byte_result(resultPtr)
+            byteArray
+        }
+    }
+
+    private constructor(bytes: ByteArray) {
+        this.bytes = bytes
     }
 
     private fun isValidIntegerString(str: String): Boolean {
@@ -46,109 +63,123 @@ actual class KBigIntegerImpl actual constructor(value: String) : KBigInteger {
     }
 
     actual override fun toLong(): Long {
-        // Check if value is within Long range
-        val longMax = KBigIntegerImpl(Long.MAX_VALUE.toString())
-        val longMin = KBigIntegerImpl(Long.MIN_VALUE.toString())
-
-        if (this.compareTo(longMax) > 0) {
-            throw ArithmeticException("BigInteger out of long range")
+        return bytes.usePinned { pinned ->
+            bigint_to_long_bytes(pinned.addressOf(0).reinterpret(), bytes.size.toULong())
         }
-        if (this.compareTo(longMin) < 0) {
-            throw ArithmeticException("BigInteger out of long range")
-        }
-
-        return bigint_to_long(stringValue)
     }
 
     actual override fun toString(): String {
-        return stringValue
+        return bytes.usePinned { pinned ->
+            val resultPtr = bigint_to_string_bytes(pinned.addressOf(0).reinterpret(), bytes.size.toULong())
+                ?: return "0"
+            val result = resultPtr.toKString()
+            bigint_free_string(resultPtr)
+            result
+        }
     }
 
     actual override fun toPreciseNumber(): KBigDecimal {
-        return KBigDecimalImpl(stringValue)
+        return KBigDecimalImpl(toString())
     }
 
     actual override fun add(other: KBigInteger): KBigInteger {
         val otherImpl = other as KBigIntegerImpl
-        val resultPtr = bigint_add(stringValue, otherImpl.stringValue)
-        if (resultPtr == null) {
-            throw ArithmeticException("Addition failed")
+        return performOp(otherImpl) { aPtr, aLen, bPtr, bLen ->
+            bigint_add_bytes(aPtr, aLen, bPtr, bLen)
         }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigIntegerImpl(result)
     }
 
     actual override fun subtract(other: KBigInteger): KBigInteger {
         val otherImpl = other as KBigIntegerImpl
-        val resultPtr = bigint_subtract(stringValue, otherImpl.stringValue)
-        if (resultPtr == null) {
-            throw ArithmeticException("Subtraction failed")
+        return performOp(otherImpl) { aPtr, aLen, bPtr, bLen ->
+            bigint_subtract_bytes(aPtr, aLen, bPtr, bLen)
         }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigIntegerImpl(result)
     }
 
     actual override fun multiply(other: KBigInteger): KBigInteger {
         val otherImpl = other as KBigIntegerImpl
-        val resultPtr = bigint_multiply(stringValue, otherImpl.stringValue)
-        if (resultPtr == null) {
-            throw ArithmeticException("Multiplication failed")
+        return performOp(otherImpl) { aPtr, aLen, bPtr, bLen ->
+            bigint_multiply_bytes(aPtr, aLen, bPtr, bLen)
         }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigIntegerImpl(result)
     }
 
     actual override fun divide(other: KBigInteger): KBigInteger {
         val otherImpl = other as KBigIntegerImpl
-        val resultPtr = bigint_divide(stringValue, otherImpl.stringValue)
-        if (resultPtr == null) {
-            throw ArithmeticException("Division by zero")
+        return performOp(otherImpl) { aPtr, aLen, bPtr, bLen ->
+            bigint_divide_bytes(aPtr, aLen, bPtr, bLen)
         }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigIntegerImpl(result)
     }
 
     actual override fun mod(other: KBigInteger): KBigInteger {
         val otherImpl = other as KBigIntegerImpl
-        val resultPtr = bigint_mod(stringValue, otherImpl.stringValue)
-        if (resultPtr == null) {
-            throw ArithmeticException("Division by zero")
+        return performOp(otherImpl) { aPtr, aLen, bPtr, bLen ->
+            bigint_mod_bytes(aPtr, aLen, bPtr, bLen)
         }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigIntegerImpl(result)
     }
 
     actual override fun abs(): KBigInteger {
-        val resultPtr = bigint_abs(stringValue)
-        if (resultPtr == null) {
-            throw ArithmeticException("Absolute value failed")
+        return bytes.usePinned { pinned ->
+            val resultPtr = bigint_abs_bytes(pinned.addressOf(0).reinterpret(), bytes.size.toULong())
+                ?: throw ArithmeticException("Absolute value failed")
+            
+            val result = resultPtr.pointed
+            val data = result.data ?: throw IllegalStateException("Null data pointer")
+            val len = result.len.toInt()
+            
+            val byteArray = data.readBytes(len)
+            bigint_free_byte_result(resultPtr)
+            KBigIntegerImpl(byteArray)
         }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigIntegerImpl(result)
     }
 
     actual override fun signum(): Int {
-        return bigint_signum(stringValue)
+        return bytes.usePinned { pinned ->
+            bigint_signum_bytes(pinned.addressOf(0).reinterpret(), bytes.size.toULong())
+        }
     }
 
     actual override fun compareTo(other: KBigInteger): Int {
         val otherImpl = other as KBigIntegerImpl
-        return bigint_compare(stringValue, otherImpl.stringValue)
+        return bytes.usePinned { pinnedA ->
+            otherImpl.bytes.usePinned { pinnedB ->
+                bigint_compare_bytes(
+                    pinnedA.addressOf(0).reinterpret(), bytes.size.toULong(),
+                    pinnedB.addressOf(0).reinterpret(), otherImpl.bytes.size.toULong()
+                )
+            }
+        }
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is KBigIntegerImpl) return false
-        return stringValue == other.stringValue
+        return bytes.contentEquals(other.bytes)
     }
 
     override fun hashCode(): Int {
-        return stringValue.hashCode()
+        return bytes.contentHashCode()
+    }
+
+    private inline fun performOp(
+        other: KBigIntegerImpl,
+        op: (CPointer<ByteVar>, ULong, CPointer<ByteVar>, ULong) -> CPointer<ByteArrayResult>?
+    ): KBigInteger {
+        return bytes.usePinned { pinnedA ->
+            other.bytes.usePinned { pinnedB ->
+                val resultPtr = op(
+                    pinnedA.addressOf(0).reinterpret(), bytes.size.toULong(),
+                    pinnedB.addressOf(0).reinterpret(), other.bytes.size.toULong()
+                ) ?: throw ArithmeticException("Operation failed")
+
+                val result = resultPtr.pointed
+                val data = result.data ?: throw IllegalStateException("Null data pointer")
+                val len = result.len.toInt()
+
+                val byteArray = data.readBytes(len)
+                bigint_free_byte_result(resultPtr)
+                KBigIntegerImpl(byteArray)
+            }
+        }
     }
 }
+

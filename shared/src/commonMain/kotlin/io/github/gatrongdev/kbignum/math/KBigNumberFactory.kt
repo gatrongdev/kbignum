@@ -88,32 +88,3 @@ object KBigIntegerFactory {
     }
 }
 
-/**
- * Rounding mode constants for KBigDecimal operations.
- * These constants define how rounding should be performed when precision must be reduced.
- */
-object RoundingMode {
-    /** Rounding mode to round away from zero */
-    const val UP = 0
-
-    /** Rounding mode to round towards zero */
-    const val DOWN = 1
-
-    /** Rounding mode to round towards positive infinity */
-    const val CEILING = 2
-
-    /** Rounding mode to round towards negative infinity */
-    const val FLOOR = 3
-
-    /** Rounding mode to round towards the nearest neighbor, with ties rounded up */
-    const val HALF_UP = 4
-
-    /** Rounding mode to round towards the nearest neighbor, with ties rounded down */
-    const val HALF_DOWN = 5
-
-    /** Rounding mode to round towards the nearest neighbor, with ties rounded to the even neighbor */
-    const val HALF_EVEN = 6
-
-    /** Rounding mode to assert that the requested operation has an exact result */
-    const val UNNECESSARY = 7
-}

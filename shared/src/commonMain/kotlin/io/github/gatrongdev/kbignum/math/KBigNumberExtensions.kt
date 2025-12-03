@@ -95,7 +95,8 @@ operator fun KBigDecimal.times(other: KBigDecimal): KBigDecimal = this.multiply(
  * @return The quotient with scale 10 and HALF_UP rounding
  * @throws ArithmeticException if other is zero
  */
-operator fun KBigDecimal.div(other: KBigDecimal): KBigDecimal = this.divide(other, 10, 4)
+operator fun KBigDecimal.div(other: KBigDecimal): KBigDecimal = this.divide(other, 10, RoundingMode.HALF_UP)
+
 
 /**
  * Unary minus operator for KBigDecimal.

@@ -1,257 +1,259 @@
 package io.github.gatrongdev.kbignum.math
 
-import io.github.gatrongdev.kbignum.ffi.*
-import kotlinx.cinterop.*
+actual class KBigDecimalImpl : KBigDecimal {
+    private val intVal: KBigInteger
+    private val _scale: Int
 
-@OptIn(ExperimentalForeignApi::class)
-actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
-    private val stringValue: String
-    private var cachedScale: Int? = null
-
-    init {
-        if (!isValidDecimalString(value)) {
-            throw NumberFormatException("Invalid number format: $value")
+    actual constructor(value: String) {
+        if (value.isEmpty()) throw NumberFormatException("Empty string")
+        
+        // Handle scientific notation
+        val parts = value.uppercase().split("E")
+        if (parts.size > 2) throw NumberFormatException("Invalid scientific notation")
+        
+        val mantissaStr = parts[0]
+        val exponent = if (parts.size == 2) parts[1].toInt() else 0
+        
+        val dotIndex = mantissaStr.indexOf('.')
+        
+        if (dotIndex == -1) {
+            intVal = KBigIntegerImpl(mantissaStr)
+            _scale = -exponent
+        } else {
+            val integerPart = mantissaStr.substring(0, dotIndex)
+            val fractionalPart = mantissaStr.substring(dotIndex + 1)
+            intVal = KBigIntegerImpl(integerPart + fractionalPart)
+            _scale = fractionalPart.length - exponent
         }
-        // Remove leading '+' sign for normalization
-        val trimmed = value.trim()
-        stringValue = if (trimmed.startsWith("+")) trimmed.substring(1) else trimmed
     }
 
-    private fun isValidDecimalString(str: String): Boolean {
-        if (str.isEmpty()) return false
-        if (str != str.trim()) return false
-        if (str.any { it.isWhitespace() }) return false
-
-        val validPattern = Regex("^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$")
-        if (!validPattern.matches(str)) return false
-
-        if (str == "." || str == "+" || str == "-" || str == "+." || str == "-.") return false
-        if (str.contains("..")) return false
-        if (str.count { it == '.' } > 1) return false
-        if (str.count { it == 'e' || it == 'E' } > 1) return false
-        if (str.any { it.isLetter() && it != 'e' && it != 'E' }) return false
-
-        return true
+    internal constructor(intVal: KBigInteger, scale: Int) {
+        this.intVal = intVal
+        this._scale = scale
     }
 
     actual companion object {
         actual fun fromLong(value: Long): KBigDecimalImpl {
-            return KBigDecimalImpl(value.toString())
+            return KBigDecimalImpl(KBigIntegerImpl.fromLong(value), 0)
         }
 
         actual fun fromInt(value: Int): KBigDecimalImpl {
-            return KBigDecimalImpl(value.toString())
+            return KBigDecimalImpl(KBigIntegerImpl.fromInt(value), 0)
         }
 
         actual fun fromString(value: String): KBigDecimalImpl {
             return KBigDecimalImpl(value)
         }
 
-        actual val ZERO: KBigDecimalImpl = KBigDecimalImpl("0")
+        actual val ZERO: KBigDecimalImpl = KBigDecimalImpl(KBigIntegerImpl.ZERO, 0)
     }
 
     actual override fun add(other: KBigDecimal): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
-        val resultScale = maxOf(scale(), otherImpl.scale())
-        val resultPtr = bigdecimal_add(stringValue, otherImpl.stringValue, resultScale)
-        if (resultPtr == null) {
-            throw ArithmeticException("Addition failed")
-        }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigDecimalImpl(result)
+        val maxScale = maxOf(_scale, otherImpl._scale)
+        
+        val scaledThis = scaleVal(this.intVal, maxScale - _scale)
+        val scaledOther = scaleVal(otherImpl.intVal, maxScale - otherImpl._scale)
+        
+        return KBigDecimalImpl(scaledThis.add(scaledOther), maxScale)
     }
 
     actual override fun subtract(other: KBigDecimal): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
-        val resultScale = maxOf(scale(), otherImpl.scale())
-        val resultPtr = bigdecimal_subtract(stringValue, otherImpl.stringValue, resultScale)
-        if (resultPtr == null) {
-            throw ArithmeticException("Subtraction failed")
-        }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigDecimalImpl(result)
+        val maxScale = maxOf(_scale, otherImpl._scale)
+        
+        val scaledThis = scaleVal(this.intVal, maxScale - _scale)
+        val scaledOther = scaleVal(otherImpl.intVal, maxScale - otherImpl._scale)
+        
+        return KBigDecimalImpl(scaledThis.subtract(scaledOther), maxScale)
     }
 
     actual override fun multiply(other: KBigDecimal): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
-        val resultScale = scale() + otherImpl.scale()
-        val resultPtr = bigdecimal_multiply(stringValue, otherImpl.stringValue, resultScale)
-        if (resultPtr == null) {
-            throw ArithmeticException("Multiplication failed")
-        }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigDecimalImpl(result)
+        return KBigDecimalImpl(
+            this.intVal.multiply(otherImpl.intVal),
+            this._scale + otherImpl._scale
+        )
     }
 
     actual override fun divide(other: KBigDecimal): KBigDecimal {
-        val otherImpl = other as KBigDecimalImpl
-        val thisScale = scale()
-        val otherScale = otherImpl.scale()
-        val preferredScale = maxOf(thisScale, otherScale)
-
-        // Try division at preferred scale first
-        val resultPtr = bigdecimal_divide(stringValue, otherImpl.stringValue, preferredScale)
-        if (resultPtr == null) {
-            throw ArithmeticException("Division by zero")
-        }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-
-        return KBigDecimalImpl(result)
+        val preferredScale = maxOf(_scale, other.scale())
+        return divide(other, preferredScale, RoundingMode.HALF_UP)
     }
 
     actual override fun divide(other: KBigDecimal, scale: Int): KBigDecimal {
-        val otherImpl = other as KBigDecimalImpl
-        val resultPtr = bigdecimal_divide(stringValue, otherImpl.stringValue, scale)
-        if (resultPtr == null) {
-            throw ArithmeticException("Division by zero")
-        }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigDecimalImpl(result)
+        return divide(other, scale, RoundingMode.HALF_UP)
     }
 
-    actual override fun divide(other: KBigDecimal, scale: Int, mode: Int): KBigDecimal {
+    actual override fun divide(other: KBigDecimal, scale: Int, mode: RoundingMode): KBigDecimal {
         val otherImpl = other as KBigDecimalImpl
+        if (otherImpl.intVal.isZero()) throw ArithmeticException("Division by zero")
 
-        // For UNNECESSARY mode (7), we need to check if rounding is required
-        if (mode == 7) {
-            val highScalePtr = bigdecimal_divide(stringValue, otherImpl.stringValue, scale + 10)
-            if (highScalePtr != null) {
-                val highScale = highScalePtr.toKString()
-                bigint_free_string(highScalePtr)
-
-                val truncatedPtr = bigdecimal_set_scale(highScale, scale, mode)
-                if (truncatedPtr == null) {
-                    throw ArithmeticException("Rounding necessary")
-                }
-                val result = truncatedPtr.toKString()
-                bigint_free_string(truncatedPtr)
-                return KBigDecimalImpl(result)
-            }
+        val power = otherImpl._scale - this._scale + scale
+        
+        val dividend: KBigInteger
+        val divisor: KBigInteger
+        
+        if (power >= 0) {
+            dividend = this.intVal.multiply(tenPow(power))
+            divisor = otherImpl.intVal
+        } else {
+            dividend = this.intVal
+            divisor = otherImpl.intVal.multiply(tenPow(-power))
         }
-
-        val resultPtr = bigdecimal_divide(stringValue, otherImpl.stringValue, scale)
-        if (resultPtr == null) {
-            throw ArithmeticException("Division by zero")
+        
+        val quotient = dividend.divide(divisor)
+        val remainder = dividend.mod(divisor)
+        
+        if (remainder.isZero()) {
+            return KBigDecimalImpl(quotient, scale)
         }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-
-        // Apply rounding mode
-        val roundedPtr = bigdecimal_set_scale(result, scale, mode)
-        if (roundedPtr == null) {
-            throw ArithmeticException("Rounding failed")
+        
+        if (mode == RoundingMode.UNNECESSARY) {
+            throw ArithmeticException("Rounding necessary")
         }
-        val rounded = roundedPtr.toKString()
-        bigint_free_string(roundedPtr)
-        return KBigDecimalImpl(rounded)
+        
+        val roundedQuotient = applyRounding(quotient, remainder, divisor, mode)
+        return KBigDecimalImpl(roundedQuotient, scale)
     }
 
     actual override fun abs(): KBigDecimal {
-        val resultPtr = bigdecimal_abs(stringValue)
-        if (resultPtr == null) {
-            throw ArithmeticException("Absolute value failed")
-        }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigDecimalImpl(result)
+        return KBigDecimalImpl(intVal.abs(), _scale)
     }
 
     actual override fun signum(): Int {
-        return bigdecimal_signum(stringValue)
+        return intVal.signum()
     }
 
-    actual override fun setScale(scale: Int, roundingMode: Int): KBigDecimal {
-        val currentScale = scale()
-
-        // If same scale, return as is
-        if (currentScale == scale) {
-            return this
+    actual override fun setScale(scale: Int, roundingMode: RoundingMode): KBigDecimal {
+        if (scale == _scale) return this
+        
+        val diff = scale - _scale
+        if (diff > 0) {
+            return KBigDecimalImpl(intVal.multiply(tenPow(diff)), scale)
+        } else {
+            val divisor = tenPow(-diff)
+            val quotient = intVal.divide(divisor)
+            val remainder = intVal.mod(divisor)
+            
+            if (remainder.isZero()) {
+                return KBigDecimalImpl(quotient, scale)
+            }
+            
+            if (roundingMode == RoundingMode.UNNECESSARY) {
+                throw ArithmeticException("Rounding necessary")
+            }
+            
+            val rounded = applyRounding(quotient, remainder, divisor, roundingMode)
+            return KBigDecimalImpl(rounded, scale)
         }
-
-        val resultPtr = bigdecimal_set_scale(stringValue, scale, roundingMode)
-        if (resultPtr == null) {
-            throw ArithmeticException("Rounding necessary")
-        }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigDecimalImpl(result)
     }
 
     actual override fun toBigInteger(): KBigInteger {
-        val resultPtr = bigdecimal_to_biginteger(stringValue)
-        if (resultPtr == null) {
-            throw ArithmeticException("Conversion failed")
-        }
-        val result = resultPtr.toKString()
-        bigint_free_string(resultPtr)
-        return KBigIntegerImpl(result)
+        if (_scale == 0) return intVal
+        if (_scale < 0) return intVal.multiply(tenPow(-_scale))
+        return intVal.divide(tenPow(_scale))
     }
 
     actual override fun compareTo(other: KBigDecimal): Int {
         val otherImpl = other as KBigDecimalImpl
-        return bigdecimal_compare(stringValue, otherImpl.stringValue)
+        val maxScale = maxOf(_scale, otherImpl._scale)
+        
+        val scaledThis = scaleVal(this.intVal, maxScale - _scale)
+        val scaledOther = scaleVal(otherImpl.intVal, maxScale - otherImpl._scale)
+        
+        return scaledThis.compareTo(scaledOther)
     }
 
     actual override fun toString(): String {
-        return stringValue
-    }
-
-    override fun scale(): Int {
-        if (cachedScale != null) {
-            return cachedScale!!
-        }
-
-        val str = stringValue
-
-        // Handle scientific notation
-        if (str.contains("E") || str.contains("e")) {
-            val parts = str.uppercase().split("E")
-            val mantissa = parts[0]
-            val exponent = parts[1].toInt()
-            val decimalIndex = mantissa.indexOf('.')
-
-            cachedScale = if (decimalIndex == -1) {
-                maxOf(0, -exponent)
+        val str = intVal.abs().toString()
+        val sign = if (intVal.signum() < 0) "-" else ""
+        
+        if (_scale == 0) return sign + str
+        
+        if (_scale > 0) {
+            if (str.length > _scale) {
+                val intPart = str.substring(0, str.length - _scale)
+                val fracPart = str.substring(str.length - _scale)
+                return "$sign$intPart.$fracPart"
             } else {
-                val mantissaScale = mantissa.length - decimalIndex - 1
-                maxOf(0, mantissaScale - exponent)
+                val padding = "0".repeat(_scale - str.length)
+                return "${sign}0.$padding$str"
             }
         } else {
-            val decimalIndex = str.indexOf('.')
-            cachedScale = if (decimalIndex == -1) 0 else str.length - decimalIndex - 1
+            return sign + str + "0".repeat(-_scale)
         }
-
-        return cachedScale!!
     }
 
+    override fun scale(): Int = _scale
+
     override fun precision(): Int {
-        val str = stringValue.trim()
-
-        if (str.contains("E") || str.contains("e")) {
-            val parts = str.uppercase().split("E")
-            val mantissa = parts[0].replace(".", "").replace("-", "").replace("+", "")
-            return mantissa.trimStart('0').let { if (it.isEmpty()) 1 else it.length }
-        }
-
-        val digits = str.replace(".", "").replace("-", "").replace("+", "")
-        val trimmed = digits.trimStart('0')
-        return if (trimmed.isEmpty()) 1 else trimmed.length
+        val str = intVal.abs().toString()
+        return str.length
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is KBigDecimalImpl) return false
-
-        // Compare using Rust FFI comparison
-        return bigdecimal_compare(stringValue, other.stringValue) == 0
+        return _scale == other._scale && intVal == other.intVal
     }
 
     override fun hashCode(): Int {
-        return stringValue.hashCode()
+        var result = intVal.hashCode()
+        result = 31 * result + _scale
+        return result
+    }
+    
+    private fun scaleVal(value: KBigInteger, shift: Int): KBigInteger {
+        if (shift == 0) return value
+        if (shift < 0) throw IllegalArgumentException("Shift must be non-negative")
+        return value.multiply(tenPow(shift))
+    }
+    
+    private fun tenPow(n: Int): KBigInteger {
+        return KBigIntegerFactory.TEN.pow(n)
+    }
+    
+    private fun applyRounding(
+        quotient: KBigInteger, 
+        remainder: KBigInteger, 
+        divisor: KBigInteger, 
+        mode: RoundingMode
+    ): KBigInteger {
+        val qSign = quotient.signum()
+        
+        var increment = false
+        
+        val absRem = remainder.abs()
+        val absDiv = divisor.abs()
+        val cmpHalf = absRem.multiply(KBigIntegerFactory.fromInt(2)).compareTo(absDiv)
+        
+        val isPositive = (qSign >= 0)
+        
+        when (mode) {
+            RoundingMode.UP -> increment = true
+            RoundingMode.DOWN -> increment = false
+            RoundingMode.CEILING -> increment = isPositive
+            RoundingMode.FLOOR -> increment = !isPositive
+            RoundingMode.HALF_UP -> increment = cmpHalf >= 0
+            RoundingMode.HALF_DOWN -> increment = cmpHalf > 0
+            RoundingMode.HALF_EVEN -> {
+                if (cmpHalf > 0) {
+                    increment = true
+                } else if (cmpHalf == 0) {
+                    val two = KBigIntegerFactory.fromInt(2)
+                    val isOdd = !quotient.mod(two).isZero()
+                    increment = isOdd
+                }
+            }
+            RoundingMode.UNNECESSARY -> {}
+        }
+        
+        if (increment) {
+            return if (isPositive) quotient.add(KBigIntegerFactory.ONE) 
+                   else quotient.subtract(KBigIntegerFactory.ONE)
+        }
+        return quotient
     }
 }
+

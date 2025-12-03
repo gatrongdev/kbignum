@@ -30,10 +30,10 @@ object KBigMath {
 
         do {
             previous = x
-            x = x.add(value.divide(x, scale + 2, 4)).divide(two, scale + 2, 4)
+            x = x.add(value.divide(x, scale + 2, RoundingMode.HALF_UP)).divide(two, scale + 2, RoundingMode.HALF_UP)
         } while (x.subtract(previous).abs().compareTo(KBigDecimalFactory.fromString("1E-${scale + 1}")) > 0)
 
-        val result = x.setScale(scale, 4)
+        val result = x.setScale(scale, RoundingMode.HALF_UP)
         // Remove trailing zeros for cleaner output
         val resultStr = result.toString()
         val cleanStr =
