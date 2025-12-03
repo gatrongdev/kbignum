@@ -9,7 +9,29 @@ extern "C" {
 
 // ==================== Memory Management ====================
 
+typedef struct {
+    uint8_t* data;
+    uintptr_t len;
+} ByteArrayResult;
+
 void bigint_free_string(char* s);
+void bigint_free_byte_result(ByteArrayResult* ptr);
+
+// ==================== BigInteger Operations (Bytes) ====================
+
+ByteArrayResult* bigint_from_string_bytes(const char* s);
+char* bigint_to_string_bytes(const uint8_t* data, uintptr_t len);
+
+ByteArrayResult* bigint_add_bytes(const uint8_t* a_data, uintptr_t a_len, const uint8_t* b_data, uintptr_t b_len);
+ByteArrayResult* bigint_subtract_bytes(const uint8_t* a_data, uintptr_t a_len, const uint8_t* b_data, uintptr_t b_len);
+ByteArrayResult* bigint_multiply_bytes(const uint8_t* a_data, uintptr_t a_len, const uint8_t* b_data, uintptr_t b_len);
+ByteArrayResult* bigint_divide_bytes(const uint8_t* a_data, uintptr_t a_len, const uint8_t* b_data, uintptr_t b_len);
+ByteArrayResult* bigint_mod_bytes(const uint8_t* a_data, uintptr_t a_len, const uint8_t* b_data, uintptr_t b_len);
+ByteArrayResult* bigint_abs_bytes(const uint8_t* data, uintptr_t len);
+
+int32_t bigint_signum_bytes(const uint8_t* data, uintptr_t len);
+int32_t bigint_compare_bytes(const uint8_t* a_data, uintptr_t a_len, const uint8_t* b_data, uintptr_t b_len);
+int64_t bigint_to_long_bytes(const uint8_t* data, uintptr_t len);
 
 // ==================== BigInteger Operations ====================
 

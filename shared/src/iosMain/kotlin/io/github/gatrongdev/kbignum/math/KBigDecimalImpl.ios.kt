@@ -1,6 +1,6 @@
 package io.github.gatrongdev.kbignum.math
 
-actual class KBigDecimalImpl : KBigDecimal {
+actual internal class KBigDecimalImpl : KBigDecimal {
     private val intVal: KBigInteger
     private val _scale: Int
 

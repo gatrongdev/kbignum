@@ -34,16 +34,6 @@ kotlin {
 
     // iOS Device (ARM64)
     iosArm64().apply {
-        compilations.getByName("main") {
-            val kbignumFfi by cinterops.creating {
-                defFile(project.file("src/nativeInterop/cinterop/kbignum_ffi.def"))
-                packageName("io.github.gatrongdev.kbignum.ffi")
-                includeDirs.headerFilterOnly(project.file("src/nativeInterop/cinterop"))
-
-                extraOpts("-libraryPath", project.file("../libs/ios").absolutePath)
-                extraOpts("-staticLibrary", "libkbignum_ffi_arm64.a")
-            }
-        }
         binaries.framework {
             baseName = "shared"
             xcf.add(this)
@@ -53,16 +43,6 @@ kotlin {
 
     // iOS Simulator (ARM64 - M1/M2 Macs)
     iosSimulatorArm64().apply {
-        compilations.getByName("main") {
-            val kbignumFfi by cinterops.creating {
-                defFile(project.file("src/nativeInterop/cinterop/kbignum_ffi.def"))
-                packageName("io.github.gatrongdev.kbignum.ffi")
-                includeDirs.headerFilterOnly(project.file("src/nativeInterop/cinterop"))
-
-                extraOpts("-libraryPath", project.file("../libs/ios").absolutePath)
-                extraOpts("-staticLibrary", "libkbignum_ffi_sim.a")
-            }
-        }
         binaries.framework {
             baseName = "shared"
             xcf.add(this)
@@ -72,16 +52,6 @@ kotlin {
 
     // iOS Simulator (x86_64 - Intel Macs)
     iosX64().apply {
-        compilations.getByName("main") {
-            val kbignumFfi by cinterops.creating {
-                defFile(project.file("src/nativeInterop/cinterop/kbignum_ffi.def"))
-                packageName("io.github.gatrongdev.kbignum.ffi")
-                includeDirs.headerFilterOnly(project.file("src/nativeInterop/cinterop"))
-
-                extraOpts("-libraryPath", project.file("../libs/ios").absolutePath)
-                extraOpts("-staticLibrary", "libkbignum_ffi_sim.a")
-            }
-        }
         binaries.framework {
             baseName = "shared"
             xcf.add(this)
@@ -91,7 +61,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            // put your multiplatform dependencies here
+            implementation("com.ionspin.kotlin:bignum:0.3.10")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

@@ -1,6 +1,6 @@
 package io.github.gatrongdev.kbignum.math
 
-expect class KBigIntegerImpl(value: String) : KBigInteger {
+expect internal class KBigIntegerImpl(value: String) : KBigInteger {
     companion object {
         fun fromLong(value: Long): KBigIntegerImpl
 

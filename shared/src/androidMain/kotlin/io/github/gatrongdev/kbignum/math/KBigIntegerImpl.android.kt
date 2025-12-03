@@ -2,7 +2,7 @@ package io.github.gatrongdev.kbignum.math
 
 import java.math.BigInteger
 
-actual class KBigIntegerImpl actual constructor(value: String) : KBigInteger {
+actual internal class KBigIntegerImpl actual constructor(value: String) : KBigInteger {
     private val bigInteger: BigInteger = BigInteger(value)
 
     actual companion object {

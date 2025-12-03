@@ -3,7 +3,7 @@ package io.github.gatrongdev.kbignum.math
 import java.math.BigDecimal
 import java.math.RoundingMode as JavaRoundingMode
 
-actual class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
+actual internal class KBigDecimalImpl actual constructor(value: String) : KBigDecimal {
 
     private val bigDecimal: BigDecimal = BigDecimal(value)
 
