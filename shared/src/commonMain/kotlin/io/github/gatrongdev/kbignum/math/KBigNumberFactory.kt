@@ -6,13 +6,13 @@ package io.github.gatrongdev.kbignum.math
  */
 object KBigDecimalFactory {
     /** Constant representing zero as a KBigDecimal */
-    val ZERO: KBigDecimal = KBigDecimalImpl.ZERO
+    val ZERO: KBigDecimal = KBigDecimal.ZERO
 
     /** Constant representing one as a KBigDecimal */
-    val ONE: KBigDecimal = KBigDecimalImpl("1")
+    val ONE: KBigDecimal = KBigDecimal.ONE
 
     /** Constant representing ten as a KBigDecimal */
-    val TEN: KBigDecimal = KBigDecimalImpl("10")
+    val TEN: KBigDecimal = KBigDecimal.TEN
 
     /**
      * Creates a KBigDecimal from a string representation.
@@ -21,7 +21,7 @@ object KBigDecimalFactory {
      * @throws NumberFormatException if the string is not a valid decimal representation
      */
     fun fromString(value: String): KBigDecimal {
-        return KBigDecimalImpl(value)
+        return KBigDecimal.fromString(value)
     }
 
     /**
@@ -30,7 +30,7 @@ object KBigDecimalFactory {
      * @return A KBigDecimal representing the specified Long value
      */
     fun fromLong(value: Long): KBigDecimal {
-        return KBigDecimalImpl.fromLong(value)
+        return KBigDecimal.fromLong(value)
     }
 
     /**
@@ -39,7 +39,7 @@ object KBigDecimalFactory {
      * @return A KBigDecimal representing the specified Int value
      */
     fun fromInt(value: Int): KBigDecimal {
-        return KBigDecimalImpl.fromInt(value)
+        return KBigDecimal.fromInt(value)
     }
 
     // fromDouble and fromFloat removed - use extension functions Double.toKBigDecimal() and Float.toKBigDecimal() instead
@@ -51,13 +51,13 @@ object KBigDecimalFactory {
  */
 object KBigIntegerFactory {
     /** Constant representing zero as a KBigInteger */
-    val ZERO: KBigInteger = KBigIntegerImpl.ZERO
+    val ZERO: KBigInteger = KBigInteger.ZERO
 
     /** Constant representing one as a KBigInteger */
-    val ONE: KBigInteger = KBigIntegerImpl("1")
+    val ONE: KBigInteger = KBigInteger.ONE
 
     /** Constant representing ten as a KBigInteger */
-    val TEN: KBigInteger = KBigIntegerImpl("10")
+    val TEN: KBigInteger = KBigInteger.TEN
 
     /**
      * Creates a KBigInteger from a string representation.
@@ -66,7 +66,7 @@ object KBigIntegerFactory {
      * @throws NumberFormatException if the string is not a valid integer representation
      */
     fun fromString(value: String): KBigInteger {
-        return KBigIntegerImpl(value)
+        return KBigInteger.fromString(value)
     }
 
     /**
@@ -75,7 +75,7 @@ object KBigIntegerFactory {
      * @return A KBigInteger representing the specified Long value
      */
     fun fromLong(value: Long): KBigInteger {
-        return KBigIntegerImpl.fromLong(value)
+        return KBigInteger.fromLong(value)
     }
 
     /**
@@ -84,7 +84,7 @@ object KBigIntegerFactory {
      * @return A KBigInteger representing the specified Int value
      */
     fun fromInt(value: Int): KBigInteger {
-        return KBigIntegerImpl.fromInt(value)
+        return KBigInteger.fromInt(value)
     }
 }
 

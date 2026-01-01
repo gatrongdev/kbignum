@@ -1,183 +1,274 @@
 package io.github.gatrongdev.kbignum.math
 
 /**
- * Interface for arbitrary-precision decimal arithmetic.
- * Provides operations for mathematical calculations with decimal numbers of unlimited precision.
+ * Arbitrary-precision decimal arithmetic.
+ * Pure Kotlin implementation.
  */
-interface KBigDecimal : Comparable<KBigDecimal> {
-    /**
-     * Returns a KBigDecimal that is the sum of this and the specified value.
-     * @param other The value to add to this number
-     * @return The result of the addition
-     */
-    fun add(other: KBigDecimal): KBigDecimal
+class KBigDecimal(
+    val unscaledValue: KBigInteger,
+    val scale: Int = 0
+) : Comparable<KBigDecimal> {
 
-    /**
-     * Returns a KBigDecimal that is the difference of this and the specified value.
-     * @param other The value to subtract from this number
-     * @return The result of the subtraction
-     */
-    fun subtract(other: KBigDecimal): KBigDecimal
+    companion object {
+        val ZERO = KBigDecimal(KBigInteger.ZERO, 0)
+        val ONE = KBigDecimal(KBigInteger.ONE, 0)
+        val TEN = KBigDecimal(KBigInteger.TEN, 0)
 
-    /**
-     * Returns a KBigDecimal that is the product of this and the specified value.
-     * @param other The value to multiply with this number
-     * @return The result of the multiplication
-     */
-    fun multiply(other: KBigDecimal): KBigDecimal
+        fun fromString(value: String): KBigDecimal {
+            if (value.isEmpty()) throw NumberFormatException("Zero length string")
+            
+            val dotIndex = value.indexOf('.')
+            if (dotIndex == -1) {
+                // Integer
+                return KBigDecimal(KBigInteger.fromString(value), 0)
+            }
+            
+            // Decimal
+            val scale = value.length - 1 - dotIndex
+            val unscaledStr = value.substring(0, dotIndex) + value.substring(dotIndex + 1)
+            val unscaled = KBigInteger.fromString(unscaledStr)
+            
+            return KBigDecimal(unscaled, scale)
+        }
 
-    /**
-     * Returns a KBigDecimal that is the quotient of this divided by the specified value.
-     * @param other The divisor
-     * @return The result of the division with the maximum scale of the two operands
-     * @throws ArithmeticException if other is zero
-     */
-    fun divide(other: KBigDecimal): KBigDecimal
+        fun fromLong(value: Long): KBigDecimal {
+            return KBigDecimal(KBigInteger.fromLong(value), 0)
+        }
 
-    /**
-     * Returns a KBigDecimal that is the quotient of this divided by the specified value.
-     * @param other The divisor
-     * @param scale The number of digits to the right of the decimal point in the result
-     * @return The result of the division with the specified scale
-     * @throws ArithmeticException if other is zero
-     */
-    fun divide(
-        other: KBigDecimal,
-        scale: Int,
-    ): KBigDecimal
+        fun fromInt(value: Int): KBigDecimal {
+            return KBigDecimal(KBigInteger.fromInt(value), 0)
+        }
+    }
 
-    /**
-     * Returns a KBigDecimal that is the quotient of this divided by the specified value.
-     * @param other The divisor
-     * @param scale The number of digits to the right of the decimal point in the result
-     * @param mode The rounding mode to apply (see RoundingMode constants)
-     * @return The result of the division with the specified scale and rounding mode
-     * @throws ArithmeticException if other is zero or if rounding is necessary but the rounding mode is UNNECESSARY
-     */
-    fun divide(
-        other: KBigDecimal,
-        scale: Int,
-        mode: Int,
-    ): KBigDecimal
+    fun add(other: KBigDecimal): KBigDecimal {
+        val (scaledThis, scaledOther) = matchScales(this, other)
+        val sum = scaledThis.unscaledValue.add(scaledOther.unscaledValue)
+        return KBigDecimal(sum, scaledThis.scale)
+    }
 
-    /**
-     * Rounds the division result using the provided [KBRoundingMode].
-     */
-    fun divide(
-        other: KBigDecimal,
-        scale: Int,
-        rounding: KBRoundingMode,
-    ): KBigDecimal = divide(other, scale, rounding.toLegacyCode())
+    fun subtract(other: KBigDecimal): KBigDecimal {
+        val (scaledThis, scaledOther) = matchScales(this, other)
+        val diff = scaledThis.unscaledValue.subtract(scaledOther.unscaledValue)
+        return KBigDecimal(diff, scaledThis.scale)
+    }
 
-    /**
-     * Returns a KBigDecimal that is the quotient of this divided by the specified value using a division configuration.
-     * This is a convenient method that accepts a DivisionConfig or DivisionStrategy preset.
-     *
-     * @param other The divisor
-     * @param config The division configuration specifying scale and rounding mode
-     * @return The result of the division with the configured scale and rounding mode
-     * @throws ArithmeticException if other is zero or if rounding is necessary but the rounding mode is UNNECESSARY
-     *
-     * Example usage:
-     * ```
-     * val price = "100.00".toKBigDecimal()
-     * val quantity = "3".toKBigDecimal()
-     *
-     * // Using predefined strategy
-     * val pricePerItem = price.divide(quantity, DivisionStrategy.CURRENCY)
-     * // Result: 33.33
-     *
-     * // Using custom config
-     * val result = price.divide(quantity, DivisionConfig(scale = 4, rounding = KBRoundingMode.HalfEven))
-     * // Result: 33.3333
-     * ```
-     */
-    fun divide(
-        other: KBigDecimal,
-        config: DivisionConfig,
-    ): KBigDecimal = divide(other, config.scale, config.roundingMode)
+    fun multiply(other: KBigDecimal): KBigDecimal {
+        val product = unscaledValue.multiply(other.unscaledValue)
+        val newScale = scale + other.scale
+        return KBigDecimal(product, newScale)
+    }
+    
+    // Helper to align scales
+    private fun matchScales(a: KBigDecimal, b: KBigDecimal): Pair<KBigDecimal, KBigDecimal> {
+        if (a.scale == b.scale) return a to b
+        if (a.scale > b.scale) {
+             val diff = a.scale - b.scale
+             val newMag = b.unscaledValue.multiply(powerOfTen(diff))
+             return a to KBigDecimal(newMag, a.scale)
+        } else {
+             val diff = b.scale - a.scale
+             val newMag = a.unscaledValue.multiply(powerOfTen(diff))
+             return KBigDecimal(newMag, b.scale) to b
+        }
+    }
+    
+    private fun powerOfTen(n: Int): KBigInteger {
+        // Simple implementation: repeated multiplication or lookup
+        // Use 10^9 radix repeatedly
+        if (n == 0) return KBigInteger.ONE
+        if (n < 0) throw IllegalArgumentException("Negative power")
+        
+        // TODO: Optimize with a cache or faster pow
+        var res = KBigInteger.ONE
+        val ten = KBigInteger.TEN
+        repeat(n) { res = res.multiply(ten) }
+        return res
+    }
 
-    /**
-     * Returns the absolute value of this KBigDecimal.
-     * @return The absolute value (always non-negative)
-     */
-    fun abs(): KBigDecimal
+    fun divide(other: KBigDecimal): KBigDecimal {
+        // Default behavior: preferred scale = this.scale - other.scale (if exact)
+        // But for compatibility with Java BigDecimal default, we might error on non-terminating?
+        // Let's implement simpler: match max scale or use a default precision?
+        // Java BigDecimal.divide(BigDecimal) defaults to exact result or throwing ArithmeticException.
+        // Let's assume we want at least max(this.scale, other.scale) + extra?
+        
+        // Actually, let's implement the standard: divide(other, RoundingMode.UNNECESSARY) if possible?
+        // But for now, let's just make it work for simple cases or default to 6 decimal places if needed?
+        // No, let's require explicit scale for safety or default to `this.scale`.
+        
+        // BETTER: default to specific scale strategies if user doesn't provide.
+        // Let's route to a default divide using `this.scale`? No, usually `div` implies "exact if possible".
+        // Let's throw "NotImplemented" for the complex "Exact determination" logic and only support explicit scale for now.
+        // Or better: Use division with default rounding (HALF_UP) and max scale?
+        
+        // Let's implement `divide(other, scale, rounding)` and call it with a sensible default.
+        return divide(other, kotlin.math.max(this.scale, other.scale), KBRoundingMode.HalfUp)
+    }
 
-    /**
-     * Returns the signum function of this KBigDecimal.
-     * @return -1 if negative, 0 if zero, 1 if positive
-     */
-    fun signum(): Int
+    fun divide(other: KBigDecimal, scale: Int, rounding: KBRoundingMode): KBigDecimal {
+        if (other.isZero()) throw ArithmeticException("Division by zero")
+        
+        // Formula:
+        // Result = (this.unscaled * 10^(descale + other.scale - this.scale)) / other.unscaled
+        // We want result * 10^scale = (A * 10^scale) / B
+        // But A is scaled by 10^-Sa, B by 10^-Sb.
+        // A_val / 10^Sa / (B_val / 10^Sb) = (A_val / B_val) * 10^(Sb - Sa)
+        // We want result to have scale 'S'.
+        // So we need UnscaledResult s.t. UnscaledResult * 10^-S = RealResult
+        // UnscaledResult = RealResult * 10^S = (A_val / B_val) * 10^(Sb - Sa + S)
+        
+        // We multiply Dividend by 10^(Sb - Sa + S)
+        val desiredShift = other.scale - this.scale + scale
+        
+        val dividend: KBigInteger
+        if (desiredShift >= 0) {
+            dividend = unscaledValue.multiply(powerOfTen(desiredShift))
+        } else {
+            // Negative shift means we need to divide dividend? No, shift right? 
+            // Better to align by multiplying Divisor? 
+            // (A / 10^Sa) / (B / 10^Sb) = (A * 10^Sb) / (B * 10^Sa)
+            // = (A * 10^Sb * 10^S) / (B * 10^Sa)
+            // If scale adjustment is negative, it implies we are reducing precision heavily?
+            // Actually, usually we are increasing precision so shift is positive.
+            // If negative, we divide dividend? No.
+             // dividend = unscaledValue; divisor = other.unscaledValue * 10^(-desiredShift)
+             // But we want integer arithmetic.
+             // We can just divide normally and shift result?
+             // Let's handle generic case:
+             // Scale up dividend by P = Sb + S. Scale up divisor by Q = Sa.
+             // Then divide.
+             // But simpler: multiply dividend by 10^k where k ensures integer division gives needed precision.
+             
+             // Let's use the straightforward:
+             // Target Unscaled = (this.unscaled * 10^(other.scale + scale)) / (other.unscaled * 10^this.scale)
+             // Clean up powers:
+             // Numerator = this.unscaled * 10^(other.scale + scale)
+             // Denominator = other.unscaled * 10^this.scale
+             // Simplify powers of ten.
+             dividend = unscaledValue
+             // We can cancel out 10^this.scale from numerator if exists?
+        }
+        
+        // Refined Logic:
+        val p = other.scale.toLong() + scale.toLong() - this.scale.toLong()
+        // If p > 0, multiply dividend by 10^p.
+        // If p < 0, multiply divisor by 10^(-p).
+        
+        var u = unscaledValue
+        var v = other.unscaledValue
+        
+        if (p > 0) {
+            u = u.multiply(powerOfTen(p.toInt()))
+        } else if (p < 0) {
+            v = v.multiply(powerOfTen((-p).toInt()))
+        }
+        
+        // Do division with remaining
+        // We need remainder for rounding.
+        // Since we don't have `divideAndRemainder` exposed efficiently, use `divide` and `mod` or `divide` then check `mod`.
+        // Better: implement `divideAndRemainder`? I'll use `divide` and verify remainder manually for now (slower but works).
+        // Actually `KBigInteger` has `mod`.
+        
+        val q = u.divide(v)
+        val r = u.mod(v)
+        
+        if (r.isZero()) {
+             return KBigDecimal(q, scale)
+        }
+        
+        // Rounding required
+        if (rounding == KBRoundingMode.Unnecessary) throw ArithmeticException("Rounding necessary")
+        
+        // Check remainder relative to divisor/2
+        // cmp = r * 2 vs v
+        val r2 = r.abs().multiply(KBigInteger.fromInt(2))
+        val vAbs = v.abs()
+        val cmp = r2.compareTo(vAbs)
+        
+        // Sign of the result (u / v)
+        val resultSign = if (u.signum() * v.signum() >= 0) 1 else -1
 
-    /**
-     * Returns a KBigDecimal with the specified scale and rounding mode.
-     * @param scale The number of digits to the right of the decimal point
-     * @param roundingMode The rounding mode to apply (see RoundingMode constants)
-     * @return A KBigDecimal with the specified scale
-     * @throws ArithmeticException if rounding is necessary but the rounding mode is UNNECESSARY
-     */
-    fun setScale(
-        scale: Int,
-        roundingMode: Int,
-    ): KBigDecimal
+        val increment = when(rounding) {
+             KBRoundingMode.Up -> true
+             KBRoundingMode.Down -> false
+             KBRoundingMode.Ceiling -> resultSign >= 0
+             KBRoundingMode.Floor -> resultSign < 0
+             KBRoundingMode.HalfUp -> cmp >= 0
+             KBRoundingMode.HalfDown -> cmp > 0
+             KBRoundingMode.HalfEven -> {
+                  if (cmp > 0) true 
+                  else if (cmp < 0) false
+                  else q.testBit(0) // odd ? up : down
+             }
+             KBRoundingMode.Unnecessary -> false // handled
+        }
+        
+        val finalQ = if (increment) {
+             if (resultSign >= 0) q.add(KBigInteger.ONE) else q.subtract(KBigInteger.ONE) // Magnitude increase in correct direction
+        } else {
+             q
+        }
+        
+        return KBigDecimal(finalQ, scale)
+    }
 
-    /**
-     * Returns a KBigDecimal with the specified scale using a type-safe rounding mode.
-     */
-    fun setScale(
-        scale: Int,
-        rounding: KBRoundingMode,
-    ): KBigDecimal = setScale(scale, rounding.toLegacyCode())
+    // Overloads
+    fun divide(other: KBigDecimal, scale: Int): KBigDecimal = divide(other, scale, KBRoundingMode.HalfUp)
+    fun divide(other: KBigDecimal, scale: Int, mode: Int): KBigDecimal = divide(other, scale, KBRoundingMode.fromLegacyCode(mode))
+    
+    // Support older interface methods if needed, or clean up
+    fun divide(other: KBigDecimal, config: DivisionConfig): KBigDecimal = throw NotImplementedError()
 
-    /**
-     * Converts this KBigDecimal to a KBigInteger by discarding the fractional part.
-     * @return KBigInteger representation of this decimal (truncated towards zero)
-     */
-    fun toBigInteger(): KBigInteger
 
-    /**
-     * Returns the string representation of this KBigDecimal.
-     * @return String representation of the number
-     */
-    override fun toString(): String
+    fun abs(): KBigDecimal {
+        return if (unscaledValue.signum() < 0) KBigDecimal(unscaledValue.negate(), scale) else this
+    }
 
-    // getString() removed - use toString() instead
+    fun signum(): Int = unscaledValue.signum()
 
-    // Additional utility functions
+    fun setScale(scale: Int, roundingMode: Int): KBigDecimal {
+         throw NotImplementedError()
+    }
 
-    /**
-     * Returns the negation of this KBigDecimal.
-     * @return The negative value of this number
-     */
-    fun negate(): KBigDecimal = KBigDecimalFactory.ZERO.subtract(this)
+    fun setScale(scale: Int, rounding: KBRoundingMode): KBigDecimal {
+         throw NotImplementedError()
+    }
 
-    /**
-     * Returns the scale of this KBigDecimal (number of digits to the right of the decimal point).
-     * @return The scale of this decimal number
-     */
-    fun scale(): Int = 0 // Default implementation, can be overridden
+    fun toBigInteger(): KBigInteger {
+        // Simple truncation for now (only if scale=0)
+        if (scale == 0) return unscaledValue
+        throw NotImplementedError("Scaling not implemented")
+    }
+    
+    fun scale(): Int = scale
+    
+    fun precision(): Int = throw NotImplementedError()
+    fun isZero(): Boolean = unscaledValue.isZero()
+    fun isPositive(): Boolean = unscaledValue.isPositive()
+    fun isNegative(): Boolean = unscaledValue.isNegative()
+    fun negate(): KBigDecimal = KBigDecimal(unscaledValue.negate(), scale)
 
-    /**
-     * Returns the precision of this KBigDecimal (total number of significant digits).
-     * @return The number of significant digits in this decimal number
-     */
-    fun precision(): Int = toString().replace(".", "").replace("-", "").length
+    override fun toString(): String {
+        return "KBigDecimal(unscaled=$unscaledValue, scale=$scale)"
+    }
 
-    /**
-     * Checks if this KBigDecimal is equal to zero.
-     * @return true if this number equals zero, false otherwise
-     */
-    fun isZero(): Boolean = signum() == 0
+    override fun compareTo(other: KBigDecimal): Int {
+        if (scale == other.scale) {
+            return unscaledValue.compareTo(other.unscaledValue)
+        }
+        val (scaledThis, scaledOther) = matchScales(this, other)
+        return scaledThis.unscaledValue.compareTo(scaledOther.unscaledValue)
+    }
 
-    /**
-     * Checks if this KBigDecimal is positive (greater than zero).
-     * @return true if this number is positive, false otherwise
-     */
-    fun isPositive(): Boolean = signum() > 0
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is KBigDecimal) return false
+        return unscaledValue == other.unscaledValue && scale == other.scale
+    }
 
-    /**
-     * Checks if this KBigDecimal is negative (less than zero).
-     * @return true if this number is negative, false otherwise
-     */
-    fun isNegative(): Boolean = signum() < 0
+    override fun hashCode(): Int {
+        var result = unscaledValue.hashCode()
+        result = 31 * result + scale
+        return result
+    }
 }

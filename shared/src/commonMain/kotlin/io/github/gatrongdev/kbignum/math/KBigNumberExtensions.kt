@@ -29,14 +29,14 @@ fun Long.toKBigDecimal(): KBigDecimal = KBigDecimalFactory.fromLong(this)
  * @receiver The Double value to convert
  * @return A KBigDecimal representing this double value
  */
-fun Double.toKBigDecimal(): KBigDecimal = KBigDecimalImpl(this.toString())
+fun Double.toKBigDecimal(): KBigDecimal = KBigDecimal.fromString(this.toString())
 
 /**
  * Converts a Float to a KBigDecimal.
  * @receiver The Float value to convert
  * @return A KBigDecimal representing this float value
  */
-fun Float.toKBigDecimal(): KBigDecimal = KBigDecimalImpl(this.toString())
+fun Float.toKBigDecimal(): KBigDecimal = KBigDecimal.fromString(this.toString())
 
 // Extension functions for converting common types to KBigInteger
 
