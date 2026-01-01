@@ -1086,7 +1086,13 @@ class KBigInteger(
         // "q.testBit(0)" is used to check if the last digit is odd.
         // If q is negative, -3 is "odd". -2 is "even".
         // So checking magnitude[0] & 1 is sufficient regardless of sign for parity.
-        return (magnitude.getOrElse(intIndex) { 0 } and (1 shl bitIndex)) != 0
+        if (signum >= 0) {
+            return (magnitude.getOrElse(intIndex) { 0 } and (1 shl bitIndex)) != 0
+        }
+        val lowBit = getLowestSetBit()
+        if (n < lowBit) return false
+        if (n == lowBit) return true
+        return (magnitude.getOrElse(intIndex) { 0 } and (1 shl bitIndex)) == 0
     }
 
     private fun numberOfLeadingZeros(i: Int): Int {
@@ -1105,5 +1111,17 @@ class KBigInteger(
         var result = signum
         result = 31 * result + magnitude.contentHashCode()
         return result
+    }
+
+    fun getLowestSetBit(): Int {
+        var i = 0
+        while (i < magnitude.size) {
+            val m = magnitude[i]
+            if (m != 0) {
+                return i * 32 + m.countTrailingZeroBits()
+            }
+            i++
+        }
+        return -1
     }
 }
