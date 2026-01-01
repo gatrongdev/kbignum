@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.19] - 2025-01-02
+
+### Fixed
+- **Critical Bug Fix in `KBigMath.sqrt()`**: Fixed incorrect results for numbers with large integer parts (>=10 digits) combined with decimal places, or numbers exceeding `Long.MAX_VALUE`. The `toDoubleApproximation()` function now correctly handles these edge cases.
+
+### Added
+- **Comprehensive `factorial` compliance tests**:
+  - Test all factorials from 0! to 100! with exact match against Java
+  - Test large factorials: 200!, 500!, 1000!
+  - Edge case tests for negative inputs
+- **Comprehensive `isPrime` compliance tests**:
+  - Test first 100 known prime numbers
+  - Test 76 known composite numbers
+  - Random comparison with Java `BigInteger.isProbablePrime(100)` (500 iterations)
+  - Test large primes up to 2^31-1 (Mersenne prime M31)
+  - Special cases: perfect squares, powers of 2, Mersenne primes
+
+### Changed
+- **Improved test coverage**: All `KBigMath` functions now have ~99% confidence level with Java reference comparison
+
+## [0.0.18] - 2025-01-01
+
 ### Added
 - Introduced `KBRoundingMode` for type-safe, cross-platform rounding semantics with helpers to convert from legacy integer constants.
 
