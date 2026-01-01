@@ -153,14 +153,239 @@ class KBigMathComplianceTest {
         assertEquals("1", KBigMath.factorial(KBigInteger.ZERO).toString())
         // 5! = 120
         assertEquals("120", KBigMath.factorial(KBigInteger.fromInt(5)).toString())
-        
+
         // 20!
         var jFact = JBigInteger.ONE
         for (i in 1..20) {
             jFact = jFact.multiply(JBigInteger.valueOf(i.toLong()))
         }
-        
+
         assertEquals(jFact.toString(), KBigMath.factorial(KBigInteger.fromInt(20)).toString())
+    }
+
+    @Test
+    fun testFactorialComprehensiveCompliance() {
+        // Test all factorials from 0 to 100, comparing with Java calculation
+        for (n in 0..100) {
+            var jFact = JBigInteger.ONE
+            for (i in 1..n) {
+                jFact = jFact.multiply(JBigInteger.valueOf(i.toLong()))
+            }
+
+            val kFact = KBigMath.factorial(KBigInteger.fromInt(n))
+
+            assertEquals(
+                jFact.toString(),
+                kFact.toString(),
+                "Factorial($n) mismatch"
+            )
+        }
+    }
+
+    @Test
+    fun testFactorialLargeNumbers() {
+        // Test larger factorials: 200!, 500!, 1000!
+        val largeValues = listOf(200, 500, 1000)
+
+        for (n in largeValues) {
+            var jFact = JBigInteger.ONE
+            for (i in 1..n) {
+                jFact = jFact.multiply(JBigInteger.valueOf(i.toLong()))
+            }
+
+            val kFact = KBigMath.factorial(KBigInteger.fromInt(n))
+
+            assertEquals(
+                jFact.toString(),
+                kFact.toString(),
+                "Factorial($n) mismatch for large number"
+            )
+        }
+    }
+
+    @Test
+    fun testFactorialEdgeCases() {
+        // 0! = 1
+        assertEquals("1", KBigMath.factorial(KBigInteger.ZERO).toString())
+
+        // 1! = 1
+        assertEquals("1", KBigMath.factorial(KBigInteger.ONE).toString())
+
+        // Negative factorial should throw
+        assertFailsWith<ArithmeticException> {
+            KBigMath.factorial(KBigInteger.fromInt(-1))
+        }
+
+        assertFailsWith<ArithmeticException> {
+            KBigMath.factorial(KBigInteger.fromInt(-100))
+        }
+    }
+
+    // ============ isPrime Compliance Tests ============
+
+    @Test
+    fun testIsPrimeKnownPrimes() {
+        // First 100 prime numbers
+        val knownPrimes = listOf(
+            2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
+            31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
+            73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
+            127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
+            179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
+            233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
+            283, 293, 307, 311, 313, 317, 331, 337, 347, 349,
+            353, 359, 367, 373, 379, 383, 389, 397, 401, 409,
+            419, 421, 431, 433, 439, 443, 449, 457, 461, 463,
+            467, 479, 487, 491, 499, 503, 509, 521, 523, 541
+        )
+
+        for (p in knownPrimes) {
+            val kNum = KBigInteger.fromInt(p)
+            assertTrue(
+                KBigMath.isPrime(kNum),
+                "$p should be prime"
+            )
+        }
+    }
+
+    @Test
+    fun testIsPrimeKnownComposites() {
+        // Known composite numbers
+        val composites = listOf(
+            4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20,
+            21, 22, 24, 25, 26, 27, 28, 30, 32, 33,
+            34, 35, 36, 38, 39, 40, 42, 44, 45, 46,
+            48, 49, 50, 51, 52, 54, 55, 56, 57, 58,
+            60, 62, 63, 64, 65, 66, 68, 69, 70, 72,
+            74, 75, 76, 77, 78, 80, 81, 82, 84, 85,
+            86, 87, 88, 90, 91, 92, 93, 94, 95, 96,
+            98, 99, 100, 1000, 10000, 123456
+        )
+
+        for (c in composites) {
+            val kNum = KBigInteger.fromInt(c)
+            assertTrue(
+                !KBigMath.isPrime(kNum),
+                "$c should NOT be prime"
+            )
+        }
+    }
+
+    @Test
+    fun testIsPrimeCompareWithJava() {
+        // Compare with Java BigInteger.isProbablePrime(100)
+        // isProbablePrime with certainty 100 is extremely reliable
+        val rand = Random(RANDOM_SEED + 30)
+
+        for (i in 0 until 500) {
+            // Generate random number between 2 and 10000
+            val n = rand.nextInt(2, 10000)
+            val jNum = JBigInteger.valueOf(n.toLong())
+            val kNum = KBigInteger.fromInt(n)
+
+            val jIsPrime = jNum.isProbablePrime(100)
+            val kIsPrime = KBigMath.isPrime(kNum)
+
+            assertEquals(
+                jIsPrime,
+                kIsPrime,
+                "isPrime($n) mismatch: Java=$jIsPrime, K=$kIsPrime"
+            )
+        }
+    }
+
+    @Test
+    fun testIsPrimeLargerNumbers() {
+        // Test some larger known primes
+        val largePrimes = listOf(
+            "104729",      // 10000th prime
+            "1299709",     // 100000th prime
+            "15485863",    // 1000000th prime
+            "982451653",   // Large prime
+            "2147483647"   // Mersenne prime M31 = 2^31 - 1
+        )
+
+        for (pStr in largePrimes) {
+            val kNum = KBigInteger.fromString(pStr)
+            val jNum = JBigInteger(pStr)
+
+            assertTrue(
+                jNum.isProbablePrime(100),
+                "Java confirms $pStr is prime"
+            )
+            assertTrue(
+                KBigMath.isPrime(kNum),
+                "$pStr should be prime"
+            )
+        }
+
+        // Test some larger known composites
+        val largeComposites = listOf(
+            "104730",      // 104729 + 1
+            "1299710",     // 1299709 + 1
+            "15485864",    // 15485863 + 1
+            "1000000000",  // 10^9
+            "2147483646"   // 2^31 - 2
+        )
+
+        for (cStr in largeComposites) {
+            val kNum = KBigInteger.fromString(cStr)
+            assertTrue(
+                !KBigMath.isPrime(kNum),
+                "$cStr should NOT be prime"
+            )
+        }
+    }
+
+    @Test
+    fun testIsPrimeEdgeCases() {
+        // 0 is not prime
+        assertTrue(!KBigMath.isPrime(KBigInteger.ZERO), "0 should not be prime")
+
+        // 1 is not prime
+        assertTrue(!KBigMath.isPrime(KBigInteger.ONE), "1 should not be prime")
+
+        // 2 is prime (smallest prime)
+        assertTrue(KBigMath.isPrime(KBigInteger.fromInt(2)), "2 should be prime")
+
+        // 3 is prime
+        assertTrue(KBigMath.isPrime(KBigInteger.fromInt(3)), "3 should be prime")
+
+        // Negative numbers are not prime
+        assertTrue(!KBigMath.isPrime(KBigInteger.fromInt(-1)), "-1 should not be prime")
+        assertTrue(!KBigMath.isPrime(KBigInteger.fromInt(-7)), "-7 should not be prime")
+        assertTrue(!KBigMath.isPrime(KBigInteger.fromInt(-97)), "-97 should not be prime")
+    }
+
+    @Test
+    fun testIsPrimeSpecialCases() {
+        // Perfect squares are not prime (except edge cases)
+        val squares = listOf(4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225)
+        for (sq in squares) {
+            assertTrue(
+                !KBigMath.isPrime(KBigInteger.fromInt(sq)),
+                "$sq (perfect square) should not be prime"
+            )
+        }
+
+        // Powers of 2 > 2 are not prime
+        for (exp in 2..20) {
+            val pow2 = 1 shl exp
+            assertTrue(
+                !KBigMath.isPrime(KBigInteger.fromInt(pow2)),
+                "2^$exp = $pow2 should not be prime"
+            )
+        }
+
+        // Mersenne primes: 2^p - 1 where p is prime
+        // M2 = 3, M3 = 7, M5 = 31, M7 = 127, M13 = 8191, M17 = 131071, M19 = 524287
+        val mersennePrimes = listOf(3, 7, 31, 127, 8191, 131071, 524287)
+        for (mp in mersennePrimes) {
+            assertTrue(
+                KBigMath.isPrime(KBigInteger.fromInt(mp)),
+                "Mersenne prime $mp should be prime"
+            )
+        }
     }
     
     // ============ Sqrt Compliance Tests ============

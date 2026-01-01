@@ -48,58 +48,58 @@ dependencies {
 #### 2048-bit Numbers
 | Operation | Java (ms) | KBignum (ms) | Relative |
 | :--- | :---: | :---: | :---: |
-| **Add** | 15 | 27 | 1.80x |
-| **Subtract** | 13 | 57 | 4.38x |
-| **Multiply** | 80 | 58 | **0.73x ✓** |
-| **Divide** | 22 | 38 | 1.73x |
-| **Modulo** | 19 | 23 | 1.21x |
+| **Add** | 19 | 15 | **0.79x ✓** |
+| **Subtract** | 48 | 38 | **0.79x ✓** |
+| **Multiply** | 62 | 66 | 1.06x |
+| **Divide** | 94 | 90 | **0.96x ✓** |
+| **Modulo** | 28 | 42 | 1.50x |
 
 #### 4096-bit Numbers
 | Operation | Java (ms) | KBignum (ms) | Relative |
 | :--- | :---: | :---: | :---: |
-| **Add** | 3 | 3 | **1.00x ✓** |
-| **Subtract** | 2 | 6 | 3.00x |
-| **Multiply** | 50 | 68 | 1.36x |
-| **Divide** | 26 | 26 | **1.00x ✓** |
-| **Modulo** | 26 | 21 | **0.81x ✓** |
+| **Add** | 5 | 19 | 3.80x |
+| **Subtract** | 16 | 21 | 1.31x |
+| **Multiply** | 71 | 94 | 1.32x |
+| **Divide** | 29 | 22 | **0.76x ✓** |
+| **Modulo** | 44 | 26 | **0.59x ✓** |
 
 ### Factorial
 | Operation | Java (ms) | KBignum (ms) | Relative |
 | :--- | :---: | :---: | :---: |
-| **Factorial(100)** | 6 | 6 | **1.00x ✓** |
-| **Factorial(500)** | 18 | 24 | 1.33x |
-| **Factorial(1000)** | 12 | 22 | 1.83x |
+| **Factorial(100)** | 15 | 9 | **0.60x ✓** |
+| **Factorial(500)** | 22 | 27 | 1.23x |
+| **Factorial(1000)** | 25 | 55 | 2.20x |
 
 ### KBigMath (Integer)
 | Operation | Java (ms) | KBignum (ms) | Relative |
 | :--- | :---: | :---: | :---: |
-| **GCD** | 1408 | 5327 | 3.78x |
-| **LCM** | 43 | 142 | 3.30x |
-| **Pow^100** | 59 | 82 | 1.39x |
+| **GCD** | 1545 | 5403 | 3.50x |
+| **LCM** | 52 | 193 | 3.71x |
+| **Pow^100** | 50 | 128 | 2.56x |
 ### KBigDecimal
 
 #### 600-digit (~2000 bits)
 | Operation | Java (ms) | KBigDecimal (ms) | Relative |
 | :--- | :---: | :---: | :---: |
 | **Add** | 2 | 2 | **1.00x ✓** |
-| **Sub** | 2 | 2 | **1.00x ✓** |
+| **Sub** | 2 | 3 | 1.50x |
 | **Mul** | 1 | 4 | 4.00x |
-| **Div** | 3 | 5 | 1.67x |
+| **Div** | 4 | 5 | 1.25x |
 
 #### 1200-digit (~4000 bits)
 | Operation | Java (ms) | KBigDecimal (ms) | Relative |
 | :--- | :---: | :---: | :---: |
 | **Add** | 1 | 1 | **1.00x ✓** |
-| **Sub** | 1 | 2 | 2.00x |
-| **Mul** | 2 | 6 | 3.00x |
-| **Div** | 3 | 6 | 2.00x |
+| **Sub** | 1 | 1 | **1.00x ✓** |
+| **Mul** | 3 | 6 | 2.00x |
+| **Div** | 3 | 7 | 2.33x |
 
 ### KBigMath (Decimal)
 | Operation | Java (ms) | KBignum (ms) | Relative |
 | :--- | :---: | :---: | :---: |
-| **Sqrt** | 18 | 36 | 2.00x |
-| **Sqrt** | 53 | 33 | **0.62x ✓** |
-| **Sqrt** | 45 | 28 | **0.62x ✓** |
+| **Sqrt** | 23 | 41 | 1.78x |
+| **Sqrt** | 60 | 43 | **0.72x ✓** |
+| **Sqrt** | 63 | 39 | **0.62x ✓** |
 
 *Note: Benchmarks run on macOS/JVM. ✓ indicates KBignum is faster or equal to Java. KBignum prioritizes portability across KMP targets (Android, iOS, JS, Native).*
 
