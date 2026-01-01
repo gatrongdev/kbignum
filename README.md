@@ -154,83 +154,14 @@ val sign = bigDecimal1.signum()
 // Mathematical operations
 val gcd = KBigMath.gcd(bigInteger1, bigInteger2)
 val lcm = KBigMath.lcm(bigInteger1, bigInteger2)
-val power = bigDecimal1.pow(5) // Extension function
+val power = bigDecimal1.pow(5)
 ```
-
-## API Reference
-
-### KBigDecimal
-
-Interface for arbitrary precision decimal numbers:
-
-- `add(other: KBigDecimal): KBigDecimal`
-- `subtract(other: KBigDecimal): KBigDecimal`
-- `multiply(other: KBigDecimal): KBigDecimal`
-- `divide(other: KBigDecimal): KBigDecimal`
-- `divide(other: KBigDecimal, scale: Int): KBigDecimal`
-- `divide(other: KBigDecimal, scale: Int, rounding: KBRoundingMode): KBigDecimal`
-- `abs(): KBigDecimal`
-- `signum(): Int`
-
-### Rounding Modes (v0.0.18+)
-
-- Prefer `KBRoundingMode` (Enum) for type-safety.
-- Supported modes: `Up`, `Down`, `Ceiling`, `Floor`, `HalfUp`, `HalfDown`, `HalfEven`.
-
-### KBigInteger
-
-Interface for arbitrary precision integers:
-
-- `add(other: KBigInteger): KBigInteger`
-- `subtract(other: KBigInteger): KBigInteger`
-- `multiply(other: KBigInteger): KBigInteger`
-- `divide(other: KBigInteger): KBigInteger`
-- `mod(other: KBigInteger): KBigInteger` (Remainder)
-- `pow(exponent: Int): KBigInteger` (Extension)
-
-### KBigMath
-
-Utility class for advanced mathematical operations:
-
-- `sqrt(value: KBigDecimal, scale: Int): KBigDecimal`
-- `factorial(n: KBigInteger): KBigInteger`
-- `gcd(a: KBigInteger, b: KBigInteger): KBigInteger`
-- `lcm(a: KBigInteger, b: KBigInteger): KBigInteger`
-- `isPrime(value: KBigInteger): Boolean`
-
-### Rounding Modes (v0.0.18+)
-
-- Prefer `KBRoundingMode` for type-safe semantics that stay in sync across Android and iOS implementations.
-- Legacy integer constants from `RoundingMode` remain available for compatibility and can be converted with `toKBRoundingMode()` / `toLegacyCode()` helpers.
-- All rounding-aware APIs now expose overloads accepting `KBRoundingMode` (e.g., `setScale` and `divide`).
-
-### KBigInteger
-
-Interface for arbitrary precision integers:
-
-- `add(other: KBigInteger): KBigInteger`
-- `subtract(other: KBigInteger): KBigInteger`
-- `multiply(other: KBigInteger): KBigInteger`
-- `divide(other: KBigInteger): KBigInteger`
-- `remainder(other: KBigInteger): KBigInteger`
-- `pow(exponent: Int): KBigInteger`
-
-### KBigMath
-
-Utility class for advanced mathematical operations:
-
-- `sqrt(value: KBigDecimal, scale: Int): KBigDecimal`
-- `factorial(n: KBigInteger): KBigInteger`
-- `gcd(a: KBigInteger, b: KBigInteger): KBigInteger`
-- `lcm(a: KBigInteger, b: KBigInteger): KBigInteger`
-- `isPrime(value: KBigInteger): Boolean`
-- `pow(base: KBigDecimal, exponent: Int): KBigDecimal`
 
 ## Platform Support
 
 ### Android
 - **Minimum API Level**: 21
-- **Implementation**: Uses Java's `BigDecimal` and `BigInteger`
+- **Implementation**: Pure Kotlin (Single Codebase). No JNI involved.
 - **Output**: AAR library files
 
 #### Android SDK configuration
@@ -243,7 +174,7 @@ Utility class for advanced mathematical operations:
 
 ### iOS
 - **Minimum Version**: 13.0
-- **Implementation**: Uses Foundation's `NSDecimalNumber` and `NSNumber`
+- **Implementation**: Pure Kotlin (Single Codebase). No `NSDecimalNumber` bridging overhead.
 - **Output**: XCFramework with arm64 and x64 support
 
 ## Requirements
@@ -253,73 +184,6 @@ Utility class for advanced mathematical operations:
 - **Android**: API level 21+
 - **iOS**: 13.0+
 
-## Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/gatrongdev/kbignum.git
-cd kbignum
-
-# Build for all platforms
-./gradlew build
-
-# Run tests
-./gradlew test
-
-# Generate coverage report
-./gradlew koverXmlReport
-
-# Run code quality checks
-./gradlew runAllChecks
-```
-
-## Testing
-
-The library includes comprehensive tests covering:
-
-- Basic arithmetic operations
-- Edge cases (division by zero, overflow, invalid formats)
-- Platform-specific implementations
-- Mathematical functions
-- Factory methods and type conversions
-
-Run tests with:
-```bash
-./gradlew test
-```
-
-## Code Quality
-
-The project includes several code quality tools:
-
-- **Kover**: Test coverage reporting
-- **ktlint**: Kotlin code style checking
-- **detekt**: Static code analysis
-
-## Contributing
-
-We welcome contributions! Please see our [Contributing Guide](.github/CONTRIBUTING.md) for detailed information.
-
-### Quick Start for Contributors
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes and add tests
-4. Run code quality checks (`./gradlew runAllChecks`)
-5. Use conventional commits (`git commit -m "feat: add amazing feature"`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Release Process
-
-Releases are automated based on version changes:
-
-1. **Update version**: `./scripts/update-version.sh 1.0.1`
-2. **Commit and push**: The release will be created automatically
-3. **Semantic versioning** is enforced for all releases
-
-See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for complete guidelines.
-
 ## License
 
 This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
@@ -327,9 +191,3 @@ This project is licensed under the Apache License, Version 2.0 - see the [LICENS
 ## Author
 
 **Gatrong Dev** - [GitHub](https://github.com/gatrongdev)
-
-## Acknowledgments
-
-- Built with Kotlin Multiplatform
-- Uses platform-native arbitrary precision libraries for optimal performance
-- Inspired by Java's BigDecimal and BigInteger APIs
