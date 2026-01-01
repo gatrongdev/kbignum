@@ -347,45 +347,39 @@ class KBigInteger(
 
     // Helper: Subtracts smaller magnitude from larger magnitude
     // Precondition: big >= little
+    // Optimized: branchless borrow, track last non-zero inline
     private fun subtractMagnitude(big: IntArray, little: IntArray): IntArray {
         val bigLen = big.size
         val littleLen = little.size
         val result = IntArray(bigLen)
-
+        
         var borrow: Long = 0
-
-        // Subtract common parts
+        var lastNonZero = -1
+        
+        // Subtract common parts - branchless borrow
         for (i in 0 until littleLen) {
-            var diff = (big[i].toLong() and 0xFFFFFFFFL) - (little[i].toLong() and 0xFFFFFFFFL) - borrow
-            if (diff < 0) {
-                diff += 0x100000000L
-                borrow = 1
-            } else {
-                borrow = 0
-            }
-            result[i] = diff.toInt()
+            val diff = (big[i].toLong() and 0xFFFFFFFFL) - (little[i].toLong() and 0xFFFFFFFFL) - borrow
+            borrow = (diff ushr 63)
+            val digit = (diff + (borrow shl 32)).toInt()
+            result[i] = digit
+            if (digit != 0) lastNonZero = i
         }
-
-        // Propagate borrow
+        
+        // Propagate borrow - branchless
         for (i in littleLen until bigLen) {
-            var diff = (big[i].toLong() and 0xFFFFFFFFL) - borrow
-            if (diff < 0) {
-                diff += 0x100000000L
-                borrow = 1
-            } else {
-                borrow = 0
-            }
-            result[i] = diff.toInt()
+            val diff = (big[i].toLong() and 0xFFFFFFFFL) - borrow
+            borrow = (diff ushr 63)
+            val digit = (diff + (borrow shl 32)).toInt()
+            result[i] = digit
+            if (digit != 0) lastNonZero = i
         }
-
-        // Strip leading zeros
-        var resultLen = bigLen
-        while (resultLen > 0 && result[resultLen - 1] == 0) {
-            resultLen--
+        
+        // Return correctly sized array
+        return when {
+            lastNonZero < 0 -> IntArray(0)
+            lastNonZero == bigLen - 1 -> result
+            else -> result.copyOf(lastNonZero + 1)
         }
-
-        if (resultLen == 0) return IntArray(0)
-        return result.copyOf(resultLen)
     }
     fun multiply(other: KBigInteger): KBigInteger {
         if (signum == 0 || other.signum == 0) return ZERO
@@ -447,6 +441,28 @@ class KBigInteger(
         val (_, remainderMag) = divideMagnitude(magnitude, other.magnitude)
         return if (remainderMag.isEmpty()) ZERO else KBigInteger(signum, remainderMag)
     }
+    
+    /**
+     * Returns both quotient and remainder in a single operation.
+     * More efficient than calling divide() and mod() separately.
+     */
+    fun divideAndRemainder(other: KBigInteger): Pair<KBigInteger, KBigInteger> {
+        if (other.signum == 0) throw ArithmeticException("Division by zero")
+        if (signum == 0) return ZERO to ZERO
+
+        val resultSign = if (signum == other.signum) 1 else -1
+        val cmp = compareMagnitude(other)
+        if (cmp < 0) return ZERO to this
+        if (cmp == 0) {
+            val q = if (resultSign == 1) ONE else KBigInteger(-1, intArrayOf(1))
+            return q to ZERO
+        }
+
+        val (quotientMag, remainderMag) = divideMagnitude(magnitude, other.magnitude)
+        val quotient = if (quotientMag.isEmpty()) ZERO else KBigInteger(resultSign, quotientMag)
+        val remainder = if (remainderMag.isEmpty()) ZERO else KBigInteger(signum, remainderMag)
+        return quotient to remainder
+    }
 
     // Helper: Returns pair of (Quotient, Remainder) magnitudes
     // Uses Knuth's Algorithm D (simplified for base 2^32)
@@ -470,103 +486,160 @@ class KBigInteger(
              return qRes to rRes
         }
 
-        return bitwiseDivide(u, v)
+        return knuthDivide(u, v)
     }
 
-    // Generic Bitwise Long Division
-    // Slower than Knuth D but easier to ensure correctness without complex estimation logic.
-    private fun bitwiseDivide(uMag: IntArray, vMag: IntArray): Pair<IntArray, IntArray> {
-        val uBits = bitLength(uMag)
-        val vBits = bitLength(vMag)
-
-        if (uBits < vBits) {
-             return IntArray(0) to uMag
+    /**
+     * Knuth's Algorithm D for multi-word division.
+     * Works with base 2^32 (each Int is one "digit").
+     * Much faster than bitwise division: O(n) word iterations vs O(n*32) bit iterations.
+     */
+    private fun knuthDivide(uMag: IntArray, vMag: IntArray): Pair<IntArray, IntArray> {
+        val n = vMag.size
+        val m = uMag.size - n
+        
+        if (m < 0) {
+            return IntArray(0) to uMag.copyOf()
         }
 
-        // Quotient length in bits = uBits - vBits + 1
-        // We construct quotient bit by bit.
-
-        // To avoid excessive array shifting, we can work on a mutable copy of U (remainder)
-        // and check against V shifted.
-        // But shifting V is expensive.
-
-        // Better: Compare V against top bits of U.
-        // Copy U to a working array.
-        val rem = uMag.copyOf()
-        val qBits = uBits - vBits
-        val quotient = IntArray(qBits / 32 + 1)
-
-        // We will shift V left by 'shift' bits to align with U.
-        // Instead of shifting V, we can conceptually shift V and subtract from Rem.
-        // Or simpler:
-        // Create 'divisor' = v << shift
-        // But that array is huge.
-
-        // Let's iterate 'i' from qBits down to 0.
-        // In each step, we want to know if rem >= (v << i)
-        // Comparison (v << i) vs rem is:
-        // Compare rem[i_bits ..] vs v.
-
-        // Implementing 'subtractShifted' helper:
-        // subtractShifted(rem, v, shiftBits) -> subtracts (v << shiftBits) from rem IF (rem >= v << shiftBits)
-        // Returns true if subtracted (q bit = 1), false otherwise.
-
-        // Optimization: Normalize V first to have MSB at bit 31.
-        // But let's stick to functional simplicity first.
-
-        // This loop runs 'qBits' times.
-        for (i in qBits downTo 0) {
-            if (subtractIfGreater(rem, vMag, i)) {
-                setBit(quotient, i)
+        // Step 1: Normalize - shift so that v[n-1] >= 2^31 (MSB is set)
+        val shift = numberOfLeadingZeros(vMag[n - 1])
+        
+        // Create normalized copies
+        val v = if (shift > 0) {
+            shiftLeftInWords(vMag, shift)
+        } else {
+            vMag.copyOf()
+        }
+        
+        // u needs one extra word for potential overflow during normalization
+        val u = IntArray(uMag.size + 1)
+        if (shift > 0) {
+            var carry = 0
+            for (i in uMag.indices) {
+                val newVal = (uMag[i].toLong() and 0xFFFFFFFFL) shl shift
+                u[i] = (newVal.toInt() or carry)
+                carry = (newVal ushr 32).toInt()
             }
+            u[uMag.size] = carry
+        } else {
+            uMag.copyInto(u)
         }
-
-        return stripZeros(quotient) to stripZeros(rem)
-    }
-
-    // Checks if rem >= (v << shiftBits). If so, rem -= (v << shiftBits) and returns true.
-    private fun subtractIfGreater(rem: IntArray, v: IntArray, shiftBits: Int): Boolean {
-        // 1. Comparison
-        // We need to compare specific region of 'rem' against 'v'.
-        // (v << shiftBits) effectively places v starting at 'shiftBits' position.
-
-        // Shift amount in words and bits
-        val shiftWords = shiftBits / 32
-        val shiftRem = shiftBits % 32
-
-        // If rem is too small to even contain shifted V
-        // highest set bit of (v << shiftBits) is (bitLength(v) - 1) + shiftBits
-        // highest set bit of rem is bitLength(rem) - 1
-        // But we are mutating rem, so its 'real' bitlength decreases.
-        // Checking bounds is tricky. Let's do a direct "simulated shift compare".
-
-        val vLen = v.size
-        // Determine the range in 'rem' that corresponds to 'v' shifted.
-        // V[0] maps to Rem[shiftWords] (with bit shift)
-
-        // This is complex to get bug-free.
-        // Let's use the simplest, dumbest approach:
-        // Construct 'shiftedV' = shiftLeft(v, shiftBits).
-        // Since i decreases, shiftBits decreases.
-        // We allocate 'shiftedV' every time? BAD.
-
-        // Actually, we can allocate ONE big array for V aligned to U's size?
-
-        return subtractIfGreaterSlowAllocator(rem, v, shiftBits)
-    }
-
-
-
-    // Slow allocator version: straightforward correctness.
-    private fun subtractIfGreaterSlowAllocator(rem: IntArray, v: IntArray, shiftBits: Int): Boolean {
-        // Construct candidate subtrahend
-        val shiftedV = shiftLeft(v, shiftBits)
-
-        if (compareArrays(rem, shiftedV) >= 0) {
-            subtractInPlace(rem, shiftedV)
-            return true
+        
+        // Quotient array
+        val q = IntArray(m + 1)
+        
+        // Step 2: Main loop - calculate each quotient digit
+        for (j in m downTo 0) {
+            // Step 2a: Estimate quotient digit qHat
+            val uH = u[j + n].toLong() and 0xFFFFFFFFL
+            val uL = u[j + n - 1].toLong() and 0xFFFFFFFFL
+            val vH = v[n - 1].toLong() and 0xFFFFFFFFL
+            
+            var qHat: Long
+            var rHat: Long
+            
+            if (uH == vH) {
+                qHat = 0xFFFFFFFFL
+                rHat = uH + uL
+            } else {
+                // Use unsigned division via ULong
+                val dividendU = ((uH.toULong() shl 32) or uL.toULong())
+                val vHU = vH.toULong()
+                qHat = (dividendU / vHU).toLong()
+                rHat = (dividendU % vHU).toLong()
+            }
+            
+            // Step 2b: Refine qHat estimate
+            if (n >= 2 && qHat > 0) {
+                val vL = v[n - 2].toLong() and 0xFFFFFFFFL
+                val uLL = u[j + n - 2].toLong() and 0xFFFFFFFFL
+                
+                // Use ULong for unsigned comparisons
+                while (qHat.toULong() >= 0x100000000uL || 
+                       (qHat.toULong() * vL.toULong()) > ((rHat.toULong() shl 32) or uLL.toULong())) {
+                    qHat--
+                    rHat += vH
+                    if (rHat.toULong() >= 0x100000000uL) break
+                }
+            }
+            
+            // Step 2c: Multiply and subtract: u[j..j+n] -= qHat * v[0..n-1]
+            val borrow = mulSub(u, v, qHat.toInt(), n, j)
+            
+            // Step 2d: If we borrowed too much, add back
+            if (borrow < 0) {
+                qHat--
+                addBack(u, v, n, j)
+            }
+            
+            q[j] = qHat.toInt()
         }
-        return false
+        
+        // Step 3: Denormalize remainder
+        val remainder = if (shift > 0) {
+            val r = IntArray(n)
+            for (i in 0 until n) {
+                val lo = (u[i].toLong() and 0xFFFFFFFFL) ushr shift
+                val hi = if (i + 1 < u.size) (u[i + 1].toLong() and 0xFFFFFFFFL) shl (32 - shift) else 0L
+                r[i] = (lo or hi).toInt()
+            }
+            r
+        } else {
+            u.copyOf(n)
+        }
+        
+        return stripZeros(q) to stripZeros(remainder)
+    }
+    
+    /**
+     * Multiply-subtract: u[offset..offset+len] -= q * v[0..len-1]
+     * Returns the final borrow (negative if underflow occurred)
+     */
+    private fun mulSub(u: IntArray, v: IntArray, q: Int, len: Int, offset: Int): Long {
+        val qLong = q.toLong() and 0xFFFFFFFFL
+        var carry: Long = 0
+        
+        for (i in 0 until len) {
+            val product = qLong * (v[i].toLong() and 0xFFFFFFFFL) + carry
+            val diff = (u[offset + i].toLong() and 0xFFFFFFFFL) - (product and 0xFFFFFFFFL)
+            u[offset + i] = diff.toInt()
+            carry = (product ushr 32) + (if (diff < 0) 1 else 0)
+        }
+        
+        val finalDiff = (u[offset + len].toLong() and 0xFFFFFFFFL) - carry
+        u[offset + len] = finalDiff.toInt()
+        return finalDiff
+    }
+    
+    /**
+     * Add back: u[offset..offset+len] += v[0..len-1]
+     * Used when qHat was overestimated
+     */
+    private fun addBack(u: IntArray, v: IntArray, len: Int, offset: Int) {
+        var carry: Long = 0
+        for (i in 0 until len) {
+            val sum = (u[offset + i].toLong() and 0xFFFFFFFFL) + 
+                      (v[i].toLong() and 0xFFFFFFFFL) + carry
+            u[offset + i] = sum.toInt()
+            carry = sum ushr 32
+        }
+        u[offset + len] = (u[offset + len].toLong() + carry).toInt()
+    }
+    
+    /**
+     * Shift left within word array (in-place style but returns new array)
+     */
+    private fun shiftLeftInWords(mag: IntArray, shift: Int): IntArray {
+        if (shift == 0) return mag.copyOf()
+        val result = IntArray(mag.size)
+        var carry = 0
+        for (i in mag.indices) {
+            val newVal = (mag[i].toLong() and 0xFFFFFFFFL) shl shift
+            result[i] = (newVal.toInt() or carry)
+            carry = (newVal ushr 32).toInt()
+        }
+        return result
     }
 
     // Helper: Compare magnitude of two arrays (assuming signed logic=0 handling)

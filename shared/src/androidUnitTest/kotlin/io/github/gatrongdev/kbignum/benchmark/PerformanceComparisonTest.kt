@@ -1,9 +1,13 @@
 package io.github.gatrongdev.kbignum.benchmark
 
+import io.github.gatrongdev.kbignum.math.KBigDecimal
 import io.github.gatrongdev.kbignum.math.KBigInteger
+import io.github.gatrongdev.kbignum.math.KBRoundingMode
 import io.github.gatrongdev.kbignum.math.pow
 import org.junit.Test
+import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 
@@ -16,6 +20,9 @@ class PerformanceComparisonTest {
     @Test
     fun runBenchmarksAndPrintMarkdown() {
         println("### Performance Benchmarks (Java JVM)")
+        
+        // ============ KBigInteger Benchmarks ============
+        println("\n## KBigInteger")
         println("| Operation | Iterations | Java BigInteger (ms) | KBignum (ms) | Relative Speed |")
         println("| :--- | :---: | :---: | :---: | :---: |")
 
@@ -40,6 +47,23 @@ class PerformanceComparisonTest {
         benchmarkFactorial(100, 1000)
         benchmarkFactorial(500, 200)
         benchmarkFactorial(1000, 50)
+        
+        // ============ KBigDecimal Benchmarks ============
+        println("\n## KBigDecimal")
+        println("| Operation | Iterations | Java BigDecimal (ms) | KBigDecimal (ms) | Relative Speed |")
+        println("| :--- | :---: | :---: | :---: | :---: |")
+        
+        println("\n**Decimal Arithmetic (20 digits)**")
+        benchmarkDecimalAddition(20, 50000)
+        benchmarkDecimalSubtraction(20, 50000)
+        benchmarkDecimalMultiplication(20, 10000)
+        benchmarkDecimalDivision(20, 5000, 10)
+        
+        println("\n**Decimal Arithmetic (50 digits)**")
+        benchmarkDecimalAddition(50, 25000)
+        benchmarkDecimalSubtraction(50, 25000)
+        benchmarkDecimalMultiplication(50, 5000)
+        benchmarkDecimalDivision(50, 2000, 20)
     }
 
     private fun benchmarkAddition(bits: Int, iterations: Int) {
@@ -237,5 +261,143 @@ class PerformanceComparisonTest {
         // If KMs < JavaMs, it's faster? Usually Java is gold standard optimized C intrinsics.
         // We expect KBig to be slower (Pure Kotlin).
         println("| mean $op | $runs | $javaMs | $kMs | $relative |")
+    }
+    
+    // ============ KBigDecimal Benchmark Functions ============
+    
+    private fun generateRandomDecimalString(intDigits: Int, fracDigits: Int = 10): String {
+        val sb = StringBuilder()
+        repeat(intDigits) { sb.append(Random.nextInt(0, 10)) }
+        sb.append('.')
+        repeat(fracDigits) { sb.append(Random.nextInt(0, 10)) }
+        // Ensure it doesn't start with 0 (except for small numbers)
+        if (sb[0] == '0' && intDigits > 1) sb[0] = '1'
+        return sb.toString()
+    }
+    
+    private fun benchmarkDecimalAddition(digits: Int, iterations: Int) {
+        val random = Random(42)
+        val listA = List(100) { BigDecimal(generateRandomDecimalString(digits)) }
+        val listB = List(100) { BigDecimal(generateRandomDecimalString(digits)) }
+        
+        val kListA = listA.map { KBigDecimal.fromString(it.toPlainString()) }
+        val kListB = listB.map { KBigDecimal.fromString(it.toPlainString()) }
+
+        // Java Warmup
+        repeat(100) { listA[it % 100].add(listB[it % 100]) }
+        
+        val javaTime = measureTimeMillis {
+            repeat(iterations) { 
+                val i = it % 100
+                listA[i].add(listB[i])
+            }
+        }
+
+        // KBigDecimal Warmup
+        repeat(100) { kListA[it % 100].add(kListB[it % 100]) }
+
+        val kTime = measureTimeMillis {
+            repeat(iterations) {
+                val i = it % 100
+                kListA[i].add(kListB[i])
+            }
+        }
+
+        printTableRow("Decimal Add ${digits}d", iterations, javaTime, kTime)
+    }
+    
+    private fun benchmarkDecimalSubtraction(digits: Int, iterations: Int) {
+        val listA = List(100) { BigDecimal(generateRandomDecimalString(digits)) }
+        val listB = List(100) { BigDecimal(generateRandomDecimalString(digits / 2)) }
+        
+        val kListA = listA.map { KBigDecimal.fromString(it.toPlainString()) }
+        val kListB = listB.map { KBigDecimal.fromString(it.toPlainString()) }
+
+        // Java Warmup
+        repeat(100) { listA[it % 100].subtract(listB[it % 100]) }
+        
+        val javaTime = measureTimeMillis {
+            repeat(iterations) { 
+                val i = it % 100
+                listA[i].subtract(listB[i])
+            }
+        }
+
+        // KBigDecimal Warmup
+        repeat(100) { kListA[it % 100].subtract(kListB[it % 100]) }
+
+        val kTime = measureTimeMillis {
+            repeat(iterations) {
+                val i = it % 100
+                kListA[i].subtract(kListB[i])
+            }
+        }
+
+        printTableRow("Decimal Sub ${digits}d", iterations, javaTime, kTime)
+    }
+    
+    private fun benchmarkDecimalMultiplication(digits: Int, iterations: Int) {
+        val listA = List(100) { BigDecimal(generateRandomDecimalString(digits)) }
+        val listB = List(100) { BigDecimal(generateRandomDecimalString(digits)) }
+        
+        val kListA = listA.map { KBigDecimal.fromString(it.toPlainString()) }
+        val kListB = listB.map { KBigDecimal.fromString(it.toPlainString()) }
+
+        // Java Warmup
+        repeat(100) { listA[it % 100].multiply(listB[it % 100]) }
+        
+        val javaTime = measureTimeMillis {
+            repeat(iterations) { 
+                val i = it % 100
+                listA[i].multiply(listB[i])
+            }
+        }
+
+        // KBigDecimal Warmup
+        repeat(100) { kListA[it % 100].multiply(kListB[it % 100]) }
+
+        val kTime = measureTimeMillis {
+            repeat(iterations) {
+                val i = it % 100
+                kListA[i].multiply(kListB[i])
+            }
+        }
+
+        printTableRow("Decimal Mul ${digits}d", iterations, javaTime, kTime)
+    }
+    
+    private fun benchmarkDecimalDivision(digits: Int, iterations: Int, scale: Int) {
+        val listA = List(100) { BigDecimal(generateRandomDecimalString(digits)) }
+        // Use smaller divisors to avoid huge results
+        val listB = List(100) { 
+            BigDecimal(generateRandomDecimalString(digits / 2)).let { 
+                if (it.compareTo(BigDecimal.ZERO) == 0) BigDecimal.ONE else it 
+            }
+        }
+        
+        val kListA = listA.map { KBigDecimal.fromString(it.toPlainString()) }
+        val kListB = listB.map { KBigDecimal.fromString(it.toPlainString()) }
+
+        // Java Warmup
+        repeat(100) { listA[it % 100].divide(listB[it % 100], scale, RoundingMode.HALF_UP) }
+        
+        val javaTime = measureTimeMillis {
+            repeat(iterations) { 
+                val i = it % 100
+                listA[i].divide(listB[i], scale, RoundingMode.HALF_UP)
+            }
+        }
+
+        // KBigDecimal Warmup
+        repeat(100) { kListA[it % 100].divide(kListB[it % 100], scale, KBRoundingMode.HalfUp) }
+
+        val kTime = measureTimeMillis {
+            repeat(iterations) {
+                val i = it % 100
+                kListA[i].divide(kListB[i], scale, KBRoundingMode.HalfUp)
+            }
+        }
+
+        printTableRow("Decimal Div ${digits}d", iterations, javaTime, kTime)
     }
 }

@@ -72,17 +72,69 @@ class KBigDecimal(
         }
     }
 
+    // Cache for powers of 10 (commonly used values)
+    private val powerOfTenCache = mutableMapOf<Int, KBigInteger>()
+    
     private fun powerOfTen(n: Int): KBigInteger {
-        // Simple implementation: repeated multiplication or lookup
-        // Use 10^9 radix repeatedly
         if (n == 0) return KBigInteger.ONE
         if (n < 0) throw IllegalArgumentException("Negative power")
-
-        // TODO: Optimize with a cache or faster pow
-        var res = KBigInteger.ONE
-        val ten = KBigInteger.TEN
-        repeat(n) { res = res.multiply(ten) }
-        return res
+        
+        // Check cache first
+        powerOfTenCache[n]?.let { return it }
+        
+        // Use binary exponentiation for O(log n) instead of O(n)
+        val result = fastPowerOfTen(n)
+        
+        // Cache commonly used values (up to 100)
+        if (n <= 100) {
+            powerOfTenCache[n] = result
+        }
+        return result
+    }
+    
+    /**
+     * Fast power of 10 using binary exponentiation.
+     * 10^n = 10^(n/2) * 10^(n/2) [* 10 if n is odd]
+     */
+    private fun fastPowerOfTen(n: Int): KBigInteger {
+        if (n == 0) return KBigInteger.ONE
+        if (n == 1) return KBigInteger.TEN
+        
+        // Use 10^9 as a "super-digit" for faster computation
+        val billion = KBigInteger.fromInt(1_000_000_000)  // 10^9
+        
+        if (n < 9) {
+            // Small powers: use lookup or simple multiply
+            var result = KBigInteger.ONE
+            repeat(n) { result = result.multiply(KBigInteger.TEN) }
+            return result
+        }
+        
+        // For larger powers, use 10^9 as base
+        val fullNines = n / 9
+        val remainder = n % 9
+        
+        // Binary exponentiation with 10^9 base
+        var base = billion
+        var exp = fullNines
+        var result = KBigInteger.ONE
+        
+        while (exp > 0) {
+            if (exp and 1 == 1) {
+                result = result.multiply(base)
+            }
+            base = base.multiply(base)
+            exp = exp shr 1
+        }
+        
+        // Handle remainder
+        if (remainder > 0) {
+            var tenPow = KBigInteger.ONE
+            repeat(remainder) { tenPow = tenPow.multiply(KBigInteger.TEN) }
+            result = result.multiply(tenPow)
+        }
+        
+        return result
     }
 
     fun divide(other: KBigDecimal): KBigDecimal {
@@ -128,14 +180,8 @@ class KBigDecimal(
             v = v.multiply(powerOfTen((-p).toInt()))
         }
 
-        // Do division with remaining
-        // We need remainder for rounding.
-        // Since we don't have `divideAndRemainder` exposed efficiently, use `divide` and `mod` or `divide` then check `mod`.
-        // Better: implement `divideAndRemainder`? I'll use `divide` and verify remainder manually for now (slower but works).
-        // Actually `KBigInteger` has `mod`.
-
-        val q = u.divide(v)
-        val r = u.mod(v)
+        // Use divideAndRemainder for efficiency (single division operation)
+        val (q, r) = u.divideAndRemainder(v)
 
         if (r.isZero()) {
              return KBigDecimal(q, scale)

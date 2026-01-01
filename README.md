@@ -16,36 +16,6 @@ A **Kotlin Multiplatform** library for arbitrary precision mathematics, providin
 - **Type-Safe API**: Strongly typed interfaces mimicking Java's `BigDecimal`/`BigInteger`.
 - **Natural Syntax**: Operator overloading (`+`, `-`, `*`, `/`) for intuitive mathematical expressions.
 
-## Performance
-`KBignum` offers competitive performance by utilizing efficient algorithms (e.g., bitwise arithmetic for `KBigInteger`). Below is a comparison against Java's native `BigInteger` (highly optimized C intrinsics) on JVM:
-
-### Basic Arithmetic (2048-bit numbers)
-| Operation | Iterations | Java BigInteger (ms) | KBignum (ms) | Relative Speed |
-| :--- | :---: | :---: | :---: | :---: |
-| **Add 2048-bit** | 50000 | 11 | 21 | 1.91x |
-| **Subtract 2048-bit** | 50000 | 15 | 29 | 1.93x |
-| **Multiply 2048-bit** | 10000 | 76 | 43 | **0.57x (Faster)** |
-| **Divide 2048-bit** | 5000 | 22 | 965 | 43.86x |
-| **Modulo 2048-bit** | 5000 | 19 | 883 | 46.47x |
-### Basic Arithmetic (4096-bit numbers)
-| Operation | Iterations | Java BigInteger (ms) | KBignum (ms) | Relative Speed |
-| :--- | :---: | :---: | :---: | :---: |
-| **Add 4096-bit** | 25000 | 3 | 3 | **1.00x (Equal)** |
-| **Subtract 4096-bit** | 25000 | 2 | 4 | 2.00x |
-| **Multiply 4096-bit** | 5000 | 53 | 74 | 1.40x |
-| **Divide 4096-bit** | 2000 | 29 | 1374 | 47.38x |
-| **Modulo 4096-bit** | 2000 | 26 | 1376 | 52.92x |
-
-### Factorial (Repeated Multiplication)
-| Operation | Iterations | Java BigInteger (ms) | KBignum (ms) | Relative Speed |
-| :--- | :---: | :---: | :---: | :---: |
-| **Factorial(100)** | 1000 | 7 | 10 | 1.43x |
-| **Factorial(500)** | 200 | 16 | 24 | 1.50x |
-| **Factorial(1000)** | 50 | 10 | 23 | 2.30x |
-
-*Note: Benchmarks run on macOS/JVM. Results may vary by device. KBignum prioritizes portability and correctness over raw C-level speed. Division/Modulo use bitwise algorithm which is slower but portable.*
-
-
 ## Installation
 
 ### Gradle (Kotlin DSL)
@@ -54,7 +24,7 @@ Add to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("io.github.gatrongdev:kbignum:0.0.17")
+    implementation("io.github.gatrongdev:kbignum:VERSION")
 }
 ```
 
@@ -64,9 +34,52 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'io.github.gatrongdev:kbignum:0.0.17'
+    implementation 'io.github.gatrongdev:kbignum:VERSION'
 }
 ```
+
+## Performance
+`KBignum` offers competitive performance by utilizing efficient algorithms (Knuth's Algorithm D for division, optimized magnitude arithmetic). Below is a comparison against Java's native implementations on JVM:
+
+### KBigInteger
+
+#### 2048-bit Numbers
+| Operation | Java (ms) | KBignum (ms) | Relative |
+| :--- | :---: | :---: | :---: |
+| **Add** | 13 | 8 | **0.62x ✓** |
+| **Subtract** | 16 | 20 | 1.25x |
+| **Multiply** | 32 | 36 | 1.13x |
+| **Divide** | 19 | 27 | 1.42x |
+| **Modulo** | 19 | 17 | **0.89x ✓** |
+
+#### 4096-bit Numbers
+| Operation | Java (ms) | KBignum (ms) | Relative |
+| :--- | :---: | :---: | :---: |
+| **Add** | 7 | 6 | **0.86x ✓** |
+| **Subtract** | 3 | 6 | 2.00x |
+| **Multiply** | 52 | 76 | 1.46x |
+| **Divide** | 29 | 21 | **0.72x ✓** |
+| **Modulo** | 29 | 21 | **0.72x ✓** |
+### KBigDecimal
+
+#### 20-digit Decimals
+| Operation | Java (ms) | KBigDecimal (ms) | Relative |
+| :--- | :---: | :---: | :---: |
+| **Add** | 5 | 5 | **1.00x ✓** |
+| **Sub** | 7 | 4 | **0.57x ✓** |
+| **Mul** | 1 | 1 | **1.00x ✓** |
+| **Div** | 4 | 6 | 1.50x |
+
+#### 50-digit Decimals
+| Operation | Java (ms) | KBigDecimal (ms) | Relative |
+| :--- | :---: | :---: | :---: |
+| **Add** | 1 | 2 | 2.00x |
+| **Sub** | 2 | 1 | **0.50x ✓** |
+| **Mul** | 1 | 0 | **0.00x ✓** |
+| **Div** | 0 | 1 | Infinityx |
+
+*Note: Benchmarks run on macOS/JVM. ✓ indicates KBignum is faster or equal to Java. KBignum prioritizes portability across KMP targets (Android, iOS, JS, Native).*
+
 
 ## Quick Start
 

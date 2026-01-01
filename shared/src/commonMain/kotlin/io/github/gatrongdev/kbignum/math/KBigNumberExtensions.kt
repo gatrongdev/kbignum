@@ -133,10 +133,6 @@ operator fun KBigInteger.unaryMinus(): KBigInteger = this.negate()
  */
 operator fun KBigInteger.unaryPlus(): KBigInteger = this
 
-// Bitwise Infix Operations are now in KBigInteger class.
-// shl, shr, and, or, xor, inv
-
-
 // Math functions for KBigDecimal
 
 /**

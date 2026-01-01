@@ -177,15 +177,22 @@ tasks.register("runAllChecks") {
  * 2. Parse results from HTML report
  * 3. Update README.md Performance section
  */
+// Define paths outside task for configuration cache compatibility
+val benchmarkReportPath = layout.buildDirectory.file("reports/tests/testDebugUnitTest/classes/io.github.gatrongdev.kbignum.benchmark.PerformanceComparisonTest.html")
+val readmePath = rootProject.layout.projectDirectory.file("README.md")
+
 tasks.register("updateBenchmark") {
     group = "documentation"
     description = "Run benchmarks and update README.md with latest performance results"
     
     dependsOn("testDebugUnitTest")
     
+    val reportFileProvider = benchmarkReportPath
+    val readmeFileProvider = readmePath
+    
     doLast {
-        val reportFile = file("build/reports/tests/testDebugUnitTest/classes/io.github.gatrongdev.kbignum.benchmark.PerformanceComparisonTest.html")
-        val readmeFile = rootProject.file("README.md")
+        val reportFile = reportFileProvider.get().asFile
+        val readmeFile = readmeFileProvider.asFile
         
         if (!reportFile.exists()) {
             logger.error("Benchmark report not found. Please run: ./gradlew shared:testDebugUnitTest --tests \"io.github.gatrongdev.kbignum.benchmark.PerformanceComparisonTest\"")
@@ -208,52 +215,81 @@ tasks.register("updateBenchmark") {
         // Build new Performance section
         val newPerformanceSection = buildString {
             appendLine("## Performance")
-            appendLine("`KBignum` offers competitive performance by utilizing efficient algorithms (e.g., bitwise arithmetic for `KBigInteger`). Below is a comparison against Java's native `BigInteger` (highly optimized C intrinsics) on JVM:")
+            appendLine("`KBignum` offers competitive performance by utilizing efficient algorithms (Knuth's Algorithm D for division, optimized magnitude arithmetic). Below is a comparison against Java's native implementations on JVM:")
             appendLine()
             
-            var currentSection = ""
+            var inBigInteger = false
+            var inBigDecimal = false
+            
             for (line in lines) {
                 when {
-                    line.contains("**Basic Arithmetic") -> {
-                        // Extract text between ** markers: "**Basic Arithmetic (2048-bit numbers)**"
-                        val sectionTitle = line.replace("**", "").trim()
-                        appendLine("### $sectionTitle")
-                        appendLine("| Operation | Iterations | Java BigInteger (ms) | KBignum (ms) | Relative Speed |")
-                        appendLine("| :--- | :---: | :---: | :---: | :---: |")
+                    line.contains("## KBigInteger") -> {
+                        inBigInteger = true
+                        inBigDecimal = false
+                        appendLine("### KBigInteger")
+                        appendLine()
+                    }
+                    line.contains("## KBigDecimal") -> {
+                        inBigInteger = false
+                        inBigDecimal = true
+                        appendLine("### KBigDecimal")
+                        appendLine()
+                    }
+                    line.contains("**Basic Arithmetic") && line.contains("2048") -> {
+                        appendLine("#### 2048-bit Numbers")
+                        appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                        appendLine("| :--- | :---: | :---: | :---: |")
+                    }
+                    line.contains("**Basic Arithmetic") && line.contains("4096") -> {
+                        appendLine()
+                        appendLine("#### 4096-bit Numbers")
+                        appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                        appendLine("| :--- | :---: | :---: | :---: |")
+                    }
+                    line.contains("**Decimal Arithmetic") && line.contains("20") -> {
+                        appendLine("#### 20-digit Decimals")
+                        appendLine("| Operation | Java (ms) | KBigDecimal (ms) | Relative |")
+                        appendLine("| :--- | :---: | :---: | :---: |")
+                    }
+                    line.contains("**Decimal Arithmetic") && line.contains("50") -> {
+                        appendLine()
+                        appendLine("#### 50-digit Decimals")
+                        appendLine("| Operation | Java (ms) | KBigDecimal (ms) | Relative |")
+                        appendLine("| :--- | :---: | :---: | :---: |")
                     }
                     line.contains("**Factorial") -> {
-                        appendLine()
-                        appendLine("### Factorial (Repeated Multiplication)")
-                        appendLine("| Operation | Iterations | Java BigInteger (ms) | KBignum (ms) | Relative Speed |")
-                        appendLine("| :--- | :---: | :---: | :---: | :---: |")
+                        // Skip factorial for cleaner output
                     }
                     line.startsWith("| mean") -> {
                         // Parse and format the row
                         val parts = line.split("|").map { it.trim() }.filter { it.isNotEmpty() }
                         if (parts.size >= 5) {
-                            val operation = parts[0].removePrefix("mean ").trim()
-                            val iterations = parts[1]
+                            var operation = parts[0].removePrefix("mean ").trim()
+                            // Clean up operation name
+                            operation = operation.replace(Regex("\\s+\\d+-bit"), "")
+                                .replace(Regex("Decimal\\s+"), "")
+                                .replace(Regex("\\s+\\d+d"), "")
                             val javaMs = parts[2]
                             val kMs = parts[3]
                             val relative = parts[4]
                             
-                            // Highlight faster operations
-                            val formattedRelative = if (relative.startsWith("0.") || relative == "1.00x") {
-                                "**$relative${if (relative.startsWith("0.")) " (Faster)" else " (Equal)"}**"
-                            } else {
-                                relative
+                            // Skip factorial rows
+                            if (operation.contains("Factorial")) continue
+                            
+                            // Highlight faster/equal operations
+                            val formattedRelative = when {
+                                relative.startsWith("0.") -> "**$relative ✓**"
+                                relative == "1.00x" -> "**1.00x ✓**"
+                                else -> relative
                             }
                             
-                            appendLine("| **$operation** | $iterations | $javaMs | $kMs | $formattedRelative |")
+                            appendLine("| **$operation** | $javaMs | $kMs | $formattedRelative |")
                         }
-                    }
-                    line.startsWith("###") || line.startsWith("| Operation") || line.startsWith("| :---") -> {
-                        // Skip header lines, we add our own
                     }
                 }
             }
             appendLine()
-            appendLine("*Note: Benchmarks run on macOS/JVM. Results may vary by device. KBignum prioritizes portability and correctness over raw C-level speed. Division/Modulo use bitwise algorithm which is slower but portable.*")
+            appendLine("*Note: Benchmarks run on macOS/JVM. ✓ indicates KBignum is faster or equal to Java. KBignum prioritizes portability across KMP targets (Android, iOS, JS, Native).*")
         }
         
         // Update README.md
