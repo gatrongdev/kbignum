@@ -249,7 +249,29 @@ class KBigDecimal(
     fun negate(): KBigDecimal = KBigDecimal(unscaledValue.negate(), scale)
 
     override fun toString(): String {
-        return "KBigDecimal(unscaled=$unscaledValue, scale=$scale)"
+        val unscaledStr = unscaledValue.toString()
+        if (scale == 0) return unscaledStr
+        
+        val negative = unscaledValue.signum() < 0
+        val absStr = if (negative) unscaledStr.removePrefix("-") else unscaledStr
+        
+        val len = absStr.length
+        val sb = StringBuilder()
+        
+        if (negative) sb.append('-')
+        
+        if (scale >= len) {
+            sb.append("0.")
+            repeat(scale - len) { sb.append('0') }
+            sb.append(absStr)
+        } else {
+            val dotIndex = len - scale
+            sb.append(absStr.substring(0, dotIndex))
+            sb.append('.')
+            sb.append(absStr.substring(dotIndex))
+        }
+        
+        return sb.toString()
     }
 
     override fun compareTo(other: KBigDecimal): Int {
