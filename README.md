@@ -11,6 +11,8 @@ A **Kotlin Multiplatform** library for arbitrary precision mathematics, providin
 ## Features
 
 - **Arbitrary Precision Arithmetic**: Handle numbers with unlimited precision using `KBigDecimal` and `KBigInteger`.
+- **Mathematical Mathematical**: `gcd`, `lcm`, `factorial`, `sqrt`, `pow`.
+- **Bitwise Operations**: `and`, `or`, `xor`, `not`, `andNot` (with full 2's complement behavior).
 - **Pure Kotlin Implementation**: No JNI or native dependencies required, ensuring maximum compatibility.
 - **Multiplatform Support**: Single codebase works seamlessly on **Android**, **iOS**, **JVM**, **JS**, and **Native**.
 - **Type-Safe API**: Strongly typed interfaces mimicking Java's `BigDecimal`/`BigInteger`.

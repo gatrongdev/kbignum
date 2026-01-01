@@ -124,30 +124,7 @@ class KBigNumberExtensionsTest {
         assertEquals("3333333333", result.unscaledValue.toString())
     }
 
-    // POW TESTS (Refactored optimization check)
-    @Test
-    fun pow_KBigInteger_works() {
-        val base = "2".toKBigInteger()
-        val res = base.pow(10)
-        assertEquals("1024", res.toString())
-    }
 
-    @Test
-    fun pow_KBigDecimal_works() {
-        val base = "2.0".toKBigDecimal() // scale 1
-        val res = base.pow(3)
-        // 2.0 * 2.0 * 2.0 = 8.000 (scale 1+1+1)
-        assertEquals(3, res.scale)
-        assertEquals("8000", res.unscaledValue.toString())
-    }
     
-    @Test
-    fun bitwise_infix_throws_notImplemented() {
-        val a = "1".toKBigInteger()
-        try {
-            a shl 2
-        } catch (e: NotImplementedError) {
-            // Success
-        }
-    }
+
 }

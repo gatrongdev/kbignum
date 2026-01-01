@@ -133,6 +133,24 @@ operator fun KBigInteger.unaryMinus(): KBigInteger = this.negate()
  */
 operator fun KBigInteger.unaryPlus(): KBigInteger = this
 
+// Bitwise infix functions for KBigInteger
+
+/**
+ * Infix function for bitwise AND.
+ */
+infix fun KBigInteger.and(other: KBigInteger): KBigInteger = this.and(other)
+
+/**
+ * Infix function for bitwise OR.
+ */
+infix fun KBigInteger.or(other: KBigInteger): KBigInteger = this.or(other)
+
+/**
+ * Infix function for bitwise XOR.
+ */
+infix fun KBigInteger.xor(other: KBigInteger): KBigInteger = this.xor(other)
+
+
 // Math functions for KBigDecimal
 
 

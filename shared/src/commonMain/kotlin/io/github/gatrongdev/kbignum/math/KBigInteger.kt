@@ -555,6 +555,10 @@ class KBigInteger(
      * Calculates this KBigInteger raised to the power of the specified integer exponent.
      * Uses binary exponentiation for efficiency.
      */
+    /**
+     * Calculates this KBigInteger raised to the power of the specified integer exponent.
+     * Uses binary exponentiation for efficiency.
+     */
     fun pow(exponent: Int): KBigInteger {
         if (exponent < 0) throw ArithmeticException("Negative exponent not supported")
         if (exponent == 0) return ONE
@@ -570,6 +574,162 @@ class KBigInteger(
         }
         return result
     }
+
+    /**
+     * Returns the bitwise NOT of this value.
+     * ~x = -x - 1
+     */
+    fun not(): KBigInteger {
+        return this.negate().subtract(ONE)
+    }
+
+    /**
+     * Returns the bitwise AND of this value and [other].
+     * (this & other)
+     */
+    fun and(other: KBigInteger): KBigInteger = bitwiseOp(other) { a, b -> a and b }
+
+    /**
+     * Returns the bitwise OR of this value and [other].
+     * (this | other)
+     */
+    fun or(other: KBigInteger): KBigInteger = bitwiseOp(other) { a, b -> a or b }
+
+    /**
+     * Returns the bitwise XOR of this value and [other].
+     * (this ^ other)
+     */
+    fun xor(other: KBigInteger): KBigInteger = bitwiseOp(other) { a, b -> a xor b }
+
+    /**
+     * Returns the bitwise AND NOT of this value and [other].
+     * (this & ~other)
+     */
+    fun andNot(other: KBigInteger): KBigInteger = this.and(other.not())
+
+    /**
+     * Helper for bitwise operations simulating Two's Complement.
+     */
+    private inline fun bitwiseOp(other: KBigInteger, op: (Int, Int) -> Int): KBigInteger {
+        if (signum == 0 && other.signum == 0) return ZERO // 0 op 0
+
+        // Determine result sign ("infinite" sign bit)
+        // Pos (0) / Neg (1)
+        val signA = if (signum < 0) -1 else 0
+        val signB = if (other.signum < 0) -1 else 0
+        
+        // Result sign bit: op(-1, -1) -> ?
+        // We use -1 to represent infinite 1s, 0 to represent infinite 0s
+        val resultSignBit = op(signA, signB) 
+        // if resultSignBit is 0, result is positive. If -1 (all 1s), result is negative.
+        val resultNegative = (resultSignBit != 0)
+
+        // Length needed: max magnitude + 1 (for sign bit safety, though loop usually handles it)
+        val len = kotlin.math.max(this.magnitude.size, other.magnitude.size) + 1
+        val resultMag = IntArray(len)
+        
+        // State for handling finding "first non-zero" for 2's complement conversion
+        // For -M, 2's comp is (~M + 1).
+        // This is equivalent to: from LSB, 0s stay 0, first non-zero k becomes -k (aka ~k + 1), subsequent w become ~w.
+        
+        // We pre-calculate "first non-zero index" for negative numbers to optimize the loop
+        val diffA = if (signum < 0) getFirstNonZeroIndex(magnitude) else -1
+        val diffB = if (other.signum < 0) getFirstNonZeroIndex(other.magnitude) else -1
+        
+        for (i in 0 until len) {
+            val a = getVirtualTwosCompWord(this.magnitude, signum, i, diffA)
+            val b = getVirtualTwosCompWord(other.magnitude, other.signum, i, diffB)
+            
+            resultMag[i] = op(a, b)
+        }
+        
+        // If result is negative, we have R (Two's Comp) and need M (Magnitude).
+        // Val = -M. TwoComp(Val) = R.
+        // R = inv(M) + 1  => M = inv(R - 1).
+        // Algorithm for inv(R - 1):
+        // R - 1 is: from LSB, 0s become 1s (borrow), first non-zero k becomes k-1. Subsequent unchanged.
+        // Then invert. 
+        // Equivalent to: From LSB, if R[i] is 0, M[i] = inv(1s) = 0? No.
+        // Let's use the same "first non-zero" logic in reverse?
+        // Actually, if we treat R as the 2's comp representation, we want to find -Val.
+        // -Val in 2's comp is mathematically -R (arithmetic negation of word array).
+        // And -R corresponds to magnitude M directly? No.
+        // If Val is negative, Val = -|Val|. R represents -|Val|.
+        // We want |Val|.
+        // |Val| = -(-|Val|) = - (Value of R).
+        // So we just need to perform arithmetic negation of the array R to get M.
+        // Negation of R: ~R + 1.
+        
+        if (resultNegative) {
+            // Apply 2's complement negation: ~R + 1
+            // Logic: Flip bits, then add 1.
+            // Or use the "Twos Complement word" logic again:
+            // First non-zero word w -> -w. Subsequent -> ~w. Leading 0s -> 0.
+            
+            // Note: R might have infinite leading 1s (since resultNegative=true).
+            // We only computed 'len' words. The 'virtual' higher words are all -1 (0xFFFFFFFF).
+            // Arithmetic negation of ...1111 is ...0000 + 1. 
+            // So if we just negate the computed words properly, high words become 0, which is correct for Magnitude.
+            
+            var carry = 1
+            for (i in 0 until len) {
+                val r = resultMag[i]
+                // ~r + carry
+                val inv = r.inv()
+                val sum = (inv.toLong() and 0xFFFFFFFFL) + carry
+                resultMag[i] = sum.toInt()
+                carry = (sum ushr 32).toInt()
+            }
+            // Carry usually 0 after processing, unless we expand? 
+            // If result is power of 2, magnitude might grow?
+            // "len" was max+1. If we have carry out, we might need extensions.
+            // However, result of bitwise ops usually bounded.
+            // AND: bounded by smaller mag.
+            // OR: bounded by larger mag.
+            // XOR: bounded by larger mag.
+            // If Negative, magnitude can be larger.
+        }
+        
+        val finalMag = stripZeros(resultMag)
+        return if (finalMag.isEmpty()) ZERO
+               else KBigInteger(if (resultNegative) -1 else 1, finalMag)
+    }
+
+
+    private fun getFirstNonZeroIndex(mag: IntArray): Int {
+        for (i in mag.indices) {
+            if (mag[i] != 0) return i
+        }
+        return -1
+    }
+
+    private fun getVirtualTwosCompWord(mag: IntArray, sign: Int, index: Int, firstNonZeroIndex: Int): Int {
+        if (index >= mag.size) {
+            // Virtual sign extension
+            return if (sign < 0) -1 else 0
+        }
+        val w = mag[index]
+        if (sign >= 0) return w
+        
+        // Negative logic: inv(M) + 1
+        // Using precomputed firstNonZeroIndex
+        // If index < firstNonZeroIndex => word is 0.
+        // If index == firstNonZeroIndex => word is -w (which is ~w + 1).
+        // If index > firstNonZeroIndex => word is ~w.
+        
+        // Wait, if w is 0 (below firstNonZero), it stays 0.
+        // Check: M = ... 1 0 0. inv = ... 0 1 1. +1 = ... 1 0 0. 
+        // Correct.
+        
+        return if (index < firstNonZeroIndex) {
+            0
+        } else if (index == firstNonZeroIndex) {
+            -w
+        } else {
+            w.inv()
+        }
+    }
+
 
     
     /**
