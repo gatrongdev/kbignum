@@ -49,7 +49,7 @@ class KBigMathTest {
     @Test
     fun sqrt_onZero_returnsZero() {
         // Arrange
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         // Act
         val actual = KBigMath.sqrt(zero)
@@ -85,8 +85,8 @@ class KBigMathTest {
     @Test
     fun factorial_ofZero_returnsOne() {
         // Arrange
-        val zero = KBigIntegerFactory.ZERO
-        val expected = KBigIntegerFactory.ONE
+        val zero = KBigInteger.ZERO
+        val expected = KBigInteger.ONE
 
         // Act
         val actual = KBigMath.factorial(zero)
@@ -152,7 +152,7 @@ class KBigMathTest {
         // Arrange
         val a = "7".toKBigInteger()
         val b = "13".toKBigInteger()
-        val expected = KBigIntegerFactory.ONE
+        val expected = KBigInteger.ONE
 
         // Act
         val actual = KBigMath.gcd(a, b)
@@ -165,7 +165,7 @@ class KBigMathTest {
     fun gcd_withZero_returnsTheOtherNumber() {
         // Arrange
         val number = "12".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act & Assert
         assertEquals(number, KBigMath.gcd(number, zero))
@@ -205,7 +205,7 @@ class KBigMathTest {
     fun lcm_withZero_returnsZero() {
         // Arrange
         val number = "12".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act & Assert
         assertTrue(KBigMath.lcm(number, zero).isZero())
@@ -255,8 +255,8 @@ class KBigMathTest {
     @Test
     fun isPrime_onZeroAndOne_returnsFalse() {
         // Arrange
-        val zero = KBigIntegerFactory.ZERO
-        val one = KBigIntegerFactory.ONE
+        val zero = KBigInteger.ZERO
+        val one = KBigInteger.ONE
 
         // Act & Assert
         assertFalse(KBigMath.isPrime(zero))
@@ -306,8 +306,8 @@ class KBigMathTest {
     fun pow_withZeroExponent_returnsOne() {
         // Arrange
         val base = "123".toKBigInteger()
-        val zeroExponent = KBigIntegerFactory.ZERO
-        val expected = KBigIntegerFactory.ONE
+        val zeroExponent = KBigInteger.ZERO
+        val expected = KBigInteger.ONE
 
         // Act
         val actual = KBigMath.pow(base, zeroExponent)
@@ -320,7 +320,7 @@ class KBigMathTest {
     fun pow_withOneExponent_returnsBase() {
         // Arrange
         val base = "123".toKBigInteger()
-        val oneExponent = KBigIntegerFactory.ONE
+        val oneExponent = KBigInteger.ONE
 
         // Act
         val actual = KBigMath.pow(base, oneExponent)
@@ -332,7 +332,7 @@ class KBigMathTest {
     @Test
     fun pow_withZeroBase_returnsZero() {
         // Arrange
-        val zeroBase = KBigIntegerFactory.ZERO
+        val zeroBase = KBigInteger.ZERO
         val exponent = "5".toKBigInteger()
 
         // Act
@@ -345,9 +345,9 @@ class KBigMathTest {
     @Test
     fun pow_withZeroBaseAndZeroExponent_returnsOne() {
         // Arrange
-        val zeroBase = KBigIntegerFactory.ZERO
-        val zeroExponent = KBigIntegerFactory.ZERO
-        val expected = KBigIntegerFactory.ONE
+        val zeroBase = KBigInteger.ZERO
+        val zeroExponent = KBigInteger.ZERO
+        val expected = KBigInteger.ONE
 
         // Act
         val actual = KBigMath.pow(zeroBase, zeroExponent)

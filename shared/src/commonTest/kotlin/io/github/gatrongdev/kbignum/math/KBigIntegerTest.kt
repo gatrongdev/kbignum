@@ -54,7 +54,7 @@ class KBigIntegerTest {
     fun add_withZero_returnsCorrectResult() {
         // Arrange
         val number = "123456789".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act & Assert
         assertEquals(number, number.add(zero))
@@ -122,7 +122,7 @@ class KBigIntegerTest {
     fun subtract_withZero_returnsCorrectResult() {
         // Arrange
         val number = "123456789".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act & Assert
         assertEquals(number, number.subtract(zero))
@@ -190,7 +190,7 @@ class KBigIntegerTest {
     fun multiply_withZero_returnsCorrectResult() {
         // Arrange
         val number = "123456789".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act & Assert
         assertTrue(number.multiply(zero).isZero())
@@ -229,7 +229,7 @@ class KBigIntegerTest {
     fun divide_numberByItself_returnsOne() {
         // Arrange
         val number = "123456789".toKBigInteger()
-        val expected = KBigIntegerFactory.ONE
+        val expected = KBigInteger.ONE
 
         // Act
         val actual = number.divide(number)
@@ -242,7 +242,7 @@ class KBigIntegerTest {
     fun divide_numberByOne_returnsItself() {
         // Arrange
         val number = "123456789".toKBigInteger()
-        val one = KBigIntegerFactory.ONE
+        val one = KBigInteger.ONE
 
         // Act
         val actual = number.divide(one)
@@ -254,7 +254,7 @@ class KBigIntegerTest {
     @Test
     fun divide_zeroByNumber_returnsZero() {
         // Arrange
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
         val number = "123456789".toKBigInteger()
 
         // Act
@@ -268,7 +268,7 @@ class KBigIntegerTest {
     fun divide_byZero_throwsArithmeticException() {
         // Arrange
         val number = "123456789".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act & Assert
         assertFailsWith<ArithmeticException> {
@@ -322,7 +322,7 @@ class KBigIntegerTest {
     fun mod_byZero_throwsArithmeticException() {
         // Arrange
         val number = "123456789".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act & Assert
         assertFailsWith<ArithmeticException> {
@@ -359,7 +359,7 @@ class KBigIntegerTest {
     @Test
     fun abs_onZero_returnsZero() {
         // Arrange
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act
         val actual = zero.abs()
@@ -398,7 +398,7 @@ class KBigIntegerTest {
     @Test
     fun negate_onZero_returnsZero() {
         // Arrange
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act
         val actual = zero.negate()
@@ -504,7 +504,7 @@ class KBigIntegerTest {
     @Test
     fun signum_onZero_returnsZero() {
         // Arrange
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act
         val actual = zero.signum()
@@ -516,7 +516,7 @@ class KBigIntegerTest {
     @Test
     fun isZero_onZero_returnsTrue() {
         // Arrange
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         // Act
         val actual = zero.isZero()
@@ -538,19 +538,6 @@ class KBigIntegerTest {
     }
 
     // CONVERSION TESTS
-    @Test
-    fun toPreciseNumber_returnsEquivalentKBigDecimal() {
-        // Arrange
-        val integer = "123456789".toKBigInteger()
-
-        // Act
-        val actual = integer.toPreciseNumber()
-
-        // Assert
-        assertEquals("123456789", actual.toString())
-        assertTrue(actual is KBigDecimal)
-    }
-
     @Test
     fun toLong_onValueWithinLongRange_returnsCorrectLong() {
         // Arrange

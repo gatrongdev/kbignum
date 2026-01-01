@@ -1,23 +1,50 @@
 # KBigNum
 
-[![Kotlin](https://img.shields.io/badge/kotlin-multiplatform-blue.svg)](https://kotlinlang.org/docs/multiplatform.html)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.gatrongdev/kbignum.svg)](https://central.sonatype.com/artifact/io.github.gatrongdev/kbignum)
-[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/gatrongdev/kbignum/ci.yml?branch=main)](https://github.com/gatrongdev/kbignum/actions)
-[![Test Coverage](https://img.shields.io/badge/coverage-brightgreen.svg)](https://github.com/gatrongdev/kbignum)
-[![API Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://gatrongdev.github.io/kbignum/)
+[![Kotlin](https://img.shields.io/badge/kotlin-multiplatform-blue.svg?logo=kotlin)](https://kotlinlang.org/docs/multiplatform.html)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.gatrongdev/kbignum.svg?label=Maven%20Central&logo=apache-maven)](https://central.sonatype.com/artifact/io.github.gatrongdev/kbignum)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg?logo=apache)](LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/gatrongdev/kbignum/ci.yml?branch=main&logo=github&label=Build)](https://github.com/gatrongdev/kbignum/actions)
+[![Test Coverage](https://img.shields.io/codecov/c/github/gatrongdev/kbignum/main?logo=codecov&label=Coverage)](https://codecov.io/gh/gatrongdev/kbignum)
 
-
-A Kotlin Multiplatform library for arbitrary precision mathematics, providing unified APIs for high-precision arithmetic operations across Android and iOS platforms.
+A **Kotlin Multiplatform** library for arbitrary precision mathematics, providing unified APIs for high-precision arithmetic operations across Android, iOS, and Web platforms.
 
 ## Features
 
-- **Arbitrary Precision Arithmetic**: Handle numbers with unlimited precision using `KBigDecimal` and `KBigInteger`
-- **Multiplatform Support**: Single codebase works seamlessly on Android and iOS
-- **Type-Safe API**: Strongly typed interfaces with compile-time safety
-- **Natural Syntax**: Operator overloading for intuitive mathematical expressions
-- **Platform Optimized**: Uses native implementations (Java BigDecimal/BigInteger on Android, Foundation on iOS)
-- **Comprehensive Math Operations**: Basic arithmetic, advanced functions, and utility operations
+- **Arbitrary Precision Arithmetic**: Handle numbers with unlimited precision using `KBigDecimal` and `KBigInteger`.
+- **Pure Kotlin Implementation**: No JNI or native dependencies required, ensuring maximum compatibility.
+- **Multiplatform Support**: Single codebase works seamlessly on **Android**, **iOS**, **JVM**, **JS**, and **Native**.
+- **Type-Safe API**: Strongly typed interfaces mimicking Java's `BigDecimal`/`BigInteger`.
+- **Natural Syntax**: Operator overloading (`+`, `-`, `*`, `/`) for intuitive mathematical expressions.
+
+## Performance
+`KBignum` offers competitive performance by utilizing efficient algorithms (e.g., bitwise arithmetic for `KBigInteger`). Below is a comparison against Java's native `BigInteger` (highly optimized C intrinsics) on JVM:
+
+### Basic Arithmetic (2048-bit numbers)
+| Operation | Iterations | Java BigInteger (ms) | KBignum (ms) | Relative Speed |
+| :--- | :---: | :---: | :---: | :---: |
+| **Add 2048-bit** | 50000 | 11 | 21 | 1.91x |
+| **Subtract 2048-bit** | 50000 | 15 | 29 | 1.93x |
+| **Multiply 2048-bit** | 10000 | 76 | 43 | **0.57x (Faster)** |
+| **Divide 2048-bit** | 5000 | 22 | 965 | 43.86x |
+| **Modulo 2048-bit** | 5000 | 19 | 883 | 46.47x |
+### Basic Arithmetic (4096-bit numbers)
+| Operation | Iterations | Java BigInteger (ms) | KBignum (ms) | Relative Speed |
+| :--- | :---: | :---: | :---: | :---: |
+| **Add 4096-bit** | 25000 | 3 | 3 | **1.00x (Equal)** |
+| **Subtract 4096-bit** | 25000 | 2 | 4 | 2.00x |
+| **Multiply 4096-bit** | 5000 | 53 | 74 | 1.40x |
+| **Divide 4096-bit** | 2000 | 29 | 1374 | 47.38x |
+| **Modulo 4096-bit** | 2000 | 26 | 1376 | 52.92x |
+
+### Factorial (Repeated Multiplication)
+| Operation | Iterations | Java BigInteger (ms) | KBignum (ms) | Relative Speed |
+| :--- | :---: | :---: | :---: | :---: |
+| **Factorial(100)** | 1000 | 7 | 10 | 1.43x |
+| **Factorial(500)** | 200 | 16 | 24 | 1.50x |
+| **Factorial(1000)** | 50 | 10 | 23 | 2.30x |
+
+*Note: Benchmarks run on macOS/JVM. Results may vary by device. KBignum prioritizes portability and correctness over raw C-level speed. Division/Modulo use bitwise algorithm which is slower but portable.*
+
 
 ## Installation
 
@@ -46,11 +73,11 @@ dependencies {
 ### Basic Usage
 
 ```kotlin
-import io.github.gatrongdev.kbignum.math.math.*
+import io.github.gatrongdev.kbignum.math.*
 
 // Creating big numbers
 val bigDecimal1 = "123.456789".toKBigDecimal()
-val bigDecimal2 = KBigDecimalFactory.create("987.654321")
+val bigDecimal2 = KBigDecimal.fromString("987.654321")
 val bigInteger = "12345678901234567890".toKBigInteger()
 
 // Basic arithmetic
@@ -58,15 +85,11 @@ val sum = bigDecimal1 + bigDecimal2
 val difference = bigDecimal1 - bigDecimal2
 val product = bigDecimal1 * bigDecimal2
 
-// Division with automatic scale
-val simpleQuotient = bigDecimal1.divide(bigDecimal2)
+// Division (Operator '/' defaults to scale 10, HALF_UP)
+val quotient = bigDecimal1 / bigDecimal2
 
-// Division with predefined strategies (v0.0.17+)
-val currencyResult = bigDecimal1.divide(bigDecimal2, DivisionStrategy.CURRENCY)
-val preciseResult = bigDecimal1.divide(bigDecimal2, DivisionStrategy.SCIENTIFIC)
-
-// Division with custom configuration
-val customResult = bigDecimal1.divide(bigDecimal2, DivisionConfig(scale = 10, rounding = KBRoundingMode.HalfUp))
+// Precise Division
+val preciseQuotient = bigDecimal1.divide(bigDecimal2, scale = 20, rounding = KBRoundingMode.HalfUp)
 
 // Advanced operations
 val sqrt = KBigMath.sqrt(bigDecimal1, 10)
@@ -95,23 +118,7 @@ val sign = bigDecimal1.signum()
 // Mathematical operations
 val gcd = KBigMath.gcd(bigInteger1, bigInteger2)
 val lcm = KBigMath.lcm(bigInteger1, bigInteger2)
-val power = KBigMath.pow(bigDecimal1, 5)
-
-// Precision control
-val scaled = bigDecimal1.setScale(5, KBRoundingMode.HalfUp)
-val precision = bigDecimal1.precision()
-
-// Division strategies (v0.0.17+)
-val price = "100.00".toKBigDecimal()
-val quantity = "3".toKBigDecimal()
-
-// Use predefined strategies
-val pricePerItem = price.divide(quantity, DivisionStrategy.CURRENCY)       // 33.33
-val exchangeRate = price.divide(quantity, DivisionStrategy.EXCHANGE_RATE)  // 33.3333
-val cryptoAmount = price.divide(quantity, DivisionStrategy.CRYPTOCURRENCY) // 33.33333333
-
-// Use precision scale constants
-val interestRate = price.divide(quantity, PrecisionScale.INTEREST_RATE, KBRoundingMode.HalfUp)
+val power = bigDecimal1.pow(5) // Extension function
 ```
 
 ## API Reference
@@ -125,28 +132,35 @@ Interface for arbitrary precision decimal numbers:
 - `multiply(other: KBigDecimal): KBigDecimal`
 - `divide(other: KBigDecimal): KBigDecimal`
 - `divide(other: KBigDecimal, scale: Int): KBigDecimal`
-- `divide(other: KBigDecimal, scale: Int, mode: Int): KBigDecimal`
-- `divide(other: KBigDecimal, config: DivisionConfig): KBigDecimal` *(v0.0.17+)*
+- `divide(other: KBigDecimal, scale: Int, rounding: KBRoundingMode): KBigDecimal`
 - `abs(): KBigDecimal`
 - `signum(): Int`
-- `setScale(scale: Int, rounding: KBRoundingMode): KBigDecimal`
-- `setScale(scale: Int, roundingMode: Int): KBigDecimal`
 
-### Division Helpers (v0.0.17+)
+### Rounding Modes (v0.0.18+)
 
-**PrecisionScale** - Constants for common decimal places:
-- `CURRENCY` (2), `EXCHANGE_RATE` (4), `PERCENTAGE` (2)
-- `SCIENTIFIC` (10), `HIGH_PRECISION` (20), `INTEREST_RATE` (6)
-- `CRYPTOCURRENCY` (8)
+- Prefer `KBRoundingMode` (Enum) for type-safety.
+- Supported modes: `Up`, `Down`, `Ceiling`, `Floor`, `HalfUp`, `HalfDown`, `HalfEven`.
 
-**DivisionStrategy** - Predefined strategies:
-- `CURRENCY`, `FINANCIAL`, `EXCHANGE_RATE`, `PERCENTAGE`
-- `SCIENTIFIC`, `HIGH_PRECISION`, `INTEREST_RATE`
-- `CRYPTOCURRENCY`, `EXACT`
+### KBigInteger
 
-**DivisionConfig** - Custom configuration:
-- `DivisionConfig(scale: Int, rounding: KBRoundingMode = KBRoundingMode.HalfUp)`
-- `DivisionConfig(scale: Int, roundingMode: Int = RoundingMode.HALF_UP)`
+Interface for arbitrary precision integers:
+
+- `add(other: KBigInteger): KBigInteger`
+- `subtract(other: KBigInteger): KBigInteger`
+- `multiply(other: KBigInteger): KBigInteger`
+- `divide(other: KBigInteger): KBigInteger`
+- `mod(other: KBigInteger): KBigInteger` (Remainder)
+- `pow(exponent: Int): KBigInteger` (Extension)
+
+### KBigMath
+
+Utility class for advanced mathematical operations:
+
+- `sqrt(value: KBigDecimal, scale: Int): KBigDecimal`
+- `factorial(n: KBigInteger): KBigInteger`
+- `gcd(a: KBigInteger, b: KBigInteger): KBigInteger`
+- `lcm(a: KBigInteger, b: KBigInteger): KBigInteger`
+- `isPrime(value: KBigInteger): Boolean`
 
 ### Rounding Modes (v0.0.18+)
 

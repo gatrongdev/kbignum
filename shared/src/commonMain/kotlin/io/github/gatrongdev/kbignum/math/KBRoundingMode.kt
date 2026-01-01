@@ -41,9 +41,3 @@ enum class KBRoundingMode(
                 ?: error("Unknown rounding mode code: $code")
     }
 }
-
-/** Converts a [KBRoundingMode] to its legacy integer constant counterpart. */
-fun KBRoundingMode.toLegacyCode(): Int = legacyCode
-
-/** Converts a legacy integer rounding constant into [KBRoundingMode]. */
-fun Int.toKBRoundingMode(): KBRoundingMode = KBRoundingMode.fromLegacyCode(this)

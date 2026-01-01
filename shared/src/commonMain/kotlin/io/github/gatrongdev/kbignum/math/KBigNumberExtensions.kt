@@ -133,21 +133,9 @@ operator fun KBigInteger.unaryMinus(): KBigInteger = this.negate()
  */
 operator fun KBigInteger.unaryPlus(): KBigInteger = this
 
-// Bitwise Infix Operations for KBigInteger
+// Bitwise Infix Operations are now in KBigInteger class.
+// shl, shr, and, or, xor, inv
 
-/**
- * Shifts this KBigInteger left by [n] bits.
- */
-infix fun KBigInteger.shl(n: Int): KBigInteger = throw NotImplementedError("Bitwise ops pending implementation in Core")
-
-/**
- * Shifts this KBigInteger right by [n] bits.
- */
-infix fun KBigInteger.shr(n: Int): KBigInteger = throw NotImplementedError("Bitwise ops pending implementation in Core")
-
-// Since 'and', 'or', 'xor' are likely not in KBigInteger yet, we temporarily comment/stub them or implement fallback.
-// Assuming KBigInteger doesn't have public bitwise methods yet based on previous file reads.
-// We will revisit adding 'and', 'or', 'xor' to KBigInteger kernel first if needed.
 
 // Math functions for KBigDecimal
 

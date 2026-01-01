@@ -120,18 +120,7 @@ class KBigIntegerComplianceTest {
     }
     
     // Helper to convert our KBigInteger to Java BigInteger for verification
-    private fun KBigInteger.toJavaBigInteger(): BigInteger {
-        if (signum == 0) return BigInteger.ZERO
-        
-        // Reconstruct from magnitude
-        var res = BigInteger.ZERO
-        for (i in magnitude.indices.reversed()) {
-            val unsignedVal = magnitude[i].toLong() and 0xFFFFFFFFL
-            res = res.shiftLeft(32).or(BigInteger.valueOf(unsignedVal))
-        }
-        
-        return if (signum < 0) res.negate() else res
-    }
+    // private fun KBigInteger.toJavaBigInteger() -> Moved to TestUtils.kt
 
     @Test
     fun testFactorial() {
@@ -259,9 +248,7 @@ class KBigIntegerComplianceTest {
     }
 
     private fun generateHugeRandomPair(bits: Int): Pair<BigInteger, BigInteger> {
-        val aBytes = Random.nextBytes(bits / 8)
-        val bBytes = Random.nextBytes(bits / 8)
-        return BigInteger(aBytes) to BigInteger(bBytes)
+        return generateHugeRandomBigInteger(bits) to generateHugeRandomBigInteger(bits)
     }
     
     // Helper needed for new tests if not already present
