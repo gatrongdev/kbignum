@@ -227,6 +227,26 @@ class KBigDecimal(
     fun divide(other: KBigDecimal, scale: Int): KBigDecimal = divide(other, scale, KBRoundingMode.HalfUp)
     fun divide(other: KBigDecimal, scale: Int, mode: Int): KBigDecimal = divide(other, scale, KBRoundingMode.fromLegacyCode(mode))
 
+    /**
+     * Calculates this KBigDecimal raised to the power of the specified integer exponent.
+     * Uses binary exponentiation.
+     */
+    fun pow(exponent: Int): KBigDecimal {
+        if (exponent < 0) throw ArithmeticException("Negative exponent not supported")
+        if (exponent == 0) return ONE
+        
+        var result = ONE
+        var base = this
+        var exp = exponent
+
+        while (exp > 0) {
+            if (exp % 2 == 1) result = result.multiply(base)
+            base = base.multiply(base)
+            exp /= 2
+        }
+        return result
+    }
+
 
     fun abs(): KBigDecimal {
         return if (unscaledValue.signum() < 0) KBigDecimal(unscaledValue.negate(), scale) else this

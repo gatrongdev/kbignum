@@ -540,7 +540,7 @@ class KBigInteger(
     }
 
     fun mod(other: KBigInteger): KBigInteger {
-        if (other.signum == 0) throw ArithmeticException("Division by zero")
+        if (other.signum() == 0) throw ArithmeticException("Division by zero")
         if (signum == 0) return ZERO
 
         val cmp = compareMagnitude(other)
@@ -550,6 +550,27 @@ class KBigInteger(
         val (_, remainderMag) = divideMagnitude(magnitude, other.magnitude)
         return if (remainderMag.isEmpty()) ZERO else KBigInteger(signum, remainderMag)
     }
+
+    /**
+     * Calculates this KBigInteger raised to the power of the specified integer exponent.
+     * Uses binary exponentiation for efficiency.
+     */
+    fun pow(exponent: Int): KBigInteger {
+        if (exponent < 0) throw ArithmeticException("Negative exponent not supported")
+        if (exponent == 0) return ONE
+        
+        var result = ONE
+        var base = this
+        var exp = exponent
+
+        while (exp > 0) {
+            if (exp % 2 == 1) result = result.multiply(base)
+            base = base.multiply(base)
+            exp /= 2
+        }
+        return result
+    }
+
     
     /**
      * Returns both quotient and remainder in a single operation.

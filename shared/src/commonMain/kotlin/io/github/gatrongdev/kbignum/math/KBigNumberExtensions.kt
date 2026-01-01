@@ -135,41 +135,7 @@ operator fun KBigInteger.unaryPlus(): KBigInteger = this
 
 // Math functions for KBigDecimal
 
-/**
- * Calculates this KBigDecimal raised to the power of the specified integer exponent.
- */
-fun KBigDecimal.pow(exponent: Int): KBigDecimal {
-    if (exponent < 0) throw ArithmeticException("Negative exponent not supported")
-    var result = KBigDecimal.ONE
-    var base = this
-    var exp = exponent
 
-    while (exp > 0) {
-        if (exp % 2 == 1) result = result.multiply(base)
-        base = base.multiply(base)
-        exp /= 2
-    }
-    return result
-}
-
-// Math functions for KBigInteger
-
-/**
- * Calculates this KBigInteger raised to the power of the specified integer exponent.
- */
-fun KBigInteger.pow(exponent: Int): KBigInteger {
-    if (exponent < 0) throw ArithmeticException("Negative exponent not supported")
-    var result = KBigInteger.ONE
-    var base = this
-    var exp = exponent
-
-    while (exp > 0) {
-        if (exp % 2 == 1) result = result.multiply(base)
-        base = base.multiply(base)
-        exp /= 2
-    }
-    return result
-}
 
 // Utility functions
 
