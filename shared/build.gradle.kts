@@ -257,8 +257,23 @@ tasks.register("updateBenchmark") {
                         appendLine("| Operation | Java (ms) | KBigDecimal (ms) | Relative |")
                         appendLine("| :--- | :---: | :---: | :---: |")
                     }
+                    line.contains("**Advanced Integer Math") -> {
+                         appendLine()
+                         appendLine("### KBigMath (Integer)")
+                         appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                         appendLine("| :--- | :---: | :---: | :---: |")
+                    }
+                    line.contains("**Advanced Calculus") -> {
+                         appendLine()
+                         appendLine("### KBigMath (Decimal)")
+                         appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                         appendLine("| :--- | :---: | :---: | :---: |")
+                    }
                     line.contains("**Factorial") -> {
-                        // Skip factorial for cleaner output
+                         appendLine()
+                         appendLine("### Factorial")
+                         appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                         appendLine("| :--- | :---: | :---: | :---: |")
                     }
                     line.startsWith("| mean") -> {
                         // Parse and format the row
@@ -274,7 +289,7 @@ tasks.register("updateBenchmark") {
                             val relative = parts[4]
                             
                             // Skip factorial rows
-                            if (operation.contains("Factorial")) continue
+                            // if (operation.contains("Factorial")) continue
                             
                             // Highlight faster/equal operations
                             val formattedRelative = when {

@@ -24,37 +24,77 @@ object KBigMath {
             return KBigDecimal.ZERO
         }
 
-        var x = value
-        var previous: KBigDecimal
+        // Optimization: Adaptive Newton-Raphson
+        
+        // Initial precision: enough to start converging
+        // Start closer to target scale to avoid rounding errors accumulation?
+        // Actually, adaptive is good, but we need to ensure we don't return early with low precision x.
+        // We accumulate precision.
+        
+        val targetScale = scale
+        val workScale = targetScale + 5 // Working precision
+        
+        var currentScale = 16 
+        if (currentScale > workScale) currentScale = workScale
+        
+        // Initial Guess: value / 3 is simple
+        // Using low precision for guess
+        var x = value.divide(KBigDecimal.fromInt(3), currentScale, KBRoundingMode.HalfUp)
+        if (x.isZero()) x = KBigDecimal.fromInt(1)
+        
         val two = KBigDecimal.fromInt(2)
+        var previous = KBigDecimal.ZERO
+        
+        // Convergence loop with increasing precision
+        while (true) {
+             // Loop for convergence at currentScale
+             do {
+                previous = x
+                // x = (x + value/x) / 2
+                // When increasing precision, previous result 'x' (low precision) is used as input.
+                val div = value.divide(x, currentScale + 2, KBRoundingMode.HalfUp)
+                x = x.add(div).divide(two, currentScale + 2, KBRoundingMode.HalfUp)
+             } while (x.subtract(previous).abs().compareTo(KBigDecimal(KBigInteger.ONE, currentScale)) > 0)
+             
+             if (currentScale >= workScale) break
+             
+             // Double precision for next step
+             currentScale *= 2
+             if (currentScale > workScale) currentScale = workScale
+        }
+        
+        // Final result at target specific scale
+        // The original logic didn't assume KBigDecimal had setScale. It just returned 'x'.
+        // But 'x' now has high precision (workScale+2).
+        // Returning 'x' maintains precision. 
+        // The failures were likely due to:
+        // 1. "sqrt_onPerfectSquare": returned "4" -> maybe "4.000...00" mismatch string check?
+        //    Expected "4", Actual "4.00000000" or similar?
+        //    Test `assertEquals(expected.toString(), actual.toString())` -> stringent.
+        // 2. "sqrt_onVerySmallDecimal": 0.0001 -> 0.01. Code returned "0" maybe due to cleanStr logic removing all 0s?
+        
+        val result = x
 
-        do {
-            previous = x
-            x = x.add(value.divide(x, scale + 2, KBRoundingMode.HalfUp)).divide(two, scale + 2, KBRoundingMode.HalfUp)
-        } while (x.subtract(previous).abs().compareTo(KBigDecimal(KBigInteger.ONE, scale + 1)) > 0)
-
-        // Note: setScale is NotImplemented yet according to KBigDecimal.kt content viewed earlier.
-        // But KBigMath assumed it existed.
-        // We will leave setScale call here because removing it changes logic too much,
-        // assuming maybe user wants to fix setScale separately or we fix it if tests fail.
-        // Wait, `KBigMath` uses `setScale`. If `KBigDecimal.setScale` throws, `KBigMath` is broken anyway.
-        // I will keep the call structure but fix the Factory refs.
-
-        val result = x // .setScale(scale, 4) -> 4 was HALF_UP.
-        // We comment out setScale if we know it throws, OR we assume we should fix setScale?
-        // Let's just fix the Factory parts first. Tests will reveal broken functionality.
-
-        // x.setScale below:
-        // val result = x.setScale(scale, 4)
-
-        // Remove trailing zeros for cleaner output
+        // Logic to emulate stripTrailingZeros properly
+        // If result is integer like (4.000), resultStr should be "4".
+        // KBigDecimal("4") toString is "4".
+        // KBigDecimal("4.00") toString is "4.00" (if scale kept).
+        
+        // The existing test expects "startsWith(1.4)" for 2. 
+        // Logic: if resultStr contains '.', trimEnd('0'), then trimEnd('.')
+        // "4.00" -> "4." -> "4". Correct.
+        // "1.414..." -> "1.414...". Correct.
+        // "0.0100" -> "0.01". Correct.
+        
         val resultStr = result.toString()
         val cleanStr =
             if (resultStr.contains('.')) {
-                resultStr.trimEnd('0').trimEnd('.')
+                val trimmed = resultStr.trimEnd('0')
+                if (trimmed.endsWith('.')) trimmed.dropLast(1) else trimmed
             } else {
                 resultStr
             }
+        
         return if (cleanStr.isEmpty() || cleanStr == "-") {
             KBigDecimal.ZERO
         } else {
@@ -97,16 +137,64 @@ object KBigMath {
         a: KBigInteger,
         b: KBigInteger,
     ): KBigInteger {
-        var x = a.abs()
-        var y = b.abs()
+        var u = a.abs()
+        var v = b.abs()
 
-        while (!y.isZero()) {
-            val temp = y
-            y = x.mod(y)
-            x = temp
+        if (u.isZero()) return v
+        if (v.isZero()) return u
+
+        // Stein's Algorithm (Binary GCD)
+        // 1. GCD(0, v) = v, GCD(u, 0) = u (handled above)
+        // 2. GCD(2u, 2v) = 2 * GCD(u, v)
+        // 3. GCD(2u, v) = GCD(u, v) if v is odd
+        // 4. GCD(u, v) = GCD(u, v - u) if u, v odd and u <= v
+
+        val uZeros = u.getLowestSetBit()
+        if (uZeros > 0) u = u shr uZeros
+
+        val vZeros = v.getLowestSetBit()
+        if (vZeros > 0) v = v shr vZeros
+
+        val commonZeros = minOf(uZeros, vZeros)
+
+        // Loop while u != v
+        // Invariant: u and v are both odd (after initial shifts and loop adjustments)
+        // Actually, optimization:
+        //  - make u odd
+        //  - make v odd
+        //  - if u > v: swap u, v
+        //  - v = v - u
+        //  - v = v / 2 (make odd again)
+        //  - repeat
+
+        while (u.signum() != 0 && v.signum() != 0 && u != v) {
+             // Invariant: u is odd here (from initial shift or previous loop)
+             
+             // Ensure v is odd. In first iteration v is already odd.
+             // Inside loop, v becomes (v-u)/2^k.
+             // But wait, KBigInteger is immutable. 'u' and 'v' are vars.
+             
+             // Optimized loop:
+             val cmp = u.compareTo(v)
+             if (cmp == 0) break
+             
+             if (cmp > 0) {
+                 // u > v
+                 // u = (u - v) / 2^k
+                 u = u.subtract(v)
+                 val z = u.getLowestSetBit()
+                 if (z > 0) u = u shr z
+             } else {
+                 // v > u
+                 // v = (v - u) / 2^k
+                 v = v.subtract(u)
+                 val z = v.getLowestSetBit()
+                 if (z > 0) v = v shr z
+             }
         }
-
-        return x
+        
+        // Result is u * 2^k
+        return if (commonZeros > 0) u shl commonZeros else u
     }
 
     /**
@@ -192,11 +280,11 @@ object KBigMath {
         var exp = exponent
 
         while (!exp.isZero()) {
-            if (exp.mod(KBigInteger.fromInt(2)).compareTo(KBigInteger.ONE) == 0) {
+            if (exp.testBit(0)) {
                 result = result.multiply(b)
             }
             b = b.multiply(b)
-            exp = exp.divide(KBigInteger.fromInt(2))
+            exp = exp shr 1
         }
 
         return result
