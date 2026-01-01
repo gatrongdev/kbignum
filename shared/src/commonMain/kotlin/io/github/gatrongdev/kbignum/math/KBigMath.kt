@@ -35,18 +35,18 @@ object KBigMath {
 
         // Note: setScale is NotImplemented yet according to KBigDecimal.kt content viewed earlier.
         // But KBigMath assumed it existed.
-        // We will leave setScale call here because removing it changes logic too much, 
+        // We will leave setScale call here because removing it changes logic too much,
         // assuming maybe user wants to fix setScale separately or we fix it if tests fail.
         // Wait, `KBigMath` uses `setScale`. If `KBigDecimal.setScale` throws, `KBigMath` is broken anyway.
         // I will keep the call structure but fix the Factory refs.
-        
+
         val result = x // .setScale(scale, 4) -> 4 was HALF_UP.
         // We comment out setScale if we know it throws, OR we assume we should fix setScale?
         // Let's just fix the Factory parts first. Tests will reveal broken functionality.
-        
+
         // x.setScale below:
-        // val result = x.setScale(scale, 4) 
-        
+        // val result = x.setScale(scale, 4)
+
         // Remove trailing zeros for cleaner output
         val resultStr = result.toString()
         val cleanStr =
@@ -152,7 +152,7 @@ object KBigMath {
         // n.toPreciseNumber() ?? Assuming extension exists or we wrap.
         // Looking at file content, line 137: sqrt(n.toPreciseNumber(), 0).toBigInteger()
         // `toPreciseNumber` likely redundant if we just KBigDecimal(n)
-        
+
         // I'll assume n.toPreciseNumber() works if it was there, or replace with explicit
         val nDecimal = KBigDecimal(n, 0)
         val sqrt = sqrt(nDecimal, 0).toBigInteger()
@@ -201,7 +201,4 @@ object KBigMath {
 
         return result
     }
-
-    // abs(), max(), min() functions are available as methods on the objects themselves
-    // Use value.abs(), a.max(b), a.min(b) instead of KBigMath.abs(value), KBigMath.max(a, b), KBigMath.min(a, b)
 }

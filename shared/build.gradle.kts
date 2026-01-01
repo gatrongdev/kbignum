@@ -246,14 +246,14 @@ tasks.register("updateBenchmark") {
                         appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
                         appendLine("| :--- | :---: | :---: | :---: |")
                     }
-                    line.contains("**Decimal Arithmetic") && line.contains("20") -> {
-                        appendLine("#### 20-digit Decimals")
+                    line.contains("**Decimal Arithmetic") && line.contains("600") -> {
+                        appendLine("#### 600-digit (~2000 bits)")
                         appendLine("| Operation | Java (ms) | KBigDecimal (ms) | Relative |")
                         appendLine("| :--- | :---: | :---: | :---: |")
                     }
-                    line.contains("**Decimal Arithmetic") && line.contains("50") -> {
+                    line.contains("**Decimal Arithmetic") && line.contains("1200") -> {
                         appendLine()
-                        appendLine("#### 50-digit Decimals")
+                        appendLine("#### 1200-digit (~4000 bits)")
                         appendLine("| Operation | Java (ms) | KBigDecimal (ms) | Relative |")
                         appendLine("| :--- | :---: | :---: | :---: |")
                     }

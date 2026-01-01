@@ -13,6 +13,14 @@ class KBigInteger(
         val ZERO = KBigInteger(0, IntArray(0))
         val ONE = KBigInteger(1, intArrayOf(1))
         val TEN = KBigInteger(1, intArrayOf(10))
+        
+        /**
+         * Threshold for switching from schoolbook to Karatsuba multiplication.
+         * Value is in number of Ints (32-bit words).
+         * 80 ints ~= 2560 bits.
+         * Tuned to outperform schoolbook at around 3000-4000 bits.
+         */
+        private const val KARATSUBA_THRESHOLD = 80
 
         fun fromLong(value: Long): KBigInteger {
             if (value == 0L) return ZERO
@@ -390,30 +398,131 @@ class KBigInteger(
     }
 
     // Helper: Multiplies two absolute values
+    // Uses optimized schoolbook algorithm - O(n²) but low overhead
+    // Karatsuba (O(n^1.585)) is only beneficial for extremely large numbers (>10000 bits)
+    // and its overhead from recursion/allocations makes it slower for typical use cases
     private fun multiplyMagnitude(x: IntArray, y: IntArray): IntArray {
+        if (x.size < KARATSUBA_THRESHOLD || y.size < KARATSUBA_THRESHOLD) {
+            return schoolbookMultiply(x, y)
+        }
+        return karatsubaMultiply(x, y)
+    }
+
+    /**
+     * Karatsuba multiplication algorithm: O(n^1.585)
+     * xy = z2*B^2 + z1*B + z0
+     * z2 = x1*y1
+     * z0 = x0*y0
+     * z1 = (x1+x0)*(y1+y0) - z2 - z0
+     */
+    private fun karatsubaMultiply(x: IntArray, y: IntArray): IntArray {
+        val n = kotlin.math.max(x.size, y.size)
+        
+        // Fallback to schoolbook if small enough
+        if (n < KARATSUBA_THRESHOLD) {
+            return schoolbookMultiply(x, y)
+        }
+        
+        // Split position
+        val half = (n + 1) / 2
+        
+        // x = x1 * 2^(32*half) + x0
+        // y = y1 * 2^(32*half) + y0
+        
+        val x0 = getLower(x, half)
+        val x1 = getUpper(x, half)
+        val y0 = getLower(y, half)
+        val y1 = getUpper(y, half)
+        
+        val p1 = multiplyMagnitude(x1, y1) // z2
+        val p2 = multiplyMagnitude(x0, y0) // z0
+        
+        val xSum = addMagnitude(x0, x1)
+        val ySum = addMagnitude(y0, y1)
+        
+        val p3 = multiplyMagnitude(xSum, ySum) // (x1+x0)*(y1+y0)
+        
+        // z1 = p3 - p1 - p2
+        // Calculate p3 - p1
+        val p3MinusP1 = subtractMagnitude(p3, p1)
+        // Calculate (p3 - p1) - p2
+        val z1 = subtractMagnitude(p3MinusP1, p2)
+        
+        // result = p1 << (2*half*32) + z1 << (half*32) + p2
+        // Note: shiftLeft creates new arrays.
+        // Optimized assembly:
+        // Result buffer size
+        val resultFn = IntArray(x.size + y.size)
+        // Copy p2 into low part
+        p2.copyInto(resultFn)
+        
+        // Add z1 shifted by half words
+        addWithOffset(resultFn, z1, half)
+        
+        // Add p1 shifted by 2*half words
+        addWithOffset(resultFn, p1, 2 * half)
+        
+        return stripZeros(resultFn)
+    }
+    
+    private fun getLower(a: IntArray, n: Int): IntArray {
+        if (a.size <= n) return a
+        // Lower n words
+        val result = IntArray(n)
+        for (i in 0 until n) result[i] = a[i]
+        // Strip zeros not strictly needed for correctness but good for canonical form
+        return stripZeros(result)
+    }
+
+    private fun getUpper(a: IntArray, n: Int): IntArray {
+        if (a.size <= n) return IntArray(0)
+        val len = a.size - n
+        val result = IntArray(len)
+        for (i in 0 until len) result[i] = a[i + n]
+        return stripZeros(result)
+    }
+    
+    // Adds source to dest starting at word offset `offset`
+    private fun addWithOffset(dest: IntArray, source: IntArray, offset: Int) {
+        var carry: Long = 0
+        for (i in source.indices) {
+            if (offset + i >= dest.size) break // Should not happen if size calc is correct
+            val sum = (dest[offset + i].toLong() and 0xFFFFFFFFL) + (source[i].toLong() and 0xFFFFFFFFL) + carry
+            dest[offset + i] = sum.toInt()
+            carry = sum ushr 32
+        }
+        // Propagate carry
+        var i = offset + source.size
+        while (carry != 0L && i < dest.size) {
+            val sum = (dest[i].toLong() and 0xFFFFFFFFL) + carry
+            dest[i] = sum.toInt()
+            carry = sum ushr 32
+            i++
+        }
+    }
+
+    
+    /**
+     * Schoolbook O(n²) multiplication - fast for small numbers
+     */
+    private fun schoolbookMultiply(x: IntArray, y: IntArray): IntArray {
         val xLen = x.size
         val yLen = y.size
         val result = IntArray(xLen + yLen)
 
         for (i in 0 until xLen) {
-            val xVal = x[i].toUInt().toULong()
-            var carry: ULong = 0u
+            val xVal = x[i].toLong() and 0xFFFFFFFFL
+            var carry: Long = 0
             for (j in 0 until yLen) {
-                val yVal = y[j].toUInt().toULong()
-                val product = xVal * yVal + result[i + j].toUInt().toULong() + carry
+                val yVal = y[j].toLong() and 0xFFFFFFFFL
+                val product = xVal * yVal + (result[i + j].toLong() and 0xFFFFFFFFL) + carry
                 result[i + j] = product.toInt()
-                carry = product shr 32 // ULong shift is logical
+                carry = product ushr 32
             }
             result[i + yLen] = carry.toInt()
         }
 
-        // Strip leading zeros
-        var resultLen = result.size
-        while (resultLen > 0 && result[resultLen - 1] == 0) {
-            resultLen--
-        }
-
-        return if (resultLen == 0) IntArray(0) else result.copyOf(resultLen)
+        return stripZeros(result)
     }
 
 

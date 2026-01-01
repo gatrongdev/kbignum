@@ -49,21 +49,22 @@ class PerformanceComparisonTest {
         benchmarkFactorial(1000, 50)
         
         // ============ KBigDecimal Benchmarks ============
+        // 600 digits ≈ 2000 bits, 1200 digits ≈ 4000 bits (comparable to KBigInteger)
         println("\n## KBigDecimal")
         println("| Operation | Iterations | Java BigDecimal (ms) | KBigDecimal (ms) | Relative Speed |")
         println("| :--- | :---: | :---: | :---: | :---: |")
         
-        println("\n**Decimal Arithmetic (20 digits)**")
-        benchmarkDecimalAddition(20, 50000)
-        benchmarkDecimalSubtraction(20, 50000)
-        benchmarkDecimalMultiplication(20, 10000)
-        benchmarkDecimalDivision(20, 5000, 10)
+        println("\n**Decimal Arithmetic (600 digits, ~2000 bits)**")
+        benchmarkDecimalAddition(600, 10000)
+        benchmarkDecimalSubtraction(600, 10000)
+        benchmarkDecimalMultiplication(600, 1000)
+        benchmarkDecimalDivision(600, 500, 50)
         
-        println("\n**Decimal Arithmetic (50 digits)**")
-        benchmarkDecimalAddition(50, 25000)
-        benchmarkDecimalSubtraction(50, 25000)
-        benchmarkDecimalMultiplication(50, 5000)
-        benchmarkDecimalDivision(50, 2000, 20)
+        println("\n**Decimal Arithmetic (1200 digits, ~4000 bits)**")
+        benchmarkDecimalAddition(1200, 5000)
+        benchmarkDecimalSubtraction(1200, 5000)
+        benchmarkDecimalMultiplication(1200, 500)
+        benchmarkDecimalDivision(1200, 200, 100)
     }
 
     private fun benchmarkAddition(bits: Int, iterations: Int) {

@@ -46,37 +46,37 @@ dependencies {
 #### 2048-bit Numbers
 | Operation | Java (ms) | KBignum (ms) | Relative |
 | :--- | :---: | :---: | :---: |
-| **Add** | 13 | 8 | **0.62x ✓** |
-| **Subtract** | 16 | 20 | 1.25x |
-| **Multiply** | 32 | 36 | 1.13x |
-| **Divide** | 19 | 27 | 1.42x |
-| **Modulo** | 19 | 17 | **0.89x ✓** |
+| **Add** | 14 | 26 | 1.86x |
+| **Subtract** | 16 | 29 | 1.81x |
+| **Multiply** | 53 | 47 | **0.89x ✓** |
+| **Divide** | 21 | 42 | 2.00x |
+| **Modulo** | 24 | 39 | 1.63x |
 
 #### 4096-bit Numbers
 | Operation | Java (ms) | KBignum (ms) | Relative |
 | :--- | :---: | :---: | :---: |
-| **Add** | 7 | 6 | **0.86x ✓** |
-| **Subtract** | 3 | 6 | 2.00x |
-| **Multiply** | 52 | 76 | 1.46x |
-| **Divide** | 29 | 21 | **0.72x ✓** |
-| **Modulo** | 29 | 21 | **0.72x ✓** |
+| **Add** | 3 | 4 | 1.33x |
+| **Subtract** | 3 | 8 | 2.67x |
+| **Multiply** | 54 | 74 | 1.37x |
+| **Divide** | 27 | 22 | **0.81x ✓** |
+| **Modulo** | 27 | 21 | **0.78x ✓** |
 ### KBigDecimal
 
-#### 20-digit Decimals
+#### 600-digit (~2000 bits)
 | Operation | Java (ms) | KBigDecimal (ms) | Relative |
 | :--- | :---: | :---: | :---: |
-| **Add** | 5 | 5 | **1.00x ✓** |
-| **Sub** | 7 | 4 | **0.57x ✓** |
-| **Mul** | 1 | 1 | **1.00x ✓** |
+| **Add** | 2 | 2 | **1.00x ✓** |
+| **Sub** | 4 | 2 | **0.50x ✓** |
+| **Mul** | 1 | 4 | 4.00x |
 | **Div** | 4 | 6 | 1.50x |
 
-#### 50-digit Decimals
+#### 1200-digit (~4000 bits)
 | Operation | Java (ms) | KBigDecimal (ms) | Relative |
 | :--- | :---: | :---: | :---: |
-| **Add** | 1 | 2 | 2.00x |
-| **Sub** | 2 | 1 | **0.50x ✓** |
-| **Mul** | 1 | 0 | **0.00x ✓** |
-| **Div** | 0 | 1 | Infinityx |
+| **Add** | 3 | 1 | **0.33x ✓** |
+| **Sub** | 1 | 2 | 2.00x |
+| **Mul** | 2 | 6 | 3.00x |
+| **Div** | 3 | 7 | 2.33x |
 
 *Note: Benchmarks run on macOS/JVM. ✓ indicates KBignum is faster or equal to Java. KBignum prioritizes portability across KMP targets (Android, iOS, JS, Native).*
 
