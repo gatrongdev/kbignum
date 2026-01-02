@@ -1,4 +1,5 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
@@ -17,7 +18,15 @@ plugins {
 }
 
 group = "io.github.gatrongdev"
-version = "0.0.16"
+version = "0.0.19"
+
+fun Project.requiredIntProperty(name: String): Int =
+    providers.gradleProperty(name).orNull?.toIntOrNull()
+        ?: error("Required Gradle property '$name' is missing or not an Int")
+
+val androidCompileSdk = project.requiredIntProperty("android.compileSdk")
+val androidMinSdk = project.requiredIntProperty("android.minSdk")
+val androidTargetSdk = project.requiredIntProperty("android.targetSdk")
 
 kotlin {
     androidTarget {
@@ -55,9 +64,10 @@ kotlin {
 
 android {
     namespace = "io.github.gatrongdev.kbignum"
-    compileSdk = 35
+    compileSdk = androidCompileSdk
     defaultConfig {
-        minSdk = 21
+        minSdk = androidMinSdk
+        targetSdk = androidTargetSdk
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -153,4 +163,176 @@ tasks.register("runAllChecks") {
     group = "verification"
     description = "Run all code quality checks"
     dependsOn("test", "ktlintCheck", "detekt", "koverXmlReport")
+}
+
+tasks.register("runAllTest") {
+    group = "verification"
+    description = "Run all code test case checks"
+    dependsOn("test")
+}
+
+// ==================== Benchmark Update Task ====================
+
+/**
+ * Task to run performance benchmarks and update README.md with results.
+ *
+ * Usage: ./gradlew shared:updateBenchmark
+ *
+ * This task will:
+ */
+
+val benchmarkReportPath =
+    layout.buildDirectory.file(
+        "reports/tests/testDebugUnitTest/classes/io.github.gatrongdev.kbignum.benchmark.PerformanceComparisonTest.html",
+    )
+val readmePath = rootProject.layout.projectDirectory.file("README.md")
+
+tasks.register("updateBenchmark") {
+    group = "documentation"
+    description = "Run benchmarks and update README.md with latest performance results"
+
+    dependsOn("testDebugUnitTest")
+
+    val reportFileProvider = benchmarkReportPath
+    val readmeFileProvider = readmePath
+
+    doLast {
+        val reportFile = reportFileProvider.get().asFile
+        val readmeFile = readmeFileProvider.asFile
+
+        if (!reportFile.exists()) {
+            logger.error(
+                "Benchmark report not found. Please run: ./gradlew " +
+                    "shared:testDebugUnitTest --tests \"io.github.gatrongdev.kbignum.benchmark.PerformanceComparisonTest\"",
+            )
+            return@doLast
+        }
+
+        // Parse benchmark results from HTML report
+        val reportContent = reportFile.readText()
+        val preContentRegex = Regex("<pre>(.*?)</pre>", RegexOption.DOT_MATCHES_ALL)
+        val match = preContentRegex.find(reportContent)
+
+        if (match == null) {
+            logger.error("Could not parse benchmark results from report")
+            return@doLast
+        }
+
+        val benchmarkOutput = match.groupValues[1].trim()
+        val lines = benchmarkOutput.lines().filter { it.isNotBlank() }
+
+        // Build new Performance section
+        val newPerformanceSection =
+            buildString {
+                appendLine("## Performance")
+                appendLine(
+                    "`KBignum` offers competitive performance by utilizing efficient algorithms " +
+                        "(Knuth's Algorithm D for division, optimized magnitude arithmetic). " +
+                        "Below is a comparison against Java's native implementations on JVM:",
+                )
+                appendLine()
+
+                for (line in lines) {
+                    when {
+                        line.contains("## KBigInteger") -> {
+                            appendLine("### KBigInteger")
+                            appendLine()
+                        }
+                        line.contains("## KBigDecimal") -> {
+                            appendLine("### KBigDecimal")
+                            appendLine()
+                        }
+                        line.contains("**Basic Arithmetic") && line.contains("2048") -> {
+                            appendLine("#### 2048-bit Numbers")
+                            appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                            appendLine("| :--- | :---: | :---: | :---: |")
+                        }
+                        line.contains("**Basic Arithmetic") && line.contains("4096") -> {
+                            appendLine()
+                            appendLine("#### 4096-bit Numbers")
+                            appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                            appendLine("| :--- | :---: | :---: | :---: |")
+                        }
+                        line.contains("**Decimal Arithmetic") && line.contains("600") -> {
+                            appendLine("#### 600-digit (~2000 bits)")
+                            appendLine("| Operation | Java (ms) | KBigDecimal (ms) | Relative |")
+                            appendLine("| :--- | :---: | :---: | :---: |")
+                        }
+                        line.contains("**Decimal Arithmetic") && line.contains("1200") -> {
+                            appendLine()
+                            appendLine("#### 1200-digit (~4000 bits)")
+                            appendLine("| Operation | Java (ms) | KBigDecimal (ms) | Relative |")
+                            appendLine("| :--- | :---: | :---: | :---: |")
+                        }
+                        line.contains("**Advanced Integer Math") -> {
+                            appendLine()
+                            appendLine("### KBigMath (Integer)")
+                            appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                            appendLine("| :--- | :---: | :---: | :---: |")
+                        }
+                        line.contains("**Advanced Calculus") -> {
+                            appendLine()
+                            appendLine("### KBigMath (Decimal)")
+                            appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                            appendLine("| :--- | :---: | :---: | :---: |")
+                        }
+                        line.contains("**Factorial") -> {
+                            appendLine()
+                            appendLine("### Factorial")
+                            appendLine("| Operation | Java (ms) | KBignum (ms) | Relative |")
+                            appendLine("| :--- | :---: | :---: | :---: |")
+                        }
+                        line.startsWith("| mean") -> {
+                            // Parse and format the row
+                            val parts = line.split("|").map { it.trim() }.filter { it.isNotEmpty() }
+                            if (parts.size >= 5) {
+                                var operation = parts[0].removePrefix("mean ").trim()
+                                // Clean up operation name
+                                operation =
+                                    operation.replace(Regex("\\s+\\d+-bit"), "")
+                                        .replace(Regex("Decimal\\s+"), "")
+                                        .replace(Regex("\\s+\\d+d"), "")
+                                val javaMs = parts[2]
+                                val kMs = parts[3]
+                                val relative = parts[4]
+
+                                // Skip factorial rows
+                                // if (operation.contains("Factorial")) continue
+
+                                // Highlight faster/equal operations
+                                val formattedRelative =
+                                    when {
+                                        relative.startsWith("0.") -> "**$relative ✓**"
+                                        relative == "1.00x" -> "**1.00x ✓**"
+                                        else -> relative
+                                    }
+
+                                appendLine("| **$operation** | $javaMs | $kMs | $formattedRelative |")
+                            }
+                        }
+                    }
+                }
+                appendLine()
+                appendLine(
+                    "*Note: Benchmarks run on macOS/JVM. ✓ indicates KBignum is faster or equal to Java. " +
+                        "KBignum prioritizes portability across KMP targets (Android, iOS, JS, Native).*",
+                )
+            }
+
+        // Update README.md
+        val readmeContent = readmeFile.readText()
+        val performancePattern =
+            Regex(
+                """## Performance.*?(?=\n## [A-Z])""",
+                setOf(RegexOption.DOT_MATCHES_ALL),
+            )
+
+        val updatedContent =
+            performancePattern.replace(readmeContent) {
+                newPerformanceSection.trimEnd() + "\n\n"
+            }
+
+        readmeFile.writeText(updatedContent)
+        logger.lifecycle("✅ README.md updated with latest benchmark results!")
+    }
 }

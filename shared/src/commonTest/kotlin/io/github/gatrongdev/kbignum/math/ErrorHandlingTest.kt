@@ -11,23 +11,23 @@ class ErrorHandlingTest {
     @Test
     fun testDivisionByZeroKBigDecimal() {
         val decimal = "123.456".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         assertFailsWith<ArithmeticException> {
-            decimal.divide(zero, 2, 4)
+            decimal.divide(zero, 2, KBRoundingMode.HalfUp)
         }
 
         // Test with constructed zero
         val constructedZero = "0".toKBigDecimal()
         assertFailsWith<ArithmeticException> {
-            decimal.divide(constructedZero, 2, 4)
+            decimal.divide(constructedZero, 2, KBRoundingMode.HalfUp)
         }
     }
 
     @Test
     fun testDivisionByZeroKBigInteger() {
         val integer = "123".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         assertFailsWith<ArithmeticException> {
             integer.divide(zero)
@@ -43,7 +43,7 @@ class ErrorHandlingTest {
     @Test
     fun testModuloByZeroKBigInteger() {
         val integer = "123".toKBigInteger()
-        val zero = KBigIntegerFactory.ZERO
+        val zero = KBigInteger.ZERO
 
         assertFailsWith<ArithmeticException> {
             integer.mod(zero)
@@ -106,7 +106,7 @@ class ErrorHandlingTest {
             KBigMath.pow(base, largeNegativeExponent)
         }
 
-        val zeroBase = KBigIntegerFactory.ZERO
+        val zeroBase = KBigInteger.ZERO
         assertFailsWith<ArithmeticException> {
             KBigMath.pow(zeroBase, negativeExponent)
         }
@@ -117,17 +117,17 @@ class ErrorHandlingTest {
         val inexactDecimal = "123.456".toKBigDecimal()
 
         assertFailsWith<ArithmeticException> {
-            inexactDecimal.setScale(2, 7)
+            inexactDecimal.setScale(2, KBRoundingMode.Unnecessary)
         }
 
         val anotherInexact = "999.999".toKBigDecimal()
         assertFailsWith<ArithmeticException> {
-            anotherInexact.setScale(1, 7)
+            anotherInexact.setScale(1, KBRoundingMode.Unnecessary)
         }
 
         // Test that exact values don't throw
         val exactDecimal = "123.45".toKBigDecimal()
-        val result = exactDecimal.setScale(2, 7)
+        val result = exactDecimal.setScale(2, KBRoundingMode.Unnecessary)
         assertEquals("123.45", result.toString())
     }
 
@@ -186,7 +186,7 @@ class ErrorHandlingTest {
 
         for (invalidString in invalidDecimalStrings) {
             assertFailsWith<NumberFormatException> {
-                KBigDecimalFactory.fromString(invalidString)
+                KBigDecimal.fromString(invalidString)
             }
         }
 
@@ -203,7 +203,7 @@ class ErrorHandlingTest {
 
         for (invalidString in invalidIntegerStrings) {
             assertFailsWith<NumberFormatException> {
-                KBigIntegerFactory.fromString(invalidString)
+                KBigInteger.fromString(invalidString)
             }
         }
     }
@@ -290,7 +290,7 @@ class ErrorHandlingTest {
     @Test
     fun testChainedOperationErrors() {
         val decimal = "10".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         // Test that errors propagate correctly through chained operations
         try {
@@ -298,7 +298,7 @@ class ErrorHandlingTest {
                 decimal
                     .multiply("2".toKBigDecimal())
                     .add("5".toKBigDecimal())
-                    .divide(zero, 2, 4) // This should fail
+                    .divide(zero, 2, KBRoundingMode.HalfUp) // This should fail
                     .subtract("1".toKBigDecimal())
 
             assertTrue(false, "Should have thrown ArithmeticException")
@@ -341,16 +341,16 @@ class ErrorHandlingTest {
     fun testErrorMessageConsistency() {
         // Test that similar errors produce consistent error types
         val decimal = "123.456".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         try {
-            decimal.divide(zero, 2, 4)
+            decimal.divide(zero, 2, KBRoundingMode.HalfUp)
         } catch (e: ArithmeticException) {
             assertTrue(e is ArithmeticException)
         }
 
         try {
-            decimal.divide(zero, 2, 4)
+            decimal.divide(zero, 2, KBRoundingMode.HalfUp)
         } catch (e: ArithmeticException) {
             assertTrue(e is ArithmeticException)
         }
@@ -367,10 +367,10 @@ class ErrorHandlingTest {
     fun testErrorRecovery() {
         // Test that after an error, operations can continue normally
         val decimal = "10".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         try {
-            decimal.divide(zero, 2, 4)
+            decimal.divide(zero, 2, KBRoundingMode.HalfUp)
         } catch (e: ArithmeticException) {
             // Error occurred, but we can continue
         }
@@ -390,7 +390,7 @@ class ErrorHandlingTest {
         val originalValue = decimal.toString()
 
         try {
-            decimal.divide(KBigDecimalFactory.ZERO, 2, RoundingMode.HALF_UP)
+            decimal.divide(KBigDecimal.ZERO, 2, KBRoundingMode.HalfUp)
         } catch (e: ArithmeticException) {
             // Error occurred
         }

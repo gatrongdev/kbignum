@@ -8,8 +8,8 @@ class IntegrationTest {
     // FACTORY + INTERFACE INTEGRATION TESTS
     @Test
     fun testFactoryWithInterfaceOperations() {
-        val decimalFromFactory = KBigDecimalFactory.fromString("123.456")
-        val integerFromFactory = KBigIntegerFactory.fromString("789")
+        val decimalFromFactory = KBigDecimal.fromString("123.456")
+        val integerFromFactory = KBigInteger.fromString("789")
 
         // Test factory-created objects work with interface operations
         val sum = decimalFromFactory.add("100".toKBigDecimal())
@@ -19,7 +19,7 @@ class IntegrationTest {
         assertEquals("1578", product.toString())
 
         // Test cross-type operations
-        val preciseFromInt = integerFromFactory.toPreciseNumber()
+        val preciseFromInt = KBigDecimal(integerFromFactory)
         val intFromDecimal = decimalFromFactory.toBigInteger()
 
         assertEquals("789", preciseFromInt.toString())
@@ -28,9 +28,9 @@ class IntegrationTest {
 
     @Test
     fun testFactoryConstantsWithOperations() {
-        val zero = KBigDecimalFactory.ZERO
-        val one = KBigDecimalFactory.ONE
-        val ten = KBigDecimalFactory.TEN
+        val zero = KBigDecimal.ZERO
+        val one = KBigDecimal.ONE
+        val ten = KBigDecimal.TEN
 
         // Test that constants work correctly in operations
         val result1 = zero.add(one).add(ten)
@@ -39,9 +39,9 @@ class IntegrationTest {
         val result2 = ten.multiply(one).subtract(zero)
         assertEquals("10", result2.toString())
 
-        val intZero = KBigIntegerFactory.ZERO
-        val intOne = KBigIntegerFactory.ONE
-        val intTen = KBigIntegerFactory.TEN
+        val intZero = KBigInteger.ZERO
+        val intOne = KBigInteger.ONE
+        val intTen = KBigInteger.TEN
 
         val intResult = intTen.divide(intOne).add(intZero)
         assertEquals("10", intResult.toString())
@@ -54,7 +54,7 @@ class IntegrationTest {
         val original = "123.789"
         val decimal = original.toKBigDecimal()
         val integer = decimal.toBigInteger()
-        val backToDecimal = integer.toPreciseNumber()
+        val backToDecimal = KBigDecimal(integer)
 
         assertEquals("123.789", decimal.toString())
         assertEquals("123", integer.toString())
@@ -63,7 +63,7 @@ class IntegrationTest {
         // Test: Int -> KBigInteger -> KBigDecimal -> String representation
         val intValue = 456
         val bigInt = intValue.toKBigInteger()
-        val bigDec = bigInt.toPreciseNumber()
+        val bigDec = KBigDecimal(bigInt)
         val stringResult = bigDec.toString()
 
         assertEquals("456", stringResult)
@@ -109,7 +109,7 @@ class IntegrationTest {
         // Test with factorial
         val n = "5".toKBigInteger()
         val factorial = KBigMath.factorial(n)
-        val factorialPlusOne = factorial + KBigIntegerFactory.ONE
+        val factorialPlusOne = factorial + KBigInteger.ONE
 
         assertEquals("120", factorial.toString())
         assertEquals("121", factorialPlusOne.toString())
@@ -147,7 +147,7 @@ class IntegrationTest {
         val integer = "3".toKBigInteger()
 
         // Operations between KBigDecimal and KBigInteger via conversion
-        val intAsDecimal = integer.toPreciseNumber()
+        val intAsDecimal = KBigDecimal(integer)
         val sum = decimal + intAsDecimal
         assertEquals("13.5", sum.toString())
 
@@ -166,7 +166,7 @@ class IntegrationTest {
         val integer1 = "10".toKBigInteger()
 
         // Convert for comparison
-        val intAsDecimal = integer1.toPreciseNumber()
+        val intAsDecimal = KBigDecimal(integer1)
         val decimalAsInt = decimal1.toBigInteger()
 
         assertEquals(0, decimal1.compareTo(intAsDecimal))
@@ -197,7 +197,7 @@ class IntegrationTest {
         assertEquals("120", totalPeriods.toString())
 
         // Test basic compounding calculation
-        val onePlusRate = KBigDecimalFactory.ONE.add(ratePerPeriod)
+        val onePlusRate = KBigDecimal.ONE.add(ratePerPeriod)
         assertTrue(onePlusRate.toString().startsWith("1.004166"))
     }
 
@@ -208,7 +208,7 @@ class IntegrationTest {
         assertEquals("2432902008176640000", factorial20.toString())
 
         // Convert to decimal and perform calculations
-        val factorialAsDecimal = factorial20.toPreciseNumber()
+        val factorialAsDecimal = KBigDecimal(factorial20)
         val sqrt = KBigMath.sqrt(factorialAsDecimal)
 
         assertTrue(sqrt.toString().startsWith("1559776"))
@@ -240,7 +240,7 @@ class IntegrationTest {
         val combined = asInteger.add(factorial)
 
         // Convert back to decimal
-        val finalResult = combined.toPreciseNumber()
+        val finalResult = KBigDecimal(combined)
 
         assertEquals("123.46", scaled.toString())
         assertEquals("246.92", doubled.toString())
@@ -259,7 +259,7 @@ class IntegrationTest {
             // Perform a series of operations, one of which will fail
             result = result.multiply("2".toKBigDecimal())
             result = result.add("3.5".toKBigDecimal())
-            result = result.divide(KBigDecimalFactory.ZERO, 2, 4) // This will fail
+            result = result.divide(KBigDecimal.ZERO, 2, 4) // This will fail
             result = result.subtract("1".toKBigDecimal()) // This won't execute
         } catch (e: ArithmeticException) {
             // Error occurred, but previous operations were successful
@@ -308,8 +308,8 @@ class IntegrationTest {
         val maxLong = Long.MAX_VALUE.toKBigInteger()
 
         // Perform operations that exceed primitive limits
-        val beyondInt = maxInt.add(KBigIntegerFactory.ONE)
-        val beyondLong = maxLong.add(KBigIntegerFactory.ONE)
+        val beyondInt = maxInt.add(KBigInteger.ONE)
+        val beyondLong = maxLong.add(KBigInteger.ONE)
 
         assertEquals("2147483648", beyondInt.toString())
         assertEquals("9223372036854775808", beyondLong.toString())

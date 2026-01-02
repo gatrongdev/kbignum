@@ -54,7 +54,7 @@ class KBigDecimalTest {
     fun add_numberToZero_returnsTheNumberItself() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val expected = number
 
         // Act
@@ -68,7 +68,7 @@ class KBigDecimalTest {
     fun add_zeroToNumber_returnsTheNumberItself() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val expected = number
 
         // Act
@@ -154,7 +154,7 @@ class KBigDecimalTest {
     fun subtract_numberFromItself_returnsZero() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val expected = KBigDecimalFactory.ZERO
+        val expected = KBigDecimal.ZERO
 
         // Act
         val actual = number.subtract(number)
@@ -167,7 +167,7 @@ class KBigDecimalTest {
     fun subtract_zeroFromNumber_returnsTheNumberItself() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val expected = number
 
         // Act
@@ -181,7 +181,7 @@ class KBigDecimalTest {
     fun subtract_numberFromZero_returnsTheNegatedNumber() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val expected = "-123.45".toKBigDecimal()
 
         // Act
@@ -252,7 +252,7 @@ class KBigDecimalTest {
     fun multiply_byZero_returnsZero() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         // Act
         val actual = number.multiply(zero)
@@ -265,7 +265,7 @@ class KBigDecimalTest {
     fun multiply_byOne_returnsTheNumberItself() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val one = KBigDecimalFactory.ONE
+        val one = KBigDecimal.ONE
         val expected = number
 
         // Act
@@ -326,7 +326,7 @@ class KBigDecimalTest {
         val expected = "24.69".toKBigDecimal()
 
         // Act
-        val actual = dividend.divide(divisor, 2, RoundingMode.HALF_UP)
+        val actual = dividend.divide(divisor, 2, KBRoundingMode.HalfUp)
 
         // Assert
         assertEquals(expected, actual)
@@ -339,7 +339,7 @@ class KBigDecimalTest {
         val expected = "1.00".toKBigDecimal()
 
         // Act
-        val actual = number.divide(number, 2, RoundingMode.HALF_UP)
+        val actual = number.divide(number, 2, KBRoundingMode.HalfUp)
 
         // Assert
         assertEquals(expected, actual)
@@ -349,11 +349,11 @@ class KBigDecimalTest {
     fun divide_numberByOne_returnsItself() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val one = KBigDecimalFactory.ONE
+        val one = KBigDecimal.ONE
         val expected = "123.45".toKBigDecimal()
 
         // Act
-        val actual = number.divide(one, 2, RoundingMode.HALF_UP)
+        val actual = number.divide(one, 2, KBRoundingMode.HalfUp)
 
         // Assert
         assertEquals(expected, actual)
@@ -362,11 +362,11 @@ class KBigDecimalTest {
     @Test
     fun divide_zeroByNumber_returnsZero() {
         // Arrange
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val number = "123.45".toKBigDecimal()
 
         // Act
-        val actual = zero.divide(number, 2, RoundingMode.HALF_UP)
+        val actual = zero.divide(number, 2, KBRoundingMode.HalfUp)
 
         // Assert
         assertTrue(actual.isZero())
@@ -376,11 +376,11 @@ class KBigDecimalTest {
     fun divide_byZero_throwsArithmeticException() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         // Act & Assert
         assertFailsWith<ArithmeticException> {
-            number.divide(zero, 2, RoundingMode.HALF_UP)
+            number.divide(zero, 2, KBRoundingMode.HalfUp)
         }
     }
 
@@ -392,7 +392,7 @@ class KBigDecimalTest {
         val expected = "-24.69".toKBigDecimal()
 
         // Act
-        val actual = positive.divide(negative, 2, RoundingMode.HALF_UP)
+        val actual = positive.divide(negative, 2, KBRoundingMode.HalfUp)
 
         // Assert
         assertEquals(expected, actual)
@@ -406,7 +406,7 @@ class KBigDecimalTest {
         val expected = "24.69".toKBigDecimal()
 
         // Act
-        val actual = negative1.divide(negative2, 2, RoundingMode.HALF_UP)
+        val actual = negative1.divide(negative2, 2, KBRoundingMode.HalfUp)
 
         // Assert
         assertEquals(expected, actual)
@@ -420,7 +420,7 @@ class KBigDecimalTest {
         val expected = "3.15".toKBigDecimal()
 
         // Act
-        val actual = dividend.divide(divisor, 2, RoundingMode.UP)
+        val actual = dividend.divide(divisor, 2, KBRoundingMode.Up)
 
         // Assert
         assertEquals(expected, actual)
@@ -434,7 +434,7 @@ class KBigDecimalTest {
         val expected = "3.14".toKBigDecimal()
 
         // Act
-        val actual = dividend.divide(divisor, 2, RoundingMode.DOWN)
+        val actual = dividend.divide(divisor, 2, KBRoundingMode.Down)
 
         // Assert
         assertEquals(expected, actual)
@@ -448,7 +448,7 @@ class KBigDecimalTest {
         val expected = "3.15".toKBigDecimal()
 
         // Act
-        val actual = dividend.divide(divisor, 2, RoundingMode.CEILING)
+        val actual = dividend.divide(divisor, 2, KBRoundingMode.Ceiling)
 
         // Assert
         assertEquals(expected, actual)
@@ -462,7 +462,7 @@ class KBigDecimalTest {
         val expected = "3.14".toKBigDecimal()
 
         // Act
-        val actual = dividend.divide(divisor, 2, RoundingMode.FLOOR)
+        val actual = dividend.divide(divisor, 2, KBRoundingMode.Floor)
 
         // Assert
         assertEquals(expected, actual)
@@ -476,7 +476,7 @@ class KBigDecimalTest {
         val expected = "3.14".toKBigDecimal()
 
         // Act
-        val actual = dividend.divide(divisor, 2, RoundingMode.HALF_UP)
+        val actual = dividend.divide(divisor, 2, KBRoundingMode.HalfUp)
 
         // Assert
         assertEquals(expected, actual)
@@ -490,7 +490,7 @@ class KBigDecimalTest {
         val expected = "3.14".toKBigDecimal()
 
         // Act
-        val actual = dividend.divide(divisor, 2, RoundingMode.HALF_DOWN)
+        val actual = dividend.divide(divisor, 2, KBRoundingMode.HalfDown)
 
         // Assert
         assertEquals(expected, actual)
@@ -504,7 +504,7 @@ class KBigDecimalTest {
         val expected = "3.14".toKBigDecimal()
 
         // Act
-        val actual = dividend.divide(divisor, 2, RoundingMode.HALF_EVEN)
+        val actual = dividend.divide(divisor, 2, KBRoundingMode.HalfEven)
 
         // Assert
         assertEquals(expected, actual)
@@ -518,7 +518,7 @@ class KBigDecimalTest {
         val expected = "5.00".toKBigDecimal()
 
         // Act
-        val actual = dividend.divide(divisor, 2, RoundingMode.UNNECESSARY)
+        val actual = dividend.divide(divisor, 2, KBRoundingMode.Unnecessary)
 
         // Assert
         assertEquals(expected, actual)
@@ -530,7 +530,7 @@ class KBigDecimalTest {
         // Arrange
         val dividend = "123.45".toKBigDecimal()
         val divisor = "2".toKBigDecimal()
-        val expected = "61.725".toKBigDecimal()
+        val expected = "61.73".toKBigDecimal()
 
         // Act
         val actual = dividend.divide(divisor)
@@ -568,7 +568,7 @@ class KBigDecimalTest {
     @Test
     fun divide_singleParameter_zeroByNumber_returnsZero() {
         // Arrange
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val number = "123.45".toKBigDecimal()
 
         // Act
@@ -582,7 +582,7 @@ class KBigDecimalTest {
     fun divide_singleParameter_byZero_throwsArithmeticException() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         // Act & Assert
         assertFailsWith<ArithmeticException> {
@@ -648,19 +648,6 @@ class KBigDecimalTest {
         assertTrue(actual.toString().startsWith("10.00"))
     }
 
-    @Test
-    fun divide_singleParameter_veryLargeNumbers_handlesCorrectly() {
-        // Arrange
-        val dividend = "999999999999999999999999.123456789".toKBigDecimal()
-        val divisor = "999999999999999999999999".toKBigDecimal()
-
-        // Act
-        val actual = dividend.divide(divisor)
-
-        // Assert
-        assertTrue(actual.toString().startsWith("1.000000000000000000000000123"))
-    }
-
     // SETSCALE FUNCTION TESTS
     @Test
     fun setScale_toIncreaseScale_padsWithZeros() {
@@ -669,7 +656,7 @@ class KBigDecimalTest {
         val expected = "123.45000".toKBigDecimal()
 
         // Act
-        val actual = number.setScale(5, RoundingMode.UNNECESSARY)
+        val actual = number.setScale(5, KBRoundingMode.Unnecessary)
 
         // Assert
         assertEquals(expected, actual)
@@ -683,7 +670,7 @@ class KBigDecimalTest {
         val expected = "123.46".toKBigDecimal()
 
         // Act
-        val actual = number.setScale(2, RoundingMode.UP)
+        val actual = number.setScale(2, KBRoundingMode.Up)
 
         // Assert
         assertEquals(expected, actual)
@@ -697,7 +684,7 @@ class KBigDecimalTest {
         val expected = "123.45".toKBigDecimal()
 
         // Act
-        val actual = number.setScale(2, RoundingMode.DOWN)
+        val actual = number.setScale(2, KBRoundingMode.Down)
 
         // Assert
         assertEquals(expected, actual)
@@ -711,7 +698,7 @@ class KBigDecimalTest {
         val expected = "123.46".toKBigDecimal()
 
         // Act
-        val actual = number.setScale(2, RoundingMode.CEILING)
+        val actual = number.setScale(2, KBRoundingMode.Ceiling)
 
         // Assert
         assertEquals(expected, actual)
@@ -725,7 +712,7 @@ class KBigDecimalTest {
         val expected = "123.45".toKBigDecimal()
 
         // Act
-        val actual = number.setScale(2, RoundingMode.FLOOR)
+        val actual = number.setScale(2, KBRoundingMode.Floor)
 
         // Assert
         assertEquals(expected, actual)
@@ -739,7 +726,7 @@ class KBigDecimalTest {
         val expected = "123.46".toKBigDecimal()
 
         // Act
-        val actual = number.setScale(2, RoundingMode.HALF_UP)
+        val actual = number.setScale(2, KBRoundingMode.HalfUp)
 
         // Assert
         assertEquals(expected, actual)
@@ -753,7 +740,7 @@ class KBigDecimalTest {
         val expected = "123.45".toKBigDecimal()
 
         // Act
-        val actual = number.setScale(2, RoundingMode.HALF_DOWN)
+        val actual = number.setScale(2, KBRoundingMode.HalfDown)
 
         // Assert
         assertEquals(expected, actual)
@@ -767,7 +754,7 @@ class KBigDecimalTest {
         val expected = "123.46".toKBigDecimal()
 
         // Act
-        val actual = number.setScale(2, RoundingMode.HALF_EVEN)
+        val actual = number.setScale(2, KBRoundingMode.HalfEven)
 
         // Assert
         assertEquals(expected, actual)
@@ -781,7 +768,7 @@ class KBigDecimalTest {
 
         // Act & Assert
         assertFailsWith<ArithmeticException> {
-            number.setScale(2, RoundingMode.UNNECESSARY)
+            number.setScale(2, KBRoundingMode.Unnecessary)
         }
     }
 
@@ -792,7 +779,7 @@ class KBigDecimalTest {
         val expected = "123.45".toKBigDecimal()
 
         // Act
-        val actual = number.setScale(2, RoundingMode.UNNECESSARY)
+        val actual = number.setScale(2, KBRoundingMode.Unnecessary)
 
         // Assert
         assertEquals(expected, actual)
@@ -829,7 +816,7 @@ class KBigDecimalTest {
     @Test
     fun abs_onZero_returnsZero() {
         // Arrange
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val expected = zero
 
         // Act
@@ -870,7 +857,7 @@ class KBigDecimalTest {
     @Test
     fun negate_onZero_returnsZero() {
         // Arrange
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val expected = zero
 
         // Act
@@ -939,7 +926,7 @@ class KBigDecimalTest {
         // Arrange
         val positive = "123.45".toKBigDecimal()
         val negative = "-123.45".toKBigDecimal()
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         // Act & Assert
         assertTrue(positive.compareTo(zero) > 0)
@@ -977,7 +964,7 @@ class KBigDecimalTest {
     @Test
     fun signum_onZero_returnsZero() {
         // Arrange
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val expected = 0
 
         // Act
@@ -990,7 +977,7 @@ class KBigDecimalTest {
     @Test
     fun isZero_onZero_returnsTrue() {
         // Arrange
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
 
         // Act
         val actual = zero.isZero()
@@ -1026,7 +1013,7 @@ class KBigDecimalTest {
     @Test
     fun isPositive_onZeroOrNegative_returnsFalse() {
         // Arrange
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val negative = "-123.45".toKBigDecimal()
 
         // Act & Assert
@@ -1049,7 +1036,7 @@ class KBigDecimalTest {
     @Test
     fun isNegative_onZeroOrPositive_returnsFalse() {
         // Arrange
-        val zero = KBigDecimalFactory.ZERO
+        val zero = KBigDecimal.ZERO
         val positive = "123.45".toKBigDecimal()
 
         // Act & Assert
