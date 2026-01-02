@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class KBigIntegerBitwiseTest {
-
     @Test
     fun testNot() {
         // ~0 = -1
@@ -46,7 +45,7 @@ class KBigIntegerBitwiseTest {
         // Let's verify: -5 = -8 + 3 = 1...1000 + 0011 = 1...1011. Correct.
         // So -5 & 3 = 3.
         assertEquals(KBigInteger.fromInt(3), KBigInteger.fromInt(-5) and KBigInteger.fromInt(3))
-        
+
         // -5 & -3
         // -5 = ...1011
         // -3 = ...1101 (roughly)
@@ -84,24 +83,24 @@ class KBigIntegerBitwiseTest {
         // XOR= ...1000 = -8
         assertEquals(KBigInteger.fromInt(-8), KBigInteger.fromInt(-5) xor KBigInteger.fromInt(3))
     }
-    
+
     @Test
     fun testLargeNumbers() {
         // Create numbers larger than 2^32 to force multi-word arithmetic
         // 2^40. Word 0: 0. Word 1: 2^(40-32) = 2^8 = 256.
         val a = KBigInteger.ONE shl 40
         val b = KBigInteger.ONE shl 41
-        
+
         // OR: 2^40 | 2^41 = 2^40 + 2^41
         val expectedOr = a.add(b)
         assertEquals(expectedOr, a or b)
-        
+
         // AND: 2^40 & 2^41 = 0
         assertEquals(KBigInteger.ZERO, a and b)
-        
+
         // XOR: 2^40 ^ 2^41 = 2^40 + 2^41 (since bits don't overlap)
         assertEquals(expectedOr, a xor b)
-        
+
         // Negative Multi-word
         // - (2^40)
         val negA = a.negate()
@@ -116,7 +115,7 @@ class KBigIntegerBitwiseTest {
         // ...11100... | ...00100...
         // ...11111... -> -1.
         assertEquals(negA, negA or a)
-        
+
         // negA & a
         // ...11100... & ...00100... -> ...00000...? No.
         // A (2^40) has bit 40 set.

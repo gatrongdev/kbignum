@@ -2,10 +2,8 @@ package io.github.gatrongdev.kbignum.math
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 class KBigNumberExtensionsTest {
-
     // STRING TO BIGNUMBER CONVERSION TESTS
     @Test
     fun stringToKBigDecimal_withValidDecimalString_succeeds() {
@@ -101,12 +99,12 @@ class KBigNumberExtensionsTest {
         val b = "10".toKBigInteger()
         assertEquals("2", (a / b).toString())
     }
-    
+
     @Test
     fun unaryMinus_matchesNegate() {
         val a = "123".toKBigInteger()
         assertEquals("-123", (-a).toString())
-        
+
         val b = "12.3".toKBigDecimal()
         val negB = -b
         assertEquals(1, negB.scale)
@@ -123,8 +121,4 @@ class KBigNumberExtensionsTest {
         // 0.3333333333
         assertEquals("3333333333", result.unscaledValue.toString())
     }
-
-
-    
-
 }

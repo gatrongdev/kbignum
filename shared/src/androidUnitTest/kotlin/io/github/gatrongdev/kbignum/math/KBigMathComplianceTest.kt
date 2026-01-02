@@ -1,22 +1,18 @@
 package io.github.gatrongdev.kbignum.math
 
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
-import java.math.BigInteger as JBigInteger
-import java.math.BigDecimal as JBigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import kotlin.random.Random
-import io.github.gatrongdev.kbignum.math.KBigInteger
-import io.github.gatrongdev.kbignum.math.KBigDecimal
-import io.github.gatrongdev.kbignum.math.KBigMath
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+import java.math.BigDecimal as JBigDecimal
+import java.math.BigInteger as JBigInteger
 
 class KBigMathComplianceTest {
-
-    private val RANDOM_SEED = 123456L
-    private val ITERATIONS = 1000
+    private val randomSeed = 123456L
+    private val iterations = 1000
 
     // ============ Helper Functions for Sqrt Compliance ============
 
@@ -28,7 +24,7 @@ class KBigMathComplianceTest {
         expected: JBigDecimal,
         actual: JBigDecimal,
         tolerance: JBigDecimal,
-        message: String
+        message: String,
     ) {
         if (expected.compareTo(JBigDecimal.ZERO) == 0 && actual.compareTo(JBigDecimal.ZERO) == 0) {
             return // Both zero
@@ -45,7 +41,7 @@ class KBigMathComplianceTest {
 
         assertTrue(
             relError.compareTo(tolerance) <= 0,
-            "Relative error $relError exceeds tolerance $tolerance. $message"
+            "Relative error $relError exceeds tolerance $tolerance. $message",
         )
     }
 
@@ -53,7 +49,10 @@ class KBigMathComplianceTest {
      * Calls Java BigDecimal.sqrt(MathContext) via reflection (Java 9+).
      * Returns null if sqrt is not available.
      */
-    private fun javaSqrt(value: JBigDecimal, precision: Int): JBigDecimal? {
+    private fun javaSqrt(
+        value: JBigDecimal,
+        precision: Int,
+    ): JBigDecimal? {
         return try {
             val method = JBigDecimal::class.java.getMethod("sqrt", MathContext::class.java)
             val mc = MathContext(precision)
@@ -66,7 +65,10 @@ class KBigMathComplianceTest {
     /**
      * Converts KBigDecimal result to Java BigDecimal for comparison.
      */
-    private fun kSqrtToJava(value: KBigDecimal, scale: Int): JBigDecimal {
+    private fun kSqrtToJava(
+        value: KBigDecimal,
+        scale: Int,
+    ): JBigDecimal {
         val result = KBigMath.sqrt(value, scale)
         return JBigDecimal(result.toString())
     }
@@ -83,20 +85,20 @@ class KBigMathComplianceTest {
 
     @Test
     fun testGcdCompliance() {
-        val rand = Random(RANDOM_SEED)
-        for (i in 0 until ITERATIONS) {
+        val rand = Random(randomSeed)
+        for (i in 0 until iterations) {
             val aBytes = Random.nextBytes(rand.nextInt(1, 100))
             val bBytes = Random.nextBytes(rand.nextInt(1, 100))
-            
+
             val jA = JBigInteger(aBytes)
             val jB = JBigInteger(bBytes)
-            
+
             val kA = KBigInteger.fromString(jA.toString())
             val kB = KBigInteger.fromString(jB.toString())
-            
+
             val jGcd = jA.gcd(jB)
             val kGcd = KBigMath.gcd(kA, kB)
-            
+
             assertEquals(jGcd.toString(), kGcd.toString(), "GCD failed for $jA, $jB")
         }
     }
@@ -104,48 +106,48 @@ class KBigMathComplianceTest {
     @Test
     fun testLcmCompliance() {
         // LCM = (a * b) / GCD(a, b)
-        val rand = Random(RANDOM_SEED + 1)
-        for (i in 0 until ITERATIONS) {
+        val rand = Random(randomSeed + 1)
+        for (i in 0 until iterations) {
             // Keep numbers smaller for LCM to avoid excessive overflow in Java if testing against naive
-            val aBytes = Random.nextBytes(rand.nextInt(1, 20)) 
+            val aBytes = Random.nextBytes(rand.nextInt(1, 20))
             val bBytes = Random.nextBytes(rand.nextInt(1, 20))
-            
+
             var jA = JBigInteger(aBytes)
             var jB = JBigInteger(bBytes)
             if (jA.signum() == 0) jA = JBigInteger.ONE
             if (jB.signum() == 0) jB = JBigInteger.ONE
-            
+
             val kA = KBigInteger.fromString(jA.toString())
             val kB = KBigInteger.fromString(jB.toString())
-            
+
             // Java BigInteger doesn't have explicit LCM, implement manually for verification
             // abs(a * b) / gcd(a, b)
             val jLcm = jA.multiply(jB).abs().divide(jA.gcd(jB))
-            
+
             val kLcm = KBigMath.lcm(kA, kB)
-            
+
             assertEquals(jLcm.toString(), kLcm.toString(), "LCM failed for $jA, $jB")
         }
     }
 
     @Test
     fun testPowCompliance() {
-        val rand = Random(RANDOM_SEED + 2)
-        for (i in 0 until ITERATIONS) {
+        val rand = Random(randomSeed + 2)
+        for (i in 0 until iterations) {
             val baseBytes = Random.nextBytes(rand.nextInt(1, 10))
             val jBase = JBigInteger(baseBytes)
             val exp = rand.nextInt(0, 100) // Keep exponent reasonable
-            
+
             val kBase = KBigInteger.fromString(jBase.toString())
             val kExp = KBigInteger.fromInt(exp)
-            
+
             val jPow = jBase.pow(exp)
             val kPow = KBigMath.pow(kBase, kExp)
-            
+
             assertEquals(jPow.toString(), kPow.toString(), "Pow failed for $jBase ^ $exp")
         }
     }
-    
+
     @Test
     fun testFactorialReasonable() {
         // Factorial grows super fast. Test small inputs.
@@ -177,7 +179,7 @@ class KBigMathComplianceTest {
             assertEquals(
                 jFact.toString(),
                 kFact.toString(),
-                "Factorial($n) mismatch"
+                "Factorial($n) mismatch",
             )
         }
     }
@@ -198,7 +200,7 @@ class KBigMathComplianceTest {
             assertEquals(
                 jFact.toString(),
                 kFact.toString(),
-                "Factorial($n) mismatch for large number"
+                "Factorial($n) mismatch for large number",
             )
         }
     }
@@ -226,24 +228,25 @@ class KBigMathComplianceTest {
     @Test
     fun testIsPrimeKnownPrimes() {
         // First 100 prime numbers
-        val knownPrimes = listOf(
-            2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
-            31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
-            73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
-            127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
-            179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
-            233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
-            283, 293, 307, 311, 313, 317, 331, 337, 347, 349,
-            353, 359, 367, 373, 379, 383, 389, 397, 401, 409,
-            419, 421, 431, 433, 439, 443, 449, 457, 461, 463,
-            467, 479, 487, 491, 499, 503, 509, 521, 523, 541
-        )
+        val knownPrimes =
+            listOf(
+                2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
+                31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
+                73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
+                127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
+                179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
+                233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
+                283, 293, 307, 311, 313, 317, 331, 337, 347, 349,
+                353, 359, 367, 373, 379, 383, 389, 397, 401, 409,
+                419, 421, 431, 433, 439, 443, 449, 457, 461, 463,
+                467, 479, 487, 491, 499, 503, 509, 521, 523, 541,
+            )
 
         for (p in knownPrimes) {
             val kNum = KBigInteger.fromInt(p)
             assertTrue(
                 KBigMath.isPrime(kNum),
-                "$p should be prime"
+                "$p should be prime",
             )
         }
     }
@@ -251,22 +254,23 @@ class KBigMathComplianceTest {
     @Test
     fun testIsPrimeKnownComposites() {
         // Known composite numbers
-        val composites = listOf(
-            4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20,
-            21, 22, 24, 25, 26, 27, 28, 30, 32, 33,
-            34, 35, 36, 38, 39, 40, 42, 44, 45, 46,
-            48, 49, 50, 51, 52, 54, 55, 56, 57, 58,
-            60, 62, 63, 64, 65, 66, 68, 69, 70, 72,
-            74, 75, 76, 77, 78, 80, 81, 82, 84, 85,
-            86, 87, 88, 90, 91, 92, 93, 94, 95, 96,
-            98, 99, 100, 1000, 10000, 123456
-        )
+        val composites =
+            listOf(
+                4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20,
+                21, 22, 24, 25, 26, 27, 28, 30, 32, 33,
+                34, 35, 36, 38, 39, 40, 42, 44, 45, 46,
+                48, 49, 50, 51, 52, 54, 55, 56, 57, 58,
+                60, 62, 63, 64, 65, 66, 68, 69, 70, 72,
+                74, 75, 76, 77, 78, 80, 81, 82, 84, 85,
+                86, 87, 88, 90, 91, 92, 93, 94, 95, 96,
+                98, 99, 100, 1000, 10000, 123456,
+            )
 
         for (c in composites) {
             val kNum = KBigInteger.fromInt(c)
             assertTrue(
                 !KBigMath.isPrime(kNum),
-                "$c should NOT be prime"
+                "$c should NOT be prime",
             )
         }
     }
@@ -275,7 +279,7 @@ class KBigMathComplianceTest {
     fun testIsPrimeCompareWithJava() {
         // Compare with Java BigInteger.isProbablePrime(100)
         // isProbablePrime with certainty 100 is extremely reliable
-        val rand = Random(RANDOM_SEED + 30)
+        val rand = Random(randomSeed + 30)
 
         for (i in 0 until 500) {
             // Generate random number between 2 and 10000
@@ -289,7 +293,7 @@ class KBigMathComplianceTest {
             assertEquals(
                 jIsPrime,
                 kIsPrime,
-                "isPrime($n) mismatch: Java=$jIsPrime, K=$kIsPrime"
+                "isPrime($n) mismatch: Java=$jIsPrime, K=$kIsPrime",
             )
         }
     }
@@ -297,13 +301,19 @@ class KBigMathComplianceTest {
     @Test
     fun testIsPrimeLargerNumbers() {
         // Test some larger known primes
-        val largePrimes = listOf(
-            "104729",      // 10000th prime
-            "1299709",     // 100000th prime
-            "15485863",    // 1000000th prime
-            "982451653",   // Large prime
-            "2147483647"   // Mersenne prime M31 = 2^31 - 1
-        )
+        val largePrimes =
+            listOf(
+                "104729",
+                // 10000th prime
+                "1299709",
+                // 100000th prime
+                "15485863",
+                // 1000000th prime
+                "982451653",
+                // Large prime
+                "2147483647",
+                // Mersenne prime M31 = 2^31 - 1
+            )
 
         for (pStr in largePrimes) {
             val kNum = KBigInteger.fromString(pStr)
@@ -311,28 +321,34 @@ class KBigMathComplianceTest {
 
             assertTrue(
                 jNum.isProbablePrime(100),
-                "Java confirms $pStr is prime"
+                "Java confirms $pStr is prime",
             )
             assertTrue(
                 KBigMath.isPrime(kNum),
-                "$pStr should be prime"
+                "$pStr should be prime",
             )
         }
 
         // Test some larger known composites
-        val largeComposites = listOf(
-            "104730",      // 104729 + 1
-            "1299710",     // 1299709 + 1
-            "15485864",    // 15485863 + 1
-            "1000000000",  // 10^9
-            "2147483646"   // 2^31 - 2
-        )
+        val largeComposites =
+            listOf(
+                "104730",
+                // 104729 + 1
+                "1299710",
+                // 1299709 + 1
+                "15485864",
+                // 15485863 + 1
+                "1000000000",
+                // 10^9
+                "2147483646",
+                // 2^31 - 2
+            )
 
         for (cStr in largeComposites) {
             val kNum = KBigInteger.fromString(cStr)
             assertTrue(
                 !KBigMath.isPrime(kNum),
-                "$cStr should NOT be prime"
+                "$cStr should NOT be prime",
             )
         }
     }
@@ -364,7 +380,7 @@ class KBigMathComplianceTest {
         for (sq in squares) {
             assertTrue(
                 !KBigMath.isPrime(KBigInteger.fromInt(sq)),
-                "$sq (perfect square) should not be prime"
+                "$sq (perfect square) should not be prime",
             )
         }
 
@@ -373,7 +389,7 @@ class KBigMathComplianceTest {
             val pow2 = 1 shl exp
             assertTrue(
                 !KBigMath.isPrime(KBigInteger.fromInt(pow2)),
-                "2^$exp = $pow2 should not be prime"
+                "2^$exp = $pow2 should not be prime",
             )
         }
 
@@ -383,11 +399,11 @@ class KBigMathComplianceTest {
         for (mp in mersennePrimes) {
             assertTrue(
                 KBigMath.isPrime(KBigInteger.fromInt(mp)),
-                "Mersenne prime $mp should be prime"
+                "Mersenne prime $mp should be prime",
             )
         }
     }
-    
+
     // ============ Sqrt Compliance Tests ============
 
     @Test
@@ -412,14 +428,14 @@ class KBigMathComplianceTest {
             assertEquals(
                 expectedRoot.toString(),
                 kResult.stripTrailingZeros().toPlainString(),
-                "Perfect square sqrt($n) mismatch"
+                "Perfect square sqrt($n) mismatch",
             )
 
             // Also verify Java result matches
             assertEquals(
                 expectedRoot.toString(),
                 jResult.stripTrailingZeros().toPlainString(),
-                "Java sqrt($n) unexpected result"
+                "Java sqrt($n) unexpected result",
             )
         }
     }
@@ -449,7 +465,7 @@ class KBigMathComplianceTest {
                     jResult,
                     kResult,
                     tolerance,
-                    "sqrt($n) at scale $scale"
+                    "sqrt($n) at scale $scale",
                 )
             }
         }
@@ -476,17 +492,17 @@ class KBigMathComplianceTest {
                 jResult,
                 kResult,
                 tolerance,
-                "sqrt($decStr) at scale $scale"
+                "sqrt($decStr) at scale $scale",
             )
         }
     }
 
     @Test
     fun testSqrtRandomCompliance() {
-        val rand = Random(RANDOM_SEED + 10)
+        val rand = Random(randomSeed + 10)
         val scale = 20
 
-        for (i in 0 until ITERATIONS) {
+        for (i in 0 until iterations) {
             // Generate random positive number with up to 18 integer digits and up to 10 decimal digits
             val intPart = StringBuilder()
             val intDigits = rand.nextInt(1, 18)
@@ -511,24 +527,25 @@ class KBigMathComplianceTest {
             val diff = squared.subtract(jValue).abs()
 
             // For numbers with integer part, relative error check
-            val relativeError = if (jValue.compareTo(JBigDecimal.ZERO) != 0) {
-                diff.divide(jValue, 50, RoundingMode.HALF_UP)
-            } else {
-                JBigDecimal.ZERO
-            }
+            val relativeError =
+                if (jValue.compareTo(JBigDecimal.ZERO) != 0) {
+                    diff.divide(jValue, 50, RoundingMode.HALF_UP)
+                } else {
+                    JBigDecimal.ZERO
+                }
 
             val tolerance = toleranceForScale(scale)
 
             assertTrue(
                 relativeError.compareTo(tolerance) <= 0,
-                "sqrt($numStr)^2 relative error $relativeError exceeds tolerance $tolerance at iteration $i"
+                "sqrt($numStr)^2 relative error $relativeError exceeds tolerance $tolerance at iteration $i",
             )
         }
     }
 
     @Test
     fun testSqrtLargeNumbersCompliance() {
-        val rand = Random(RANDOM_SEED + 20)
+        val rand = Random(randomSeed + 20)
         // Test with large integers including those > Long.MAX_VALUE
         val digitCounts = listOf(20, 50, 100, 200)
         val scale = 50
@@ -555,7 +572,7 @@ class KBigMathComplianceTest {
 
             assertTrue(
                 relativeError.compareTo(tolerance) <= 0,
-                "sqrt of $digits-digit integer: squared diff relative error $relativeError exceeds tolerance $tolerance"
+                "sqrt of $digits-digit integer: squared diff relative error $relativeError exceeds tolerance $tolerance",
             )
         }
     }
@@ -579,15 +596,16 @@ class KBigMathComplianceTest {
 
             // For very small numbers, use absolute error comparison
             // since relative error can be sensitive
-            val relativeError = if (jValue.compareTo(JBigDecimal.ZERO) != 0) {
-                diff.divide(jValue, 50, RoundingMode.HALF_UP)
-            } else {
-                JBigDecimal.ZERO
-            }
+            val relativeError =
+                if (jValue.compareTo(JBigDecimal.ZERO) != 0) {
+                    diff.divide(jValue, 50, RoundingMode.HALF_UP)
+                } else {
+                    JBigDecimal.ZERO
+                }
 
             assertTrue(
                 relativeError.compareTo(tolerance) <= 0,
-                "sqrt($numStr)^2 relative error $relativeError exceeds tolerance $tolerance"
+                "sqrt($numStr)^2 relative error $relativeError exceeds tolerance $tolerance",
             )
         }
     }
@@ -615,15 +633,21 @@ class KBigMathComplianceTest {
      */
     @Test
     fun testSqrtPreviouslyBuggyEdgeCases() {
-        val edgeCases = listOf(
-            // Previously BUG 1: Many decimals + large integer
-            "29846292161500.897228",      // 14 int + 6 dec
-            "29846292161500.897228439",   // 14 int + 9 dec
-            "12345678901234.897228439",   // 14 int + 9 dec
-            // Previously BUG 2: >= 20 digit integers
-            "12345678901234567890",       // 20 digits
-            "123456789012345678901234567890", // 30 digits
-        )
+        val edgeCases =
+            listOf(
+                // Previously BUG 1: Many decimals + large integer
+                "29846292161500.897228",
+                // 14 int + 6 dec
+                "29846292161500.897228439",
+                // 14 int + 9 dec
+                "12345678901234.897228439",
+                // 14 int + 9 dec
+                // Previously BUG 2: >= 20 digit integers
+                "12345678901234567890",
+                // 20 digits
+                "123456789012345678901234567890",
+                // 30 digits
+            )
 
         val scale = 20
         val tolerance = toleranceForScale(scale)
@@ -640,7 +664,7 @@ class KBigMathComplianceTest {
 
             assertTrue(
                 relError.compareTo(tolerance) <= 0,
-                "sqrt($input) failed: relative error $relError exceeds tolerance $tolerance"
+                "sqrt($input) failed: relative error $relError exceeds tolerance $tolerance",
             )
         }
     }
@@ -667,7 +691,7 @@ class KBigMathComplianceTest {
                 jResult,
                 kResult,
                 tolerance,
-                "sqrt(2) at scale $scale"
+                "sqrt(2) at scale $scale",
             )
 
             // Verify the result squared is close to 2
@@ -677,7 +701,7 @@ class KBigMathComplianceTest {
 
             assertTrue(
                 diff.compareTo(maxError) <= 0,
-                "sqrt(2)^2 should be close to 2 at scale $scale, diff=$diff"
+                "sqrt(2)^2 should be close to 2 at scale $scale, diff=$diff",
             )
         }
     }

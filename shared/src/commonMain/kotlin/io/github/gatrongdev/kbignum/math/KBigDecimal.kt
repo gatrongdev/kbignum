@@ -6,9 +6,8 @@ package io.github.gatrongdev.kbignum.math
  */
 class KBigDecimal(
     val unscaledValue: KBigInteger,
-    val scale: Int = 0
+    val scale: Int = 0,
 ) : Comparable<KBigDecimal> {
-
     companion object {
         val ZERO = KBigDecimal(KBigInteger.ZERO, 0)
         val ONE = KBigDecimal(KBigInteger.ONE, 0)
@@ -59,39 +58,42 @@ class KBigDecimal(
     }
 
     // Helper to align scales
-    private fun matchScales(a: KBigDecimal, b: KBigDecimal): Pair<KBigDecimal, KBigDecimal> {
+    private fun matchScales(
+        a: KBigDecimal,
+        b: KBigDecimal,
+    ): Pair<KBigDecimal, KBigDecimal> {
         if (a.scale == b.scale) return a to b
         if (a.scale > b.scale) {
-             val diff = a.scale - b.scale
-             val newMag = b.unscaledValue.multiply(powerOfTen(diff))
-             return a to KBigDecimal(newMag, a.scale)
+            val diff = a.scale - b.scale
+            val newMag = b.unscaledValue.multiply(powerOfTen(diff))
+            return a to KBigDecimal(newMag, a.scale)
         } else {
-             val diff = b.scale - a.scale
-             val newMag = a.unscaledValue.multiply(powerOfTen(diff))
-             return KBigDecimal(newMag, b.scale) to b
+            val diff = b.scale - a.scale
+            val newMag = a.unscaledValue.multiply(powerOfTen(diff))
+            return KBigDecimal(newMag, b.scale) to b
         }
     }
 
     // Cache for powers of 10 (commonly used values)
     private val powerOfTenCache = mutableMapOf<Int, KBigInteger>()
-    
+
     private fun powerOfTen(n: Int): KBigInteger {
         if (n == 0) return KBigInteger.ONE
         if (n < 0) throw IllegalArgumentException("Negative power")
-        
+
         // Check cache first
         powerOfTenCache[n]?.let { return it }
-        
+
         // Use binary exponentiation for O(log n) instead of O(n)
         val result = fastPowerOfTen(n)
-        
+
         // Cache commonly used values (up to 100)
         if (n <= 100) {
             powerOfTenCache[n] = result
         }
         return result
     }
-    
+
     /**
      * Fast power of 10 using binary exponentiation.
      * 10^n = 10^(n/2) * 10^(n/2) [* 10 if n is odd]
@@ -99,26 +101,26 @@ class KBigDecimal(
     private fun fastPowerOfTen(n: Int): KBigInteger {
         if (n == 0) return KBigInteger.ONE
         if (n == 1) return KBigInteger.TEN
-        
+
         // Use 10^9 as a "super-digit" for faster computation
-        val billion = KBigInteger.fromInt(1_000_000_000)  // 10^9
-        
+        val billion = KBigInteger.fromInt(1_000_000_000) // 10^9
+
         if (n < 9) {
             // Small powers: use lookup or simple multiply
             var result = KBigInteger.ONE
             repeat(n) { result = result.multiply(KBigInteger.TEN) }
             return result
         }
-        
+
         // For larger powers, use 10^9 as base
         val fullNines = n / 9
         val remainder = n % 9
-        
+
         // Binary exponentiation with 10^9 base
         var base = billion
         var exp = fullNines
         var result = KBigInteger.ONE
-        
+
         while (exp > 0) {
             if (exp and 1 == 1) {
                 result = result.multiply(base)
@@ -126,14 +128,14 @@ class KBigDecimal(
             base = base.multiply(base)
             exp = exp shr 1
         }
-        
+
         // Handle remainder
         if (remainder > 0) {
             var tenPow = KBigInteger.ONE
             repeat(remainder) { tenPow = tenPow.multiply(KBigInteger.TEN) }
             result = result.multiply(tenPow)
         }
-        
+
         return result
     }
 
@@ -157,7 +159,11 @@ class KBigDecimal(
         return divide(other, kotlin.math.max(this.scale, other.scale), KBRoundingMode.HalfUp)
     }
 
-    fun divide(other: KBigDecimal, scale: Int, rounding: KBRoundingMode): KBigDecimal {
+    fun divide(
+        other: KBigDecimal,
+        scale: Int,
+        rounding: KBRoundingMode,
+    ): KBigDecimal {
         if (other.isZero()) throw ArithmeticException("Division by zero")
 
         // Scale calculation:
@@ -184,7 +190,7 @@ class KBigDecimal(
         val (q, r) = u.divideAndRemainder(v)
 
         if (r.isZero()) {
-             return KBigDecimal(q, scale)
+            return KBigDecimal(q, scale)
         }
 
         // Rounding required
@@ -199,33 +205,47 @@ class KBigDecimal(
         // Sign of the result (u / v)
         val resultSign = if (u.signum() * v.signum() >= 0) 1 else -1
 
-        val increment = when(rounding) {
-             KBRoundingMode.Up -> true
-             KBRoundingMode.Down -> false
-             KBRoundingMode.Ceiling -> resultSign >= 0
-             KBRoundingMode.Floor -> resultSign < 0
-             KBRoundingMode.HalfUp -> cmp >= 0
-             KBRoundingMode.HalfDown -> cmp > 0
-             KBRoundingMode.HalfEven -> {
-                  if (cmp > 0) true
-                  else if (cmp < 0) false
-                  else q.testBit(0) // odd ? up : down
-             }
-             KBRoundingMode.Unnecessary -> false // handled
-        }
+        val increment =
+            when (rounding) {
+                KBRoundingMode.Up -> true
+                KBRoundingMode.Down -> false
+                KBRoundingMode.Ceiling -> resultSign >= 0
+                KBRoundingMode.Floor -> resultSign < 0
+                KBRoundingMode.HalfUp -> cmp >= 0
+                KBRoundingMode.HalfDown -> cmp > 0
+                KBRoundingMode.HalfEven -> {
+                    if (cmp > 0) {
+                        true
+                    } else if (cmp < 0) {
+                        false
+                    } else {
+                        q.testBit(0) // odd ? up : down
+                    }
+                }
+                KBRoundingMode.Unnecessary -> false // handled
+            }
 
-        val finalQ = if (increment) {
-             if (resultSign >= 0) q.add(KBigInteger.ONE) else q.subtract(KBigInteger.ONE) // Magnitude increase in correct direction
-        } else {
-             q
-        }
+        val finalQ =
+            if (increment) {
+                if (resultSign >= 0) q.add(KBigInteger.ONE) else q.subtract(KBigInteger.ONE) // Magnitude increase in correct direction
+            } else {
+                q
+            }
 
         return KBigDecimal(finalQ, scale)
     }
 
     // Overloads
-    fun divide(other: KBigDecimal, scale: Int): KBigDecimal = divide(other, scale, KBRoundingMode.HalfUp)
-    fun divide(other: KBigDecimal, scale: Int, mode: Int): KBigDecimal = divide(other, scale, KBRoundingMode.fromLegacyCode(mode))
+    fun divide(
+        other: KBigDecimal,
+        scale: Int,
+    ): KBigDecimal = divide(other, scale, KBRoundingMode.HalfUp)
+
+    fun divide(
+        other: KBigDecimal,
+        scale: Int,
+        mode: Int,
+    ): KBigDecimal = divide(other, scale, KBRoundingMode.fromLegacyCode(mode))
 
     /**
      * Calculates this KBigDecimal raised to the power of the specified integer exponent.
@@ -234,7 +254,7 @@ class KBigDecimal(
     fun pow(exponent: Int): KBigDecimal {
         if (exponent < 0) throw ArithmeticException("Negative exponent not supported")
         if (exponent == 0) return ONE
-        
+
         var result = ONE
         var base = this
         var exp = exponent
@@ -247,19 +267,24 @@ class KBigDecimal(
         return result
     }
 
-
     fun abs(): KBigDecimal {
         return if (unscaledValue.signum() < 0) KBigDecimal(unscaledValue.negate(), scale) else this
     }
 
     fun signum(): Int = unscaledValue.signum()
 
-    fun setScale(scale: Int, roundingMode: Int): KBigDecimal {
-         return setScale(scale, KBRoundingMode.fromLegacyCode(roundingMode))
+    fun setScale(
+        scale: Int,
+        roundingMode: Int,
+    ): KBigDecimal {
+        return setScale(scale, KBRoundingMode.fromLegacyCode(roundingMode))
     }
 
-    fun setScale(scale: Int, rounding: KBRoundingMode): KBigDecimal {
-         return divide(ONE, scale, rounding)
+    fun setScale(
+        scale: Int,
+        rounding: KBRoundingMode,
+    ): KBigDecimal {
+        return divide(ONE, scale, rounding)
     }
 
     fun toBigInteger(): KBigInteger {
@@ -269,8 +294,11 @@ class KBigDecimal(
     fun scale(): Int = scale
 
     fun isZero(): Boolean = unscaledValue.isZero()
+
     fun isPositive(): Boolean = unscaledValue.isPositive()
+
     fun isNegative(): Boolean = unscaledValue.isNegative()
+
     fun negate(): KBigDecimal = KBigDecimal(unscaledValue.negate(), scale)
 
     override fun toString(): String {

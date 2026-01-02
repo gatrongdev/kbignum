@@ -150,14 +150,12 @@ infix fun KBigInteger.or(other: KBigInteger): KBigInteger = this.or(other)
  */
 infix fun KBigInteger.xor(other: KBigInteger): KBigInteger = this.xor(other)
 
-
-// Math functions for KBigDecimal
-
-
-
 // Utility functions
 
 fun KBigDecimal.max(other: KBigDecimal): KBigDecimal = if (this >= other) this else other
+
 fun KBigDecimal.min(other: KBigDecimal): KBigDecimal = if (this <= other) this else other
+
 fun KBigInteger.max(other: KBigInteger): KBigInteger = if (this >= other) this else other
+
 fun KBigInteger.min(other: KBigInteger): KBigInteger = if (this <= other) this else other

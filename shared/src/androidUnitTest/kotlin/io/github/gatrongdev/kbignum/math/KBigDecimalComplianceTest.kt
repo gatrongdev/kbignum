@@ -6,7 +6,6 @@ import java.math.BigDecimal
 import kotlin.random.Random
 
 class KBigDecimalComplianceTest {
-
     @Test
     fun testRandomAdditions() {
         repeat(10000) {
@@ -62,11 +61,12 @@ class KBigDecimalComplianceTest {
 
             val scale = kotlin.math.max(a.scale(), b.scale())
 
-            val expected = try {
-                a.divide(b, scale, java.math.RoundingMode.HALF_UP)
-            } catch (e: ArithmeticException) {
-                return@repeat
-            }
+            val expected =
+                try {
+                    a.divide(b, scale, java.math.RoundingMode.HALF_UP)
+                } catch (e: ArithmeticException) {
+                    return@repeat
+                }
 
             val kA = KBigDecimal.fromString(a.toString())
             val kB = KBigDecimal.fromString(b.toString())
@@ -113,23 +113,25 @@ class KBigDecimalComplianceTest {
 
     @Test
     fun testRoundingModes() {
-        val testValues = listOf(
-            "2.5", "2.1", "2.9",
-            "-2.5", "-2.1", "-2.9",
-            "1.5", "0.5", "-1.5", "-0.5",
-            "5.555", "5.55"
-        )
+        val testValues =
+            listOf(
+                "2.5", "2.1", "2.9",
+                "-2.5", "-2.1", "-2.9",
+                "1.5", "0.5", "-1.5", "-0.5",
+                "5.555", "5.55",
+            )
 
         val scales = listOf(0, 1, 2)
-        val modes = listOf(
-            java.math.RoundingMode.UP,
-            java.math.RoundingMode.DOWN,
-            java.math.RoundingMode.CEILING,
-            java.math.RoundingMode.FLOOR,
-            java.math.RoundingMode.HALF_UP,
-            java.math.RoundingMode.HALF_DOWN,
-            java.math.RoundingMode.HALF_EVEN
-        )
+        val modes =
+            listOf(
+                java.math.RoundingMode.UP,
+                java.math.RoundingMode.DOWN,
+                java.math.RoundingMode.CEILING,
+                java.math.RoundingMode.FLOOR,
+                java.math.RoundingMode.HALF_UP,
+                java.math.RoundingMode.HALF_DOWN,
+                java.math.RoundingMode.HALF_EVEN,
+            )
 
         for (v in testValues) {
             val bd = BigDecimal(v)
@@ -145,8 +147,11 @@ class KBigDecimalComplianceTest {
                     // Simulate setScale using divide by 1
                     val result = kbd.divide(KBigDecimal.ONE, scale, kMode)
 
-                    assertEquals("Rounding failed: $v scale=$scale mode=$mode",
-                        expected.toPlainString(), result.toJavaBigDecimal().toPlainString())
+                    assertEquals(
+                        "Rounding failed: $v scale=$scale mode=$mode",
+                        expected.toPlainString(),
+                        result.toJavaBigDecimal().toPlainString(),
+                    )
                 }
             }
         }
@@ -162,7 +167,7 @@ class KBigDecimalComplianceTest {
 
         try {
             one.divide(KBigDecimal.ZERO, 5, KBRoundingMode.HalfUp)
-             org.junit.Assert.fail("Should throw ArithmeticException for div by zero")
+            org.junit.Assert.fail("Should throw ArithmeticException for div by zero")
         } catch (e: ArithmeticException) {
             // Expected
         }
@@ -175,16 +180,25 @@ class KBigDecimalComplianceTest {
             val (a, b) = generateHugeRandomPair(4096)
 
             // Addition
-            assertEquals("Huge Decimal Add failed", a.add(b).toPlainString(),
-                createKBigDecimal(a).add(createKBigDecimal(b)).toJavaBigDecimal().toPlainString())
+            assertEquals(
+                "Huge Decimal Add failed",
+                a.add(b).toPlainString(),
+                createKBigDecimal(a).add(createKBigDecimal(b)).toJavaBigDecimal().toPlainString(),
+            )
 
             // Subtraction
-            assertEquals("Huge Decimal Subtract failed", a.subtract(b).toPlainString(),
-                createKBigDecimal(a).subtract(createKBigDecimal(b)).toJavaBigDecimal().toPlainString())
+            assertEquals(
+                "Huge Decimal Subtract failed",
+                a.subtract(b).toPlainString(),
+                createKBigDecimal(a).subtract(createKBigDecimal(b)).toJavaBigDecimal().toPlainString(),
+            )
 
             // Multiplication
-            assertEquals("Huge Decimal Multiply failed", a.multiply(b).toPlainString(),
-                createKBigDecimal(a).multiply(createKBigDecimal(b)).toJavaBigDecimal().toPlainString())
+            assertEquals(
+                "Huge Decimal Multiply failed",
+                a.multiply(b).toPlainString(),
+                createKBigDecimal(a).multiply(createKBigDecimal(b)).toJavaBigDecimal().toPlainString(),
+            )
         }
     }
 

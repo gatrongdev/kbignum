@@ -6,7 +6,6 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class KBigIntegerEdgeCaseTest {
-
     // --- KBigInteger Exception Tests ---
 
     @Test
@@ -40,10 +39,10 @@ class KBigIntegerEdgeCaseTest {
     fun testMinValueConversions() {
         // Int.MIN_VALUE = -2147483648
         assertEquals("-2147483648", KBigInteger.fromInt(Int.MIN_VALUE).toString())
-        
+
         // Long.MIN_VALUE = -9223372036854775808
         assertEquals("-9223372036854775808", KBigInteger.fromLong(Long.MIN_VALUE).toString())
-        
+
         // Zero variations
         assertEquals(KBigInteger.ZERO, KBigInteger.fromString("0"))
         assertEquals(KBigInteger.ZERO, KBigInteger.fromString("+0"))
@@ -54,16 +53,16 @@ class KBigIntegerEdgeCaseTest {
     fun testDivideEdgeCases() {
         val ten = KBigInteger.TEN
         val five = KBigInteger.fromInt(5)
-        
+
         // dividend < divisor -> 0
         assertEquals(KBigInteger.ZERO, five.divide(ten))
-        
+
         // dividend == divisor -> 1
         assertEquals(KBigInteger.ONE, ten.divide(ten))
-        
+
         // dividend == -divisor -> -1
         assertEquals(KBigInteger.fromInt(-1), ten.divide(KBigInteger.fromInt(-10)))
-        
+
         // 0 / anything -> 0
         assertEquals(KBigInteger.ZERO, KBigInteger.ZERO.divide(ten))
     }
@@ -74,13 +73,13 @@ class KBigIntegerEdgeCaseTest {
         val three = KBigInteger.fromInt(3)
         // 10 % 3 = 1
         assertEquals(KBigInteger.ONE, ten.mod(three))
-        
+
         // 3 % 10 = 3 (dividend < divisor)
         assertEquals(three, three.mod(ten))
-        
+
         // 10 % 10 = 0
         assertEquals(KBigInteger.ZERO, ten.mod(ten))
-        
+
         // 0 % 10 = 0
         assertEquals(KBigInteger.ZERO, KBigInteger.ZERO.mod(ten))
     }
@@ -91,21 +90,21 @@ class KBigIntegerEdgeCaseTest {
     fun testMinMaxExtensions() {
         val a = KBigInteger.fromInt(10)
         val b = KBigInteger.fromInt(20)
-        
+
         assertEquals(b, a.max(b))
         assertEquals(b, b.max(a))
         assertEquals(a, a.min(b))
         assertEquals(a, b.min(a))
-        
+
         val da = KBigDecimal.fromInt(10)
         val db = KBigDecimal.fromInt(20)
-        
+
         assertEquals(db, da.max(db))
         assertEquals(db, db.max(da))
         assertEquals(da, da.min(db))
         assertEquals(da, db.min(da))
     }
-    
+
     @Test
     fun testRemOperator() {
         val a = KBigInteger.fromInt(10)
@@ -117,20 +116,20 @@ class KBigIntegerEdgeCaseTest {
     fun testExtensionsConversions() {
         // String -> KBigInteger
         assertEquals(KBigInteger.TEN, "10".toKBigInteger())
-        
+
         // Primitives -> KBigInteger
         assertEquals(KBigInteger.TEN, 10.toKBigInteger())
         assertEquals(KBigInteger.TEN, 10L.toKBigInteger())
-        
+
         // String -> KBigDecimal
         // String -> KBigDecimal
         assertEquals(0, KBigDecimal.TEN.compareTo("10".toKBigDecimal()))
         assertEquals(0, KBigDecimal.TEN.compareTo("10.0".toKBigDecimal()))
-        
+
         // Primitives -> KBigDecimal
         assertEquals(0, KBigDecimal.TEN.compareTo(10.toKBigDecimal()))
         assertEquals(0, KBigDecimal.TEN.compareTo(10L.toKBigDecimal()))
-        
+
         // Float/Double likely produces "10.0"
         assertTrue(10.0.toKBigDecimal().toString().startsWith("10"))
         assertTrue(10.0f.toKBigDecimal().toString().startsWith("10"))

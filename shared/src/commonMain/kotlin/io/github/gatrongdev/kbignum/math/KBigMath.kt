@@ -7,7 +7,6 @@ import kotlin.math.pow
  * Provides advanced mathematical operations not available in the basic interfaces.
  */
 object KBigMath {
-
     /**
      * Calculates the square root of a KBigDecimal using Adaptive Newton-Raphson method.
      *
@@ -47,20 +46,22 @@ object KBigMath {
         val initialGuessDouble = kotlin.math.sqrt(doubleVal)
 
         // If the result fits in double reasonably (finite and not too large for simple string parse), use it
-        var x = try {
-             if (initialGuessDouble.isFinite() && !initialGuessDouble.isNaN()
-                 && initialGuessDouble > 1e-300 && initialGuessDouble < 1e300) {
-                 // Use simple string conversion only when the double is in a "normal" range
-                 // that doesn't produce scientific notation or overly long decimals.
-                 doubleToKBigDecimal(initialGuessDouble)
-             } else {
-                 // Fallback: use value / 3 as a rough starting approximation
-                 value.divide(KBigDecimal.fromInt(3), 18, KBRoundingMode.HalfUp)
-             }
-        } catch (e: Exception) {
-             // Safety fallback
-             value.divide(KBigDecimal.fromInt(3), 18, KBRoundingMode.HalfUp)
-        }
+        var x =
+            try {
+                if (initialGuessDouble.isFinite() && !initialGuessDouble.isNaN() &&
+                    initialGuessDouble > 1e-300 && initialGuessDouble < 1e300
+                ) {
+                    // Use simple string conversion only when the double is in a "normal" range
+                    // that doesn't produce scientific notation or overly long decimals.
+                    doubleToKBigDecimal(initialGuessDouble)
+                } else {
+                    // Fallback: use value / 3 as a rough starting approximation
+                    value.divide(KBigDecimal.fromInt(3), 18, KBRoundingMode.HalfUp)
+                }
+            } catch (e: Exception) {
+                // Safety fallback
+                value.divide(KBigDecimal.fromInt(3), 18, KBRoundingMode.HalfUp)
+            }
 
         // Ensure x is not zero (would cause division by zero in Newton step)
         if (x.isZero()) {
@@ -115,12 +116,13 @@ object KBigMath {
 
         // Strip trailing zeros for cleaner output (e.g., "4" instead of "4.0000000000")
         val resultStr = result.toString()
-        val cleanStr = if (resultStr.contains('.')) {
-            val trimmed = resultStr.trimEnd('0')
-            if (trimmed.endsWith('.')) trimmed.dropLast(1) else trimmed
-        } else {
-            resultStr
-        }
+        val cleanStr =
+            if (resultStr.contains('.')) {
+                val trimmed = resultStr.trimEnd('0')
+                if (trimmed.endsWith('.')) trimmed.dropLast(1) else trimmed
+            } else {
+                resultStr
+            }
 
         return if (cleanStr.isEmpty() || cleanStr == "-") {
             KBigDecimal.ZERO
@@ -136,24 +138,24 @@ object KBigMath {
     private fun doubleToKBigDecimal(d: Double): KBigDecimal {
         if (d == 0.0) return KBigDecimal.ZERO
         val s = d.toString()
-        
+
         // Check for scientific notation (E or e)
         val eIndex = s.indexOf('E').takeIf { it >= 0 } ?: s.indexOf('e')
         if (eIndex == -1) {
             return KBigDecimal.fromString(s)
         }
-        
+
         // Parse scientific notation: Mantissa * 10^Exponent
         val mantissaStr = s.substring(0, eIndex)
         val exponentStr = s.substring(eIndex + 1)
-        
+
         val mantissa = KBigDecimal.fromString(mantissaStr)
-        val exponent = exponentStr.toInt() 
-        
+        val exponent = exponentStr.toInt()
+
         // Result = unscaled * 10^(-scale) * 10^exponent
         //        = unscaled * 10^-(scale - exponent)
         val rawScale = mantissa.scale - exponent
-        
+
         return if (rawScale >= 0) {
             KBigDecimal(mantissa.unscaledValue, rawScale)
         } else {
@@ -218,7 +220,6 @@ object KBigMath {
             } else {
                 mantissa * (10.0).pow(log10Value)
             }
-
         } catch (e: Exception) {
             return 1.0 // Safety fallback
         }
@@ -278,10 +279,22 @@ object KBigMath {
         if (i == 0) return 32
         var n = 1
         var x = i
-        if (x ushr 16 == 0) { n += 16; x = x shl 16 }
-        if (x ushr 24 == 0) { n += 8; x = x shl 8 }
-        if (x ushr 28 == 0) { n += 4; x = x shl 4 }
-        if (x ushr 30 == 0) { n += 2; x = x shl 2 }
+        if (x ushr 16 == 0) {
+            n += 16
+            x = x shl 16
+        }
+        if (x ushr 24 == 0) {
+            n += 8
+            x = x shl 8
+        }
+        if (x ushr 28 == 0) {
+            n += 4
+            x = x shl 4
+        }
+        if (x ushr 30 == 0) {
+            n += 2
+            x = x shl 2
+        }
         n -= x ushr 31
         return n
     }
@@ -353,20 +366,20 @@ object KBigMath {
 
         // Loop while u != v
         while (u.signum() != 0 && v.signum() != 0 && u != v) {
-             val cmp = u.compareTo(v)
-             if (cmp == 0) break
+            val cmp = u.compareTo(v)
+            if (cmp == 0) break
 
-             if (cmp > 0) {
-                 // u > v
-                 u = u.subtract(v)
-                 val z = u.getLowestSetBit()
-                 if (z > 0) u = u shr z
-             } else {
-                 // v > u
-                 v = v.subtract(u)
-                 val z = v.getLowestSetBit()
-                 if (z > 0) v = v shr z
-             }
+            if (cmp > 0) {
+                // u > v
+                u = u.subtract(v)
+                val z = u.getLowestSetBit()
+                if (z > 0) u = u shr z
+            } else {
+                // v > u
+                v = v.subtract(u)
+                val z = v.getLowestSetBit()
+                if (z > 0) v = v shr z
+            }
         }
 
         return if (commonZeros > 0) u shl commonZeros else u
