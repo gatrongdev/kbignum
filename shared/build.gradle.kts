@@ -4,8 +4,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
     id("com.vanniktech.maven.publish") version "0.30.0"
 
     // Code quality and security plugins
@@ -24,9 +24,9 @@ fun Project.requiredIntProperty(name: String): Int =
     providers.gradleProperty(name).orNull?.toIntOrNull()
         ?: error("Required Gradle property '$name' is missing or not an Int")
 
-val androidCompileSdk = project.requiredIntProperty("android.compileSdk")
-val androidMinSdk = project.requiredIntProperty("android.minSdk")
-val androidTargetSdk = project.requiredIntProperty("android.targetSdk")
+val androidCompileSdk = project.providers.gradleProperty("android.compileSdk").orNull?.toIntOrNull() ?: 36
+val androidMinSdk = project.providers.gradleProperty("android.minSdk").orNull?.toIntOrNull() ?: 24
+val androidTargetSdk = project.providers.gradleProperty("android.targetSdk").orNull?.toIntOrNull() ?: 36
 
 kotlin {
     androidTarget {
