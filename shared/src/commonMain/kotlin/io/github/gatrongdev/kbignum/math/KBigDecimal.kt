@@ -16,6 +16,64 @@ class KBigDecimal(
         fun fromString(value: String): KBigDecimal {
             if (value.isEmpty()) throw NumberFormatException("Zero length string")
 
+            // Check for scientific notation
+            val eIndex = value.indexOf('E').let { if (it == -1) value.indexOf('e') else it }
+            if (eIndex != -1) {
+                val mantissaStr = value.substring(0, eIndex)
+                val exponentStr = value.substring(eIndex + 1)
+                
+                if (mantissaStr.isEmpty() || exponentStr.isEmpty()) {
+                    throw NumberFormatException("Invalid scientific notation: $value")
+                }
+
+                val exponent = try {
+                    if (exponentStr.startsWith('+')) exponentStr.substring(1).toInt() else exponentStr.toInt()
+                } catch (e: NumberFormatException) {
+                    throw NumberFormatException("Invalid exponent in scientific notation: $value")
+                }
+
+                // Parse mantissa. It might be decimal or integer.
+                // Recursively call fromString to handle mantissa (but ensure no infinite recursion - mantissaStr checks are done above, split by E)
+                // Actually, KBigDecimal.fromString(mantissaStr) works for "1.23" or "123".
+                
+                val mantissaBD = try {
+                     fromString(mantissaStr)
+                } catch (e: Exception) {
+                     throw NumberFormatException("Invalid mantissa in scientific notation: $value")
+                }
+
+                // New scale = mantissaScale - exponent
+                // Example: 1.23E2 -> 1.23 * 10^2 -> 123. scale=2, exp=2. result scale = 2-2=0.
+                // 1.23E-2 -> 1.23 * 10^-2 -> 0.0123. scale=2, exp=-2. result scale = 2-(-2) = 4.
+                val newScaleLong = mantissaBD.scale.toLong() - exponent.toLong()
+                
+                // We need to normalize if newScale < 0. KBigDecimal scale usually >= 0 (unless we support negative scale for significant zeros handling? 
+                // KBigDecimal implementation: val scale: Int = 0.
+                // If scale is negative, it means we have trailing zeros that are significant or just large number. 
+                // However, KBigDecimal usually stores unscaled integer + positive scale (digits after decimal point).
+                // If scale becomes negative (e.g. 100 has scale 0. 1E2 = 100. scale=0-2 = -2).
+                // If scale is -2, it means unscaledValue * 10^(--2) = unscaled * 100.
+                // So if newScale < 0, we should multiply unscaled value by 10^|newScale| and set scale to 0.
+                
+                return if (newScaleLong < 0) {
+                     val power = -newScaleLong
+                     // Check for overflow of scale logic if needed, but PowerOfTen handles Int.
+                     // Limit power to reasonable Int?
+                     if (power > Int.MAX_VALUE) throw ArithmeticException("Scale overflow")
+                     val multiplier = KBigDecimal.fromInt(1).unscaledValue.multiply(KBigDecimal.fromInt(10).unscaledValue.pow(power.toInt()))
+                     // Wait, we don't have static pow on KBigInteger easily available? 
+                     // We have: private fun powerOfTen(n: Int) inside KBigDecimal class, but we are in Companion object.
+                     // effectively: KBigInteger.TEN.pow(power)
+                     
+                     val multiplierBigInt = KBigInteger.TEN.pow(power.toInt())
+                     val newUnscaled = mantissaBD.unscaledValue.multiply(multiplierBigInt)
+                     KBigDecimal(newUnscaled, 0)
+                } else {
+                     if (newScaleLong > Int.MAX_VALUE) throw ArithmeticException("Scale overflow")
+                     KBigDecimal(mantissaBD.unscaledValue, newScaleLong.toInt())
+                }
+            }
+
             val dotIndex = value.indexOf('.')
             if (dotIndex == -1) {
                 // Integer

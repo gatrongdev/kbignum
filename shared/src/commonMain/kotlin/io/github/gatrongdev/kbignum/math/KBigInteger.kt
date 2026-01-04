@@ -53,6 +53,57 @@ class KBigInteger(
         fun fromString(value: String): KBigInteger {
             if (value.isEmpty()) throw NumberFormatException("Zero length string")
 
+            // Check for scientific notation first
+            val eIndex = value.indexOf('E').let { if (it == -1) value.indexOf('e') else it }
+            if (eIndex != -1) {
+                // Must be "Integer E Integer"
+                val mantissaStr = value.substring(0, eIndex)
+                val exponentStr = value.substring(eIndex + 1)
+                
+                if (mantissaStr.isEmpty() || exponentStr.isEmpty()) {
+                    throw NumberFormatException("Invalid scientific notation: $value")
+                }
+
+                // If mantissa contains dot, we technically can't parse as BigINT unless we want to support 1.2E2 -> 120
+                // User requirement: Support "16116E+7" which is Int E Int
+                // If it is "1.2E2", mantissaStr.toInt/fromString will fail (or KBigInteger.fromString handles it? No, it throws on dot).
+                // Let's first parse mantissa as KBigInteger. If it fails due to dot, then it's not a valid integer representation unless handled elsewhere.
+                // However, Java BigInteger doesn't support "1.2". KBigInteger neither.
+                // So "16116E+7" -> mantissa "16116", exp "+7".
+
+                val mantissa = try {
+                    fromString(mantissaStr)
+                } catch (e: NumberFormatException) {
+                    throw NumberFormatException("Invalid mantissa in scientific notation: $value")
+                }
+
+                val exponent = try {
+                    if (exponentStr.startsWith('+')) exponentStr.substring(1).toInt() else exponentStr.toInt()
+                } catch (e: NumberFormatException) {
+                     throw NumberFormatException("Invalid exponent in scientific notation: $value")
+                }
+
+                if (exponent >= 0) {
+                     // Multiply by 10^exponent
+                     // Optimization: append zeros if small enough? No, we work with mag arrays.
+                     // Multiply by powerOfTen.
+                     // Since we don't have powerOfTen helper in KBigInteger companion easily accessible (KBigDecimal has it),
+                     // let's just make one or use loop for now. 
+                     // Or construct one: 1 followed by exponent 0s.
+                     // Constructing from string "1" + "0".repeat(exp) is slow for large exp.
+                     // Better: "1" + "0".repeat(exp) is actually FAST for string parsing optimization above (chunk parsing).
+                     // But even better: Use KBigDecimal's powerOfTen logic? KBigDecimal depends on KBigInteger.
+                     // Let's implement simple pow(10, exp) here or duplicate logic.
+                     
+                     // Simply: mantissa * 10^exp
+                     if (exponent == 0) return mantissa
+                     val tenPow = TEN.pow(exponent)
+                     return mantissa.multiply(tenPow)
+                } else {
+                     throw NumberFormatException("Negative exponent in integer scientific notation not supported: $value")
+                }
+            }
+
             var cursor = 0
             val sign: Int
             val firstChar = value[0]
@@ -87,6 +138,8 @@ class KBigInteger(
             // Process first group
             val firstChunkStr = value.substring(cursor, cursor + firstGroupLen)
             if (firstChunkStr.startsWith('+') || firstChunkStr.startsWith('-')) throw NumberFormatException("Invalid integer: $value")
+            // Check for non-digit characters to avoid weird parsing or throwing later
+             // fast check? .toInt() will throw NumberFormatException if invalid.
             val firstChunk = firstChunkStr.toInt()
             result = fromInt(firstChunk)
             cursor += firstGroupLen
