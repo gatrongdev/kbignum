@@ -59,7 +59,7 @@ class KBigInteger(
                 // Must be "Integer E Integer"
                 val mantissaStr = value.substring(0, eIndex)
                 val exponentStr = value.substring(eIndex + 1)
-                
+
                 if (mantissaStr.isEmpty() || exponentStr.isEmpty()) {
                     throw NumberFormatException("Invalid scientific notation: $value")
                 }
@@ -88,14 +88,14 @@ class KBigInteger(
                      // Optimization: append zeros if small enough? No, we work with mag arrays.
                      // Multiply by powerOfTen.
                      // Since we don't have powerOfTen helper in KBigInteger companion easily accessible (KBigDecimal has it),
-                     // let's just make one or use loop for now. 
+                    // let's just make one or use loop for now.
                      // Or construct one: 1 followed by exponent 0s.
                      // Constructing from string "1" + "0".repeat(exp) is slow for large exp.
                      // Better: "1" + "0".repeat(exp) is actually FAST for string parsing optimization above (chunk parsing).
                      // But even better: Use KBigDecimal's powerOfTen logic? KBigDecimal depends on KBigInteger.
                      // Let's implement simple pow(10, exp) here or duplicate logic.
-                     
-                     // Simply: mantissa * 10^exp
+
+                    // Simply: mantissa * 10^exp
                      if (exponent == 0) return mantissa
                      val tenPow = TEN.pow(exponent)
                      return mantissa.multiply(tenPow)
@@ -267,13 +267,12 @@ class KBigInteger(
             // 32 - bitShift
             val antiShift = 32 - bitShift
             for (i in 0 until newLen) {
-                val high = mag[i + wordShift].toUInt().toLong() ushr bitShift
-                val low =
-                    if (i + wordShift + 1 < magLen) {
-                        (mag[i + wordShift + 1].toLong() and 0xFFFFFFFFL) shl antiShift
-                    } else {
-                        0L
-                    }
+                mag[i + wordShift].toUInt().toLong() ushr bitShift
+                if (i + wordShift + 1 < magLen) {
+                    (mag[i + wordShift + 1].toLong() and 0xFFFFFFFFL) shl antiShift
+                } else {
+                    0L
+                }
                 // Wait, right shift logic.
                 // We want high bits of current word to move lower.
                 // And low bits of NEXT word (higher significance) to move into high bits of THIS word.

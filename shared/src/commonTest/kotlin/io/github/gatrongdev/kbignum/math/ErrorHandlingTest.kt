@@ -294,12 +294,11 @@ class ErrorHandlingTest {
 
         // Test that errors propagate correctly through chained operations
         try {
-            val result =
-                decimal
-                    .multiply("2".toKBigDecimal())
-                    .add("5".toKBigDecimal())
-                    .divide(zero, 2, KBRoundingMode.HalfUp) // This should fail
-                    .subtract("1".toKBigDecimal())
+            decimal
+                .multiply("2".toKBigDecimal())
+                .add("5".toKBigDecimal())
+                .divide(zero, 2, KBRoundingMode.HalfUp) // This should fail
+                .subtract("1".toKBigDecimal())
 
             assertTrue(false, "Should have thrown ArithmeticException")
         } catch (e: ArithmeticException) {

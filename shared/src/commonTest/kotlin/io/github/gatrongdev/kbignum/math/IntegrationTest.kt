@@ -181,7 +181,7 @@ class IntegrationTest {
     @Test
     fun testFinancialCalculationScenario() {
         // Simulate compound interest calculation: A = P(1 + r/n)^(nt)
-        val principal = "1000.00".toKBigDecimal()
+        "1000.00".toKBigDecimal()
         val rate = "0.05".toKBigDecimal() // 5% annual rate
         val timesCompounded = "12".toKBigDecimal() // Monthly
         val years = "10".toKBigDecimal()

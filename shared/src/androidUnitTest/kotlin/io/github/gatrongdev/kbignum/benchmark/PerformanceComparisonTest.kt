@@ -241,7 +241,7 @@ class PerformanceComparisonTest {
         bits: Int,
         iterations: Int,
     ) {
-        val random = Random(42) // Fixed seed for reproducibility
+        Random(42) // Fixed seed for reproducibility
         val listA = List(100) { BigInteger(bits, java.util.Random()) }
         val listB = List(100) { BigInteger(bits, java.util.Random()) }
 
@@ -327,7 +327,7 @@ class PerformanceComparisonTest {
         digits: Int,
         iterations: Int,
     ) {
-        val random = Random(42)
+        Random(42)
         val listA = List(100) { BigDecimal(generateRandomDecimalString(digits)) }
         val listB = List(100) { BigDecimal(generateRandomDecimalString(digits)) }
 
@@ -555,7 +555,7 @@ class PerformanceComparisonTest {
     ) {
         val listA = List(100) { BigInteger(baseBits, java.util.Random(42)) }
         val kListA = listA.map { KBigInteger.fromString(it.toString()) }
-        val kExponent = KBigInteger.fromInt(exponent)
+        KBigInteger.fromInt(exponent)
 
         // Java Warmup
         repeat(10) { listA[it % 100].pow(exponent) }
