@@ -1,5 +1,4 @@
 import com.vanniktech.maven.publish.SonatypeHost
-import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
@@ -26,8 +25,6 @@ fun Project.requiredIntProperty(name: String): Int =
 
 val androidCompileSdk = project.providers.gradleProperty("android.compileSdk").orNull?.toIntOrNull() ?: 36
 val androidMinSdk = project.providers.gradleProperty("android.minSdk").orNull?.toIntOrNull() ?: 24
-val androidTargetSdk = project.providers.gradleProperty("android.targetSdk").orNull?.toIntOrNull() ?: 36
-
 kotlin {
     androidTarget {
         compilations.all {
@@ -67,7 +64,6 @@ android {
     compileSdk = androidCompileSdk
     defaultConfig {
         minSdk = androidMinSdk
-        targetSdk = androidTargetSdk
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
