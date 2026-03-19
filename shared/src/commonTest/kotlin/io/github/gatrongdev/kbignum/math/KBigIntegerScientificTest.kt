@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class KBigIntegerScientificTest {
-
     @Test
     fun testScientificNotationInteger() {
         // "1E2" -> 100
@@ -19,12 +18,12 @@ class KBigIntegerScientificTest {
         val bi = KBigInteger.fromString("16116E+7")
         assertEquals("161160000000", bi.toString())
     }
-    
+
     @Test
     fun testScientificNotationWithZeros() {
-         // "10E2" -> 1000
-         val bi = KBigInteger.fromString("10E2")
-         assertEquals("1000", bi.toString())
+        // "10E2" -> 1000
+        val bi = KBigInteger.fromString("10E2")
+        assertEquals("1000", bi.toString())
     }
 
     @Test
@@ -34,7 +33,7 @@ class KBigIntegerScientificTest {
             KBigInteger.fromString("1E-2")
         }
     }
-    
+
     @Test
     fun testScientificNotationDecimalMantissa() {
         // "1.2E2" -> Should throw NumberFormatException (KBigInteger doesn't parse decimals)

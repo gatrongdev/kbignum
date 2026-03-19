@@ -212,8 +212,12 @@ class ErrorHandlingTest {
     @Test
     fun testOverflowAndUnderflowHandling() {
         // Test very large numbers don't cause overflow
-        val veryLarge1 = "999999999999999999999999999999999999999999999999999999999999999999999999999999".toKBigDecimal()
-        val veryLarge2 = "888888888888888888888888888888888888888888888888888888888888888888888888888888".toKBigDecimal()
+        val veryLarge1 =
+            "999999999999999999999999999999999999999999999999999999999999999999999999999999"
+                .toKBigDecimal()
+        val veryLarge2 =
+            "888888888888888888888888888888888888888888888888888888888888888888888888888888"
+                .toKBigDecimal()
 
         val sum = veryLarge1.add(veryLarge2)
         assertTrue(sum.toString().length > 70)
@@ -222,8 +226,12 @@ class ErrorHandlingTest {
         assertTrue(product.toString().length > 70)
 
         // Test very large integers
-        val veryLargeInt1 = "999999999999999999999999999999999999999999999999999999999999999999999999999999".toKBigInteger()
-        val veryLargeInt2 = "888888888888888888888888888888888888888888888888888888888888888888888888888888".toKBigInteger()
+        val veryLargeInt1 =
+            "999999999999999999999999999999999999999999999999999999999999999999999999999999"
+                .toKBigInteger()
+        val veryLargeInt2 =
+            "888888888888888888888888888888888888888888888888888888888888888888888888888888"
+                .toKBigInteger()
 
         val intSum = veryLargeInt1.add(veryLargeInt2)
         assertTrue(intSum.toString().length > 70)
@@ -235,7 +243,9 @@ class ErrorHandlingTest {
     @Test
     fun testVerySmallNumberHandling() {
         // Test very small decimal numbers
-        val verySmall = "0.000000000000000000000000000000000000000000000000000000000000000000000000000001".toKBigDecimal()
+        val verySmall =
+            "0.000000000000000000000000000000000000000000000000000000000000000000000000000001"
+                .toKBigDecimal()
 
         assertTrue(verySmall.isPositive())
         assertFalse(verySmall.isZero())
@@ -342,22 +352,16 @@ class ErrorHandlingTest {
         val decimal = "123.456".toKBigDecimal()
         val zero = KBigDecimal.ZERO
 
-        try {
+        assertFailsWith<ArithmeticException> {
             decimal.divide(zero, 2, KBRoundingMode.HalfUp)
-        } catch (e: ArithmeticException) {
-            assertTrue(e is ArithmeticException)
         }
 
-        try {
+        assertFailsWith<ArithmeticException> {
             decimal.divide(zero, 2, KBRoundingMode.HalfUp)
-        } catch (e: ArithmeticException) {
-            assertTrue(e is ArithmeticException)
         }
 
-        try {
+        assertFailsWith<NumberFormatException> {
             "invalid".toKBigDecimal()
-        } catch (e: NumberFormatException) {
-            assertTrue(e is NumberFormatException)
         }
     }
 

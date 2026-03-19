@@ -2,10 +2,8 @@ package io.github.gatrongdev.kbignum.math
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class KBigDecimalScientificTest {
-
     @Test
     fun testScientificNotationInteger() {
         // "16116E+7" -> 161160000000
@@ -29,7 +27,7 @@ class KBigDecimalScientificTest {
         assertEquals(4, bd.scale)
         assertEquals("0.0123", bd.toString())
     }
-    
+
     @Test
     fun testScientificNotationIntegerNegativeExp() {
         // "16116E-2" -> 161.16

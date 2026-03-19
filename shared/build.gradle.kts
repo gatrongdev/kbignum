@@ -65,9 +65,20 @@ android {
     defaultConfig {
         minSdk = androidMinSdk
     }
+    lint {
+        // Keep lint focused on publishable Android sources for this library.
+        ignoreTestSources = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
+androidComponents {
+    beforeVariants(selector().all()) { variant ->
+        // This module has Android unit tests but no instrumented tests.
+        variant.enableAndroidTest = false
     }
 }
 
@@ -80,7 +91,9 @@ mavenPublishing {
 
     pom {
         name = "KBigNum Library"
-        description = "A Kotlin multiplatform library for arbitrary precision numbers, including KBigDecimal and KBigInteger types."
+        description =
+            "A Kotlin multiplatform library for arbitrary precision numbers, " +
+                "including KBigDecimal and KBigInteger types."
         inceptionYear = "2025"
         url = "https://github.com/gatrongdev/kbignum"
         licenses {
@@ -199,7 +212,8 @@ tasks.register("updateBenchmark") {
         if (!reportFile.exists()) {
             logger.error(
                 "Benchmark report not found. Please run: ./gradlew " +
-                    "shared:testDebugUnitTest --tests \"io.github.gatrongdev.kbignum.benchmark.PerformanceComparisonTest\"",
+                    "shared:testDebugUnitTest --tests " +
+                    "\"io.github.gatrongdev.kbignum.benchmark.PerformanceComparisonTest\"",
             )
             return@doLast
         }

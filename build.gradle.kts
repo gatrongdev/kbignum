@@ -12,3 +12,7 @@ plugins {
     // Dokka plugin for documentation
     id("org.jetbrains.dokka") version "1.9.20"
 }
+
+tasks.register<Delete>("clean") {
+    delete(layout.buildDirectory)
+}

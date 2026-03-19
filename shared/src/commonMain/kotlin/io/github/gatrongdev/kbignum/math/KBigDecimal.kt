@@ -26,21 +26,23 @@ class KBigDecimal(
                     throw NumberFormatException("Invalid scientific notation: $value")
                 }
 
-                val exponent = try {
-                    if (exponentStr.startsWith('+')) exponentStr.substring(1).toInt() else exponentStr.toInt()
-                } catch (e: NumberFormatException) {
-                    throw NumberFormatException("Invalid exponent in scientific notation: $value")
-                }
+                val exponent =
+                    try {
+                        if (exponentStr.startsWith('+')) exponentStr.substring(1).toInt() else exponentStr.toInt()
+                    } catch (e: NumberFormatException) {
+                        throw NumberFormatException("Invalid exponent in scientific notation: $value")
+                    }
 
                 // Parse mantissa. It might be decimal or integer.
                 // Recursively call fromString to handle mantissa (but ensure no infinite recursion - mantissaStr checks are done above, split by E)
                 // Actually, KBigDecimal.fromString(mantissaStr) works for "1.23" or "123".
 
-                val mantissaBD = try {
-                     fromString(mantissaStr)
-                } catch (e: Exception) {
-                     throw NumberFormatException("Invalid mantissa in scientific notation: $value")
-                }
+                val mantissaBD =
+                    try {
+                        fromString(mantissaStr)
+                    } catch (e: Exception) {
+                        throw NumberFormatException("Invalid mantissa in scientific notation: $value")
+                    }
 
                 // New scale = mantissaScale - exponent
                 // Example: 1.23E2 -> 1.23 * 10^2 -> 123. scale=2, exp=2. result scale = 2-2=0.
@@ -56,21 +58,21 @@ class KBigDecimal(
                 // So if newScale < 0, we should multiply unscaled value by 10^|newScale| and set scale to 0.
 
                 return if (newScaleLong < 0) {
-                     val power = -newScaleLong
-                     // Check for overflow of scale logic if needed, but PowerOfTen handles Int.
-                     // Limit power to reasonable Int?
-                     if (power > Int.MAX_VALUE) throw ArithmeticException("Scale overflow")
+                    val power = -newScaleLong
+                    // Check for overflow of scale logic if needed, but PowerOfTen handles Int.
+                    // Limit power to reasonable Int?
+                    if (power > Int.MAX_VALUE) throw ArithmeticException("Scale overflow")
                     fromInt(1).unscaledValue.multiply(fromInt(10).unscaledValue.pow(power.toInt()))
                     // Wait, we don't have static pow on KBigInteger easily available?
-                     // We have: private fun powerOfTen(n: Int) inside KBigDecimal class, but we are in Companion object.
-                     // effectively: KBigInteger.TEN.pow(power)
+                    // We have: private fun powerOfTen(n: Int) inside KBigDecimal class, but we are in Companion object.
+                    // effectively: KBigInteger.TEN.pow(power)
 
                     val multiplierBigInt = KBigInteger.TEN.pow(power.toInt())
-                     val newUnscaled = mantissaBD.unscaledValue.multiply(multiplierBigInt)
-                     KBigDecimal(newUnscaled, 0)
+                    val newUnscaled = mantissaBD.unscaledValue.multiply(multiplierBigInt)
+                    KBigDecimal(newUnscaled, 0)
                 } else {
-                     if (newScaleLong > Int.MAX_VALUE) throw ArithmeticException("Scale overflow")
-                     KBigDecimal(mantissaBD.unscaledValue, newScaleLong.toInt())
+                    if (newScaleLong > Int.MAX_VALUE) throw ArithmeticException("Scale overflow")
+                    KBigDecimal(mantissaBD.unscaledValue, newScaleLong.toInt())
                 }
             }
 
@@ -285,7 +287,13 @@ class KBigDecimal(
 
         val finalQ =
             if (increment) {
-                if (resultSign >= 0) q.add(KBigInteger.ONE) else q.subtract(KBigInteger.ONE) // Magnitude increase in correct direction
+                if (resultSign >= 0) {
+                    q.add(
+                        KBigInteger.ONE,
+                    )
+                } else {
+                    q.subtract(KBigInteger.ONE) // Magnitude increase in correct direction
+                }
             } else {
                 q
             }
