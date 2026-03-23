@@ -36,6 +36,16 @@ kotlin {
         }
     }
 
+    jvm("desktop") {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_17)
+                }
+            }
+        }
+    }
+
     val xcf = XCFramework()
     listOf(
         iosX64(),
@@ -56,7 +66,14 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        val desktopMain by getting {
+            dependencies {
+                // No additional desktop-specific dependencies required.
+            }
+        }
     }
+
+    jvmToolchain(17)
 }
 
 android {
