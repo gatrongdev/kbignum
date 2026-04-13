@@ -187,7 +187,7 @@ jobs:
 
       - name: 🎉 Create GitHub Release
         id: release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.version-check.outputs.version }}
           name: KBigNum v${{ needs.version-check.outputs.version }}
