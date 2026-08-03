@@ -572,7 +572,8 @@ class KBigMathComplianceTest {
 
             assertTrue(
                 relativeError.compareTo(tolerance) <= 0,
-                "sqrt of $digits-digit integer: squared diff relative error $relativeError exceeds tolerance $tolerance",
+                "sqrt of $digits-digit integer: squared diff relative " +
+                    "error $relativeError exceeds tolerance $tolerance",
             )
         }
     }

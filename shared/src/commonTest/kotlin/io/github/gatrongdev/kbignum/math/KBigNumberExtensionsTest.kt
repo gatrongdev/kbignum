@@ -16,7 +16,7 @@ class KBigNumberExtensionsTest {
     @Test
     fun stringToKBigDecimal_withValidIntegerString_succeeds() {
         val validInteger = "123"
-        val expected = "123.0" // Note: Basic string parsing might induce scale? No, KBigDecimal(unscaled, scale).
+        "123.0" // Note: Basic string parsing might induce scale? No, KBigDecimal(unscaled, scale).
         // Let's verify exact behavior: "123" -> scale 0?
         // Checked logic: if no dot, scale is 0.
         // But KBigDecimal.toString() puts KBigDecimal(unscaled=123, scale=0)
@@ -30,7 +30,7 @@ class KBigNumberExtensionsTest {
     @Test
     fun stringToKBigDecimal_withLeadingPlusSign_isParsedCorrectly() {
         val positiveString = "+123.456"
-        val expected = "123.456" // Assuming + is stripped in logic or handled unscaled
+        "123.456" // Assuming + is stripped in logic or handled unscaled
         val actual = positiveString.toKBigDecimal()
         // KBigInteger handles +, so unscaled handles +123456. scale is 3.
         assertEquals(3, actual.scale)

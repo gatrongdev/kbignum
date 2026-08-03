@@ -1,11 +1,10 @@
 import com.vanniktech.maven.publish.SonatypeHost
-import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
     id("com.vanniktech.maven.publish") version "0.30.0"
 
     // Code quality and security plugins
@@ -24,16 +23,24 @@ fun Project.requiredIntProperty(name: String): Int =
     providers.gradleProperty(name).orNull?.toIntOrNull()
         ?: error("Required Gradle property '$name' is missing or not an Int")
 
-val androidCompileSdk = project.requiredIntProperty("android.compileSdk")
-val androidMinSdk = project.requiredIntProperty("android.minSdk")
-val androidTargetSdk = project.requiredIntProperty("android.targetSdk")
-
+val androidCompileSdk = project.providers.gradleProperty("android.compileSdk").orNull?.toIntOrNull() ?: 36
+val androidMinSdk = project.providers.gradleProperty("android.minSdk").orNull?.toIntOrNull() ?: 24
 kotlin {
     androidTarget {
         compilations.all {
             compileTaskProvider.configure {
                 compilerOptions {
                     jvmTarget.set(JvmTarget.JVM_1_8)
+                }
+            }
+        }
+    }
+
+    jvm("desktop") {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_17)
                 }
             }
         }
@@ -53,13 +60,34 @@ kotlin {
     }
 
     sourceSets {
-        commonMain.dependencies {
-            // put your multiplatform dependencies here
+        val commonMain by getting {
+            dependencies {
+                // put your multiplatform dependencies here
+            }
+        }
+        val iosMain by creating {
+            dependsOn(commonMain)
+        }
+        val iosX64Main by getting {
+            dependsOn(iosMain)
+        }
+        val iosArm64Main by getting {
+            dependsOn(iosMain)
+        }
+        val iosSimulatorArm64Main by getting {
+            dependsOn(iosMain)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        val desktopMain by getting {
+            dependencies {
+                // No additional desktop-specific dependencies required.
+            }
+        }
     }
+
+    jvmToolchain(17)
 }
 
 android {
@@ -67,11 +95,21 @@ android {
     compileSdk = androidCompileSdk
     defaultConfig {
         minSdk = androidMinSdk
-        targetSdk = androidTargetSdk
+    }
+    lint {
+        // Keep lint focused on publishable Android sources for this library.
+        ignoreTestSources = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
+androidComponents {
+    beforeVariants(selector().all()) { variant ->
+        // This module has Android unit tests but no instrumented tests.
+        variant.enableAndroidTest = false
     }
 }
 
@@ -84,7 +122,9 @@ mavenPublishing {
 
     pom {
         name = "KBigNum Library"
-        description = "A Kotlin multiplatform library for arbitrary precision numbers, including KBigDecimal and KBigInteger types."
+        description =
+            "A Kotlin multiplatform library for arbitrary precision numbers, " +
+            "including KBigDecimal and KBigInteger types."
         inceptionYear = "2025"
         url = "https://github.com/gatrongdev/kbignum"
         licenses {
@@ -203,7 +243,8 @@ tasks.register("updateBenchmark") {
         if (!reportFile.exists()) {
             logger.error(
                 "Benchmark report not found. Please run: ./gradlew " +
-                    "shared:testDebugUnitTest --tests \"io.github.gatrongdev.kbignum.benchmark.PerformanceComparisonTest\"",
+                    "shared:testDebugUnitTest --tests " +
+                    "\"io.github.gatrongdev.kbignum.benchmark.PerformanceComparisonTest\"",
             )
             return@doLast
         }

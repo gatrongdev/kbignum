@@ -154,7 +154,7 @@ class KBigDecimalTest {
     fun subtract_numberFromItself_returnsZero() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val expected = KBigDecimal.ZERO
+        KBigDecimal.ZERO
 
         // Act
         val actual = number.subtract(number)
