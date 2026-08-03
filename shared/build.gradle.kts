@@ -17,7 +17,7 @@ plugins {
 }
 
 group = "io.github.gatrongdev"
-version = "0.0.19"
+version = "0.0.20"
 
 fun Project.requiredIntProperty(name: String): Int =
     providers.gradleProperty(name).orNull?.toIntOrNull()

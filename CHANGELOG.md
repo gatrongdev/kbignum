@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.20] - 2026-08-03
+
+### Added
+- **Desktop platform support (MVP)**: Added JVM/Compose Desktop target alongside Android and iOS.
+- **Scientific notation parsing**: `KBigDecimal` and `KBigInteger` now support scientific notation input.
+- **Code quality automation**: Integrated Ktlint, Detekt, and Kover for linting and test coverage.
+
+### Changed
+- **API refactor**: Replaced `KBigDecimalFactory`/`KBigNumberFactory` with the `KBigDecimal`/`KBigInteger` types directly.
+- **Code cleanup**: Removed unused variables and redundant assignments across `KBigDecimal`, `KBigInteger`, and associated test suites.
+
+### Fixed
+- Fixed indentation violation in `shared/build.gradle.kts` that blocked the `ktlintKotlinScriptCheck` build task.
+
 ## [0.0.19] - 2025-01-02
 
 ### Fixed
