@@ -73,7 +73,11 @@ class KBigDecimalComplianceTest {
 
             val result = kA.divide(kB, scale, KBRoundingMode.HalfUp)
 
-            assertEquals("Division failed for $a / $b scale=$scale", expected.toString(), result.toJavaBigDecimal().toString())
+            assertEquals(
+                "Division failed for $a / $b scale=$scale",
+                expected.toString(),
+                result.toJavaBigDecimal().toString(),
+            )
         }
     }
 
