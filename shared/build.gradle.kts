@@ -124,7 +124,7 @@ mavenPublishing {
         name = "KBigNum Library"
         description =
             "A Kotlin multiplatform library for arbitrary precision numbers, " +
-                "including KBigDecimal and KBigInteger types."
+            "including KBigDecimal and KBigInteger types."
         inceptionYear = "2025"
         url = "https://github.com/gatrongdev/kbignum"
         licenses {
