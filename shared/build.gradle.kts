@@ -23,7 +23,7 @@ fun Project.requiredIntProperty(name: String): Int =
     providers.gradleProperty(name).orNull?.toIntOrNull()
         ?: error("Required Gradle property '$name' is missing or not an Int")
 
-val androidCompileSdk = project.providers.gradleProperty("android.compileSdk").orNull?.toIntOrNull() ?: 36
+val androidCompileSdk = project.providers.gradleProperty("android.compileSdk").orNull?.toIntOrNull() ?: 37
 val androidMinSdk = project.providers.gradleProperty("android.minSdk").orNull?.toIntOrNull() ?: 24
 kotlin {
     androidTarget {
