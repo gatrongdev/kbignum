@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.LibraryExtension
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
@@ -90,7 +91,7 @@ kotlin {
     jvmToolchain(17)
 }
 
-android {
+extensions.configure<LibraryExtension> {
     namespace = "io.github.gatrongdev.kbignum"
     compileSdk = androidCompileSdk
     defaultConfig {
@@ -185,7 +186,7 @@ detekt {
     buildUponDefaultConfig = true
     allRules = false
     config.setFrom("$projectDir/config/detekt/detekt.yml")
-    baseline = file("$projectDir/config/detekt/baseline.xml")
+    baseline = layout.projectDirectory.file("config/detekt/baseline.xml").asFile
 }
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
