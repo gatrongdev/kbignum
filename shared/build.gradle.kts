@@ -1,17 +1,16 @@
-import com.android.build.api.dsl.LibraryExtension
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     id("com.vanniktech.maven.publish") version "0.30.0"
 
     // Code quality and security plugins
     id("org.jetbrains.kotlinx.kover")
     id("org.jlleitschuh.gradle.ktlint")
-    id("io.gitlab.arturbosch.detekt")
+    id("dev.detekt")
 
     // Dokka plugin for documentation
     id("org.jetbrains.dokka")
@@ -27,12 +26,14 @@ fun Project.requiredIntProperty(name: String): Int =
 val androidCompileSdk = project.providers.gradleProperty("android.compileSdk").orNull?.toIntOrNull() ?: 37
 val androidMinSdk = project.providers.gradleProperty("android.minSdk").orNull?.toIntOrNull() ?: 24
 kotlin {
-    androidTarget {
-        compilations.all {
+    targets.withType<com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget>().configureEach {
+        namespace = "io.github.gatrongdev.kbignum"
+        compileSdk = androidCompileSdk
+        minSdk = androidMinSdk
+        withHostTest {}
+        compilations.configureEach {
             compileTaskProvider.configure {
-                compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_1_8)
-                }
+                compilerOptions.jvmTarget.set(JvmTarget.JVM_1_8)
             }
         }
     }
@@ -89,29 +90,6 @@ kotlin {
     }
 
     jvmToolchain(17)
-}
-
-extensions.configure<LibraryExtension> {
-    namespace = "io.github.gatrongdev.kbignum"
-    compileSdk = androidCompileSdk
-    defaultConfig {
-        minSdk = androidMinSdk
-    }
-    lint {
-        // Keep lint focused on publishable Android sources for this library.
-        ignoreTestSources = true
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-}
-
-androidComponents {
-    beforeVariants(selector().all()) { variant ->
-        // This module has Android unit tests but no instrumented tests.
-        variant.enableAndroidTest = false
-    }
 }
 
 mavenPublishing {
@@ -189,13 +167,12 @@ detekt {
     baseline = layout.projectDirectory.file("config/detekt/baseline.xml").asFile
 }
 
-tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
     reports {
         html.required.set(true)
-        xml.required.set(true)
-        txt.required.set(true)
+        checkstyle.required.set(true)
         sarif.required.set(true)
-        md.required.set(true)
+        markdown.required.set(true)
     }
 }
 
