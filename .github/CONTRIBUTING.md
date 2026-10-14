@@ -50,17 +50,17 @@ We welcome contributions in the form of:
    # Make scripts executable
    chmod +x scripts/*.sh
    
-   # Run initial build
-   ./gradlew build
+   # Build the Android and Desktop artifacts verified on Linux CI
+   ./gradlew :shared:assembleAndroidMain :shared:desktopJar
    ```
 
 3. **Verify your setup**:
    ```bash
    # Run tests
-   ./gradlew test
+   ./gradlew :shared:testAndroid :shared:desktopTest
    
    # Run quality checks
-   ./gradlew runAllChecks
+   ./gradlew :shared:runAllChecks
    
    # Generate documentation
    ./gradlew dokkaHtml
@@ -136,14 +136,14 @@ shared/src/
 
 ```bash
 # Run all tests
-./gradlew test
+./gradlew :shared:testAndroid :shared:desktopTest
 
 # Run specific platform tests
-./gradlew testDebugUnitTest           # Android
-./gradlew iosSimulatorArm64Test       # iOS Simulator
+./gradlew :shared:testAndroid          # Android host tests
+./gradlew :shared:iosSimulatorArm64Test # iOS Simulator (macOS only)
 
 # Run with coverage
-./gradlew test koverXmlReport
+./gradlew :shared:koverXmlReport
 ```
 
 ### Test Guidelines
@@ -191,7 +191,7 @@ shared/src/
 
 2. **Run quality checks**:
    ```bash
-   ./gradlew runAllChecks
+   ./gradlew :shared:runAllChecks
    ```
 
 3. **Push your changes**:
@@ -356,4 +356,4 @@ Thank you for contributing to KBigNum! 🎉
 
 **Questions?** Feel free to ask in issues or discussions. We're here to help!
 
-**Last updated**: January 2025
+**Last updated**: October 2026

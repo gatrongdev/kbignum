@@ -40,7 +40,7 @@ jobs:
           java-version: ${{ matrix.java-version }}
 
       - name: 📱 Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: 🐘 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -48,10 +48,10 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: 🔨 Build and test project
-        run: ./gradlew clean build test
+        run: ./gradlew clean :shared:assembleAndroidMain :shared:desktopJar :shared:testAndroid :shared:desktopTest
 
       - name: 📊 Run quality checks
-        run: ./gradlew runAllChecks
+        run: ./gradlew :shared:runAllChecks
 
       - name: 📋 Upload test results
         uses: actions/upload-artifact@v4
@@ -82,13 +82,13 @@ jobs:
           java-version: '17'
 
       - name: 📱 Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: 🐘 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: 🧪 Generate coverage report
-        run: ./gradlew test koverXmlReport
+        run: ./gradlew :shared:koverXmlReport
 
       - name: 📊 Upload coverage to Codecov
         uses: codecov/codecov-action@v5

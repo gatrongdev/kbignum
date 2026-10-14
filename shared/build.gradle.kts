@@ -180,13 +180,13 @@ tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
 tasks.register("runAllChecks") {
     group = "verification"
     description = "Run all code quality checks"
-    dependsOn("test", "ktlintCheck", "detekt", "koverXmlReport")
+    dependsOn("testAndroid", "desktopTest", "ktlintCheck", "detekt", "koverXmlReport")
 }
 
 tasks.register("runAllTest") {
     group = "verification"
     description = "Run all code test case checks"
-    dependsOn("test")
+    dependsOn("testAndroid", "desktopTest")
 }
 
 // ==================== Benchmark Update Task ====================

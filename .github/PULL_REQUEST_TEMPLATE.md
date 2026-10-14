@@ -16,9 +16,9 @@ Please delete options that are not relevant:
 ## 🧪 Testing
 Describe the tests that you ran to verify your changes:
 
-- [ ] Unit tests pass (`./gradlew test`)
-- [ ] Build succeeds (`./gradlew build`)
-- [ ] Code quality checks pass (`./gradlew runAllChecks`)
+- [ ] Unit tests pass (`./gradlew :shared:testAndroid :shared:desktopTest`)
+- [ ] Build succeeds (`./gradlew :shared:assembleAndroidMain :shared:desktopJar`)
+- [ ] Code quality checks pass (`./gradlew :shared:runAllChecks`)
 - [ ] Manual testing performed
 
 ## 📝 Checklist
