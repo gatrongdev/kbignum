@@ -93,6 +93,20 @@ class KBigDecimalCoverageTest {
     }
 
     @Test
+    fun fromString_supportsScientificNotation() {
+        assertEquals("100000000000000000000", KBigDecimal.fromString("1.0E20").toString())
+        assertEquals("0.00125", KBigDecimal.fromString("1.25e-3").toString())
+        assertEquals("-1250", KBigDecimal.fromString("-1.25E3").toString())
+    }
+
+    @Test
+    fun constructor_rejectsNegativeScale() {
+        assertFailsWith<IllegalArgumentException> {
+            KBigDecimal(KBigInteger.ONE, -1)
+        }
+    }
+
+    @Test
     fun testUtilities() {
         val a = KBigDecimal.fromString("1.23")
         assertTrue(a.isPositive())

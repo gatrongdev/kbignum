@@ -5,9 +5,31 @@ package io.github.gatrongdev.kbignum.math
  * Pure Kotlin implementation.
  */
 class KBigInteger(
-    val signum: Int,
-    val magnitude: IntArray,
+    signum: Int,
+    magnitude: IntArray,
 ) : Comparable<KBigInteger> {
+    val signum: Int
+    private val magnitudeWords: IntArray
+
+    /** Returns a copy so callers cannot mutate this value's internal representation. */
+    val magnitude: IntArray
+        get() = magnitudeWords.copyOf()
+
+    init {
+        require(signum in -1..1) { "signum must be -1, 0, or 1" }
+
+        var normalizedSize = magnitude.size
+        while (normalizedSize > 0 && magnitude[normalizedSize - 1] == 0) normalizedSize--
+
+        if (signum == 0 || normalizedSize == 0) {
+            magnitudeWords = IntArray(0)
+            this.signum = 0
+        } else {
+            magnitudeWords = magnitude.copyOf(normalizedSize)
+            this.signum = signum
+        }
+    }
+
     companion object {
         val ZERO = KBigInteger(0, IntArray(0))
         val ONE = KBigInteger(1, intArrayOf(1))
@@ -108,10 +130,10 @@ class KBigInteger(
      */
     fun toLong(): Long {
         if (signum == 0) return 0L
-        if (magnitude.size > 2) throw ArithmeticException("BigInteger out of Long range")
+        if (magnitudeWords.size > 2) throw ArithmeticException("BigInteger out of Long range")
 
-        val low = magnitude[0].toLong() and 0xFFFFFFFFL
-        val high = if (magnitude.size > 1) magnitude[1].toLong() and 0xFFFFFFFFL else 0L
+        val low = magnitudeWords[0].toLong() and 0xFFFFFFFFL
+        val high = if (magnitudeWords.size > 1) magnitudeWords[1].toLong() and 0xFFFFFFFFL else 0L
 
         // Unsigned magnitude check: max magnitude is 2^63 (for MIN_VALUE) or less.
         // 2^63 is high=0x80000000, low=0
@@ -133,7 +155,7 @@ class KBigInteger(
     infix fun shl(n: Int): KBigInteger {
         if (n == 0) return this
         if (n < 0) return shr(-n)
-        return KBigInteger(signum, shiftLeft(magnitude, n))
+        return KBigInteger(signum, shiftLeft(magnitudeWords, n))
     }
 
     infix fun shr(n: Int): KBigInteger {
@@ -141,7 +163,7 @@ class KBigInteger(
         if (n < 0) return shl(-n)
 
         if (signum > 0) {
-            val mag = shiftRight(magnitude, n)
+            val mag = shiftRight(magnitudeWords, n)
             return if (mag.isEmpty()) ZERO else KBigInteger(1, mag)
         } else if (signum < 0) {
             // Negative right shift (arithmetic shift)
@@ -162,7 +184,7 @@ class KBigInteger(
             // If r == 0, floor(-q) = -q.
             // If r != 0, floor(-q - eps) = -q - 1.
 
-            val qMag = shiftRight(magnitude, n)
+            val qMag = shiftRight(magnitudeWords, n)
             // Check if any bits were shifted out (remainder != 0).
             // shiftRight doesn't tell us remainder.
             // We can check low 'n' bits of magnitude.
@@ -182,12 +204,12 @@ class KBigInteger(
 
         // check full words
         for (i in 0 until wordIndex) {
-            if (i < magnitude.size && magnitude[i] != 0) return true
+            if (i < magnitudeWords.size && magnitudeWords[i] != 0) return true
         }
         // check partial word
-        if (wordIndex < magnitude.size) {
+        if (wordIndex < magnitudeWords.size) {
             val mask = (1 shl bitIndex) - 1
-            if ((magnitude[wordIndex] and mask) != 0) return true
+            if ((magnitudeWords[wordIndex] and mask) != 0) return true
         }
         return false
     }
@@ -245,7 +267,7 @@ class KBigInteger(
 
         // Simple implementation: repeated division by 10^9 (fit in Int) for efficiency
         val sb = StringBuilder()
-        var currentMag = magnitude
+        var currentMag = magnitudeWords
         val radix = 1_000_000_000 // 10^9
 
         // We work with absolute magnitude
@@ -278,7 +300,7 @@ class KBigInteger(
 
         if (signum == other.signum) {
             // Same sign: result = sign * (|this| + |other|)
-            val newMag = addMagnitude(magnitude, other.magnitude)
+            val newMag = addMagnitude(magnitudeWords, other.magnitudeWords)
             return KBigInteger(signum, newMag)
         }
 
@@ -288,9 +310,9 @@ class KBigInteger(
 
         val newMag =
             if (cmp > 0) {
-                subtractMagnitude(magnitude, other.magnitude)
+                subtractMagnitude(magnitudeWords, other.magnitudeWords)
             } else {
-                subtractMagnitude(other.magnitude, magnitude)
+                subtractMagnitude(other.magnitudeWords, magnitudeWords)
             }
 
         // Result sign follows the operand with larger magnitude
@@ -304,7 +326,7 @@ class KBigInteger(
 
         if (signum != other.signum) {
             // Different signs: a - (-b) = a + b. Result sign is same as a's sign.
-            val newMag = addMagnitude(magnitude, other.magnitude)
+            val newMag = addMagnitude(magnitudeWords, other.magnitudeWords)
             return KBigInteger(signum, newMag)
         }
 
@@ -314,9 +336,9 @@ class KBigInteger(
 
         val newMag =
             if (cmp > 0) {
-                subtractMagnitude(magnitude, other.magnitude)
+                subtractMagnitude(magnitudeWords, other.magnitudeWords)
             } else {
-                subtractMagnitude(other.magnitude, magnitude)
+                subtractMagnitude(other.magnitudeWords, magnitudeWords)
             }
 
         // If |a| > |b|, sign is a.sign
@@ -406,7 +428,7 @@ class KBigInteger(
     fun multiply(other: KBigInteger): KBigInteger {
         if (signum == 0 || other.signum == 0) return ZERO
 
-        val newMag = multiplyMagnitude(magnitude, other.magnitude)
+        val newMag = multiplyMagnitude(magnitudeWords, other.magnitudeWords)
         val resultSign = if (signum == other.signum) 1 else -1
         return KBigInteger(resultSign, newMag)
     }
@@ -566,7 +588,7 @@ class KBigInteger(
         if (cmp < 0) return ZERO
         if (cmp == 0) return if (resultSign == 1) ONE else KBigInteger(-1, intArrayOf(1))
 
-        val (quotientMag, _) = divideMagnitude(magnitude, other.magnitude)
+        val (quotientMag, _) = divideMagnitude(magnitudeWords, other.magnitudeWords)
         return if (quotientMag.isEmpty()) ZERO else KBigInteger(resultSign, quotientMag)
     }
 
@@ -578,7 +600,7 @@ class KBigInteger(
         if (cmp < 0) return this
         if (cmp == 0) return ZERO
 
-        val (_, remainderMag) = divideMagnitude(magnitude, other.magnitude)
+        val (_, remainderMag) = divideMagnitude(magnitudeWords, other.magnitudeWords)
         return if (remainderMag.isEmpty()) ZERO else KBigInteger(signum, remainderMag)
     }
 
@@ -655,7 +677,7 @@ class KBigInteger(
         val resultNegative = (resultSignBit != 0)
 
         // Length needed: max magnitude + 1 (for sign bit safety, though loop usually handles it)
-        val len = kotlin.math.max(this.magnitude.size, other.magnitude.size) + 1
+        val len = kotlin.math.max(this.magnitudeWords.size, other.magnitudeWords.size) + 1
         val resultMag = IntArray(len)
 
         // State for handling finding "first non-zero" for 2's complement conversion
@@ -663,12 +685,12 @@ class KBigInteger(
         // This is equivalent to: from LSB, 0s stay 0, first non-zero k becomes -k (aka ~k + 1), subsequent w become ~w.
 
         // We pre-calculate "first non-zero index" for negative numbers to optimize the loop
-        val diffA = if (signum < 0) getFirstNonZeroIndex(magnitude) else -1
-        val diffB = if (other.signum < 0) getFirstNonZeroIndex(other.magnitude) else -1
+        val diffA = if (signum < 0) getFirstNonZeroIndex(magnitudeWords) else -1
+        val diffB = if (other.signum < 0) getFirstNonZeroIndex(other.magnitudeWords) else -1
 
         for (i in 0 until len) {
-            val a = getVirtualTwosCompWord(this.magnitude, signum, i, diffA)
-            val b = getVirtualTwosCompWord(other.magnitude, other.signum, i, diffB)
+            val a = getVirtualTwosCompWord(this.magnitudeWords, signum, i, diffA)
+            val b = getVirtualTwosCompWord(other.magnitudeWords, other.signum, i, diffB)
 
             resultMag[i] = op(a, b)
         }
@@ -783,7 +805,7 @@ class KBigInteger(
             return q to ZERO
         }
 
-        val (quotientMag, remainderMag) = divideMagnitude(magnitude, other.magnitude)
+        val (quotientMag, remainderMag) = divideMagnitude(magnitudeWords, other.magnitudeWords)
         val quotient = if (quotientMag.isEmpty()) ZERO else KBigInteger(resultSign, quotientMag)
         val remainder = if (remainderMag.isEmpty()) ZERO else KBigInteger(signum, remainderMag)
         return quotient to remainder
@@ -1100,13 +1122,13 @@ class KBigInteger(
         return len + msb
     }
 
-    fun abs(): KBigInteger = if (signum < 0) KBigInteger(1, magnitude) else this
+    fun abs(): KBigInteger = if (signum < 0) KBigInteger(1, magnitudeWords) else this
 
     fun signum(): Int = signum
 
     fun negate(): KBigInteger {
         if (signum == 0) return this
-        return KBigInteger(-signum, magnitude)
+        return KBigInteger(-signum, magnitudeWords)
     }
 
     override fun compareTo(other: KBigInteger): Int {
@@ -1119,13 +1141,13 @@ class KBigInteger(
     }
 
     private fun compareMagnitude(other: KBigInteger): Int {
-        if (magnitude.size != other.magnitude.size) {
-            return magnitude.size.compareTo(other.magnitude.size)
+        if (magnitudeWords.size != other.magnitudeWords.size) {
+            return magnitudeWords.size.compareTo(other.magnitudeWords.size)
         }
         // Compare from most significant int (end of array in little-endian)
-        for (i in magnitude.lastIndex downTo 0) {
-            val a = magnitude[i].toLong() and 0xFFFFFFFFL
-            val b = other.magnitude[i].toLong() and 0xFFFFFFFFL
+        for (i in magnitudeWords.lastIndex downTo 0) {
+            val a = magnitudeWords[i].toLong() and 0xFFFFFFFFL
+            val b = other.magnitudeWords[i].toLong() and 0xFFFFFFFFL
             if (a != b) return a.compareTo(b)
         }
         return 0
@@ -1141,14 +1163,14 @@ class KBigInteger(
         if (this === other) return true
         if (other !is KBigInteger) return false
         if (signum != other.signum) return false
-        return magnitude.contentEquals(other.magnitude)
+        return magnitudeWords.contentEquals(other.magnitudeWords)
     }
 
     fun testBit(n: Int): Boolean {
         if (n < 0) throw ArithmeticException("Negative bit address")
         val intIndex = n / 32
         val bitIndex = n % 32
-        if (intIndex >= magnitude.size) return signum < 0 // Implicit sign extension for negative numbers?
+        if (intIndex >= magnitudeWords.size) return signum < 0 // Implicit sign extension for negative numbers?
         // Java BigInteger.testBit operates on two's complement.
         // My KBigInteger is Sign-Magnitude.
         // This is tricky. Rounding HALF_EVEN usually applies to the MAGNITUDE of the quotient if we treat it as positive?
@@ -1160,12 +1182,12 @@ class KBigInteger(
         // If q is negative, -3 is "odd". -2 is "even".
         // So checking magnitude[0] & 1 is sufficient regardless of sign for parity.
         if (signum >= 0) {
-            return (magnitude.getOrElse(intIndex) { 0 } and (1 shl bitIndex)) != 0
+            return (magnitudeWords.getOrElse(intIndex) { 0 } and (1 shl bitIndex)) != 0
         }
         val lowBit = getLowestSetBit()
         if (n < lowBit) return false
         if (n == lowBit) return true
-        return (magnitude.getOrElse(intIndex) { 0 } and (1 shl bitIndex)) == 0
+        return (magnitudeWords.getOrElse(intIndex) { 0 } and (1 shl bitIndex)) == 0
     }
 
     private fun numberOfLeadingZeros(i: Int): Int {
@@ -1194,14 +1216,14 @@ class KBigInteger(
 
     override fun hashCode(): Int {
         var result = signum
-        result = 31 * result + magnitude.contentHashCode()
+        result = 31 * result + magnitudeWords.contentHashCode()
         return result
     }
 
     fun getLowestSetBit(): Int {
         var i = 0
-        while (i < magnitude.size) {
-            val m = magnitude[i]
+        while (i < magnitudeWords.size) {
+            val m = magnitudeWords[i]
             if (m != 0) {
                 return i * 32 + m.countTrailingZeroBits()
             }

@@ -71,6 +71,24 @@ class KBigMathTest {
     }
 
     @Test
+    fun sqrt_onValueBeyondDoubleRange_returnsCorrectRoot() {
+        val value = KBigDecimal.fromString("1" + "0".repeat(1000))
+
+        val actual = KBigMath.sqrt(value)
+
+        assertEquals("1" + "0".repeat(500), actual.toString())
+    }
+
+    @Test
+    fun sqrt_onTinyValueWithHighRequestedScale_returnsCorrectRoot() {
+        val value = KBigDecimal.fromString("0." + "0".repeat(399) + "1")
+
+        val actual = KBigMath.sqrt(value, scale = 250)
+
+        assertEquals("0." + "0".repeat(199) + "1", actual.toString())
+    }
+
+    @Test
     fun sqrt_onNegativeNumber_throwsArithmeticException() {
         // Arrange
         val negative = "-4".toKBigDecimal()

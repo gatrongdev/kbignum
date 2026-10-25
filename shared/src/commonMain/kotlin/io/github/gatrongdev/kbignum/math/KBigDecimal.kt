@@ -8,6 +8,10 @@ class KBigDecimal(
     val unscaledValue: KBigInteger,
     val scale: Int = 0,
 ) : Comparable<KBigDecimal> {
+    init {
+        require(scale >= 0) { "Scale must be non-negative" }
+    }
+
     companion object {
         val ZERO = KBigDecimal(KBigInteger.ZERO, 0)
         val ONE = KBigDecimal(KBigInteger.ONE, 0)
@@ -15,6 +19,41 @@ class KBigDecimal(
 
         fun fromString(value: String): KBigDecimal {
             if (value.isEmpty()) throw NumberFormatException("Zero length string")
+
+            val lowerExponentIndex = value.indexOf('e')
+            val upperExponentIndex = value.indexOf('E')
+            if (lowerExponentIndex >= 0 && upperExponentIndex >= 0) {
+                throw NumberFormatException("Invalid decimal: $value")
+            }
+
+            val exponentIndex = maxOf(lowerExponentIndex, upperExponentIndex)
+            if (exponentIndex >= 0) {
+                if (exponentIndex == 0 || exponentIndex == value.lastIndex) {
+                    throw NumberFormatException("Invalid decimal: $value")
+                }
+                val exponent =
+                    value.substring(exponentIndex + 1).toLongOrNull()
+                        ?: throw NumberFormatException("Invalid decimal exponent: $value")
+                if (exponent !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) {
+                    throw NumberFormatException("Decimal exponent is out of range: $value")
+                }
+
+                val mantissa = fromString(value.substring(0, exponentIndex))
+                val resultingScale = mantissa.scale.toLong() - exponent
+                if (resultingScale >= 0) {
+                    if (resultingScale > Int.MAX_VALUE) {
+                        throw NumberFormatException("Decimal scale is out of range: $value")
+                    }
+                    return KBigDecimal(mantissa.unscaledValue, resultingScale.toInt())
+                }
+
+                val integerShift = -resultingScale
+                if (integerShift > Int.MAX_VALUE) {
+                    throw NumberFormatException("Decimal exponent is out of range: $value")
+                }
+                val factor = KBigInteger.TEN.pow(integerShift.toInt())
+                return KBigDecimal(mantissa.unscaledValue.multiply(factor), 0)
+            }
 
             val dotIndex = value.indexOf('.')
             if (dotIndex == -1) {
@@ -53,7 +92,9 @@ class KBigDecimal(
 
     fun multiply(other: KBigDecimal): KBigDecimal {
         val product = unscaledValue.multiply(other.unscaledValue)
-        val newScale = scale + other.scale
+        val newScaleLong = scale.toLong() + other.scale.toLong()
+        require(newScaleLong <= Int.MAX_VALUE) { "Result scale is too large" }
+        val newScale = newScaleLong.toInt()
         return KBigDecimal(product, newScale)
     }
 
@@ -74,23 +115,15 @@ class KBigDecimal(
         }
     }
 
-    // Cache for powers of 10 (commonly used values)
     private val powerOfTenCache = mutableMapOf<Int, KBigInteger>()
 
     private fun powerOfTen(n: Int): KBigInteger {
         if (n == 0) return KBigInteger.ONE
         if (n < 0) throw IllegalArgumentException("Negative power")
 
-        // Check cache first
         powerOfTenCache[n]?.let { return it }
-
-        // Use binary exponentiation for O(log n) instead of O(n)
         val result = fastPowerOfTen(n)
-
-        // Cache commonly used values (up to 100)
-        if (n <= 100) {
-            powerOfTenCache[n] = result
-        }
+        if (n <= 100) powerOfTenCache[n] = result
         return result
     }
 
@@ -140,30 +173,20 @@ class KBigDecimal(
     }
 
     fun divide(other: KBigDecimal): KBigDecimal {
-        // Default behavior: preferred scale = this.scale - other.scale (if exact)
-        // But for compatibility with Java BigDecimal default, we might error on non-terminating?
-        // Let's implement simpler: match max scale or use a default precision?
-        // Java BigDecimal.divide(BigDecimal) defaults to exact result or throwing ArithmeticException.
-        // Let's assume we want at least max(this.scale, other.scale) + extra?
-
-        // Actually, let's implement the standard: divide(other, RoundingMode.UNNECESSARY) if possible?
-        // But for now, let's just make it work for simple cases or default to 6 decimal places if needed?
-        // No, let's require explicit scale for safety or default to `this.scale`.
-
-        // BETTER: default to specific scale strategies if user doesn't provide.
-        // Let's route to a default divide using `this.scale`? No, usually `div` implies "exact if possible".
-        // Let's throw "NotImplemented" for the complex "Exact determination" logic and only support explicit scale for now.
-        // Or better: Use division with default rounding (HALF_UP) and max scale?
-
-        // Let's implement `divide(other, scale, rounding)` and call it with a sensible default.
-        return divide(other, kotlin.math.max(this.scale, other.scale), KBRoundingMode.HalfUp)
+        return divide(other, DivisionStrategy.DEFAULT)
     }
+
+    fun divide(
+        other: KBigDecimal,
+        config: DivisionConfig,
+    ): KBigDecimal = divide(other, config.scale, config.roundingMode)
 
     fun divide(
         other: KBigDecimal,
         scale: Int,
         rounding: KBRoundingMode,
     ): KBigDecimal {
+        require(scale >= 0) { "Scale must be non-negative" }
         if (other.isZero()) throw ArithmeticException("Division by zero")
 
         // Scale calculation:
@@ -181,8 +204,10 @@ class KBigDecimal(
         var v = other.unscaledValue
 
         if (p > 0) {
+            require(p <= Int.MAX_VALUE) { "Requested scale is too large" }
             u = u.multiply(powerOfTen(p.toInt()))
         } else if (p < 0) {
+            require(-p <= Int.MAX_VALUE) { "Requested scale is too large" }
             v = v.multiply(powerOfTen((-p).toInt()))
         }
 

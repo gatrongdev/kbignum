@@ -1,4 +1,6 @@
-# Kế hoạch Phát hành 0.0.18
+# Kế hoạch Phát hành 0.0.18 (tài liệu lịch sử)
+
+> Tài liệu này ghi lại kế hoạch tại thời điểm chuẩn bị phát hành 0.0.18. Các trạng thái và mô tả kiến trúc bên dưới không phản ánh đầy đủ mã nguồn hiện tại; xem `CHANGELOG.md` và `README.md` để biết trạng thái mới hơn.
 
 ## 1. Bối cảnh & Điểm xuất phát
 - API số lớn đã hoàn thiện với lớp `expect/actual`, vận hành tốt trên Android/iOS và có bộ test chung dày đặc.

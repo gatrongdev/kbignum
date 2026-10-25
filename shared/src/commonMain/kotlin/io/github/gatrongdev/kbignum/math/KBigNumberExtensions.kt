@@ -80,11 +80,10 @@ operator fun KBigDecimal.minus(other: KBigDecimal): KBigDecimal = this.subtract(
 operator fun KBigDecimal.times(other: KBigDecimal): KBigDecimal = this.multiply(other)
 
 /**
- * Division operator for KBigDecimal with default scale and rounding.
- * WARNING: This currently defaults to a fixed scale of 10 and HALF_UP rounding.
+ * Division operator for KBigDecimal using [DivisionStrategy.DEFAULT].
  * For precise control, use the [divide] method directly.
  */
-operator fun KBigDecimal.div(other: KBigDecimal): KBigDecimal = this.divide(other, 10, KBRoundingMode.HalfUp)
+operator fun KBigDecimal.div(other: KBigDecimal): KBigDecimal = this.divide(other)
 
 /**
  * Unary minus operator for KBigDecimal.

@@ -183,10 +183,17 @@ exceptions:
     active: false
   ThrowingExceptionsWithoutMessageOrCause:
     active: true
-    excludedExceptionTypes:
+    exceptions:
+      - 'ArrayIndexOutOfBoundsException'
+      - 'Exception'
       - 'IllegalArgumentException'
+      - 'IllegalMonitorStateException'
       - 'IllegalStateException'
+      - 'IndexOutOfBoundsException'
       - 'IOException'
+      - 'NullPointerException'
+      - 'RuntimeException'
+      - 'Throwable'
   ThrowingNewInstanceOfSameException:
     active: true
   TooGenericExceptionCaught:
@@ -319,10 +326,6 @@ potential-bugs:
       - 'java.util.HashSet'
       - 'java.util.LinkedHashMap'
       - 'java.util.HashMap'
-    immutableTypes:
-      - 'kotlin.collections.List'
-      - 'kotlin.collections.Map'
-      - 'kotlin.collections.Set'
   ElseCaseInsteadOfExhaustiveWhen:
     active: false
   EqualsAlwaysReturnsTrueOrFalse:
@@ -401,7 +404,7 @@ style:
     active: false
   CollapsibleIfStatements:
     active: false
-  DataClassContainsFunction:
+  DataClassContainsFunctions:
     active: false
   DataClassShouldBeImmutable:
     active: false

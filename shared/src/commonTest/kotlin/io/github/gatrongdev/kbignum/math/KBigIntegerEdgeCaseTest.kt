@@ -33,6 +33,19 @@ class KBigIntegerEdgeCaseTest {
         assertFailsWith<NumberFormatException> { KBigInteger.fromString("123+456") }
     }
 
+    @Test
+    fun constructor_copiesAndNormalizesMagnitude() {
+        val inputMagnitude = intArrayOf(5, 0)
+        val value = KBigInteger(1, inputMagnitude)
+        inputMagnitude[0] = 9
+
+        val exposedMagnitude = value.magnitude
+        exposedMagnitude[0] = 7
+
+        assertEquals("5", value.toString())
+        assertEquals(KBigInteger.ZERO, KBigInteger(0, intArrayOf(5)))
+    }
+
     // --- KBigInteger Edge Cases ---
 
     @Test
