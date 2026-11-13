@@ -121,11 +121,13 @@ val sum = bigDecimal1 + bigDecimal2
 val difference = bigDecimal1 - bigDecimal2
 val product = bigDecimal1 * bigDecimal2
 
-// Division (Operator '/' defaults to scale 10, HALF_UP)
+// Division defaults to scale 10 with HALF_UP rounding
 val quotient = bigDecimal1 / bigDecimal2
+val sameDefault = bigDecimal1.divide(bigDecimal2)
 
 // Precise Division
 val preciseQuotient = bigDecimal1.divide(bigDecimal2, scale = 20, rounding = KBRoundingMode.HalfUp)
+val currencyQuotient = bigDecimal1.divide(bigDecimal2, DivisionStrategy.CURRENCY)
 
 // Advanced operations
 val sqrt = KBigMath.sqrt(bigDecimal1, 10)

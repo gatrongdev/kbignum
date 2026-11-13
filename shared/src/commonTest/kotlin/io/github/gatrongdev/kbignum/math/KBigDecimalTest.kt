@@ -530,7 +530,7 @@ class KBigDecimalTest {
         // Arrange
         val dividend = "123.45".toKBigDecimal()
         val divisor = "2".toKBigDecimal()
-        val expected = "61.73".toKBigDecimal()
+        val expected = "61.7250000000".toKBigDecimal()
 
         // Act
         val actual = dividend.divide(divisor)
@@ -543,7 +543,7 @@ class KBigDecimalTest {
     fun divide_singleParameter_numberByItself_returnsOne() {
         // Arrange
         val number = "123.45".toKBigDecimal()
-        val expected = "1.00".toKBigDecimal()
+        val expected = "1.0000000000".toKBigDecimal()
 
         // Act
         val actual = number.divide(number)
@@ -562,7 +562,7 @@ class KBigDecimalTest {
         val actual = number.divide(one)
 
         // Assert
-        assertEquals(number, actual)
+        assertEquals("123.4500000000", actual.toString())
     }
 
     @Test
@@ -595,7 +595,7 @@ class KBigDecimalTest {
         // Arrange
         val positive = "123.45".toKBigDecimal() // scale 2
         val negative = "-67.89".toKBigDecimal() // scale 2
-        val expected = "-1.82".toKBigDecimal() // scale 2 (consistent with same scales rule)
+        val expected = "-1.8183826779".toKBigDecimal()
 
         // Act
         val actual = positive.divide(negative)
@@ -609,7 +609,7 @@ class KBigDecimalTest {
         // Arrange
         val negative1 = "-123.45".toKBigDecimal() // scale 2
         val negative2 = "-67.89".toKBigDecimal() // scale 2
-        val expected = "1.82".toKBigDecimal() // scale 2 (consistent with same scales rule)
+        val expected = "1.8183826779".toKBigDecimal()
 
         // Act
         val actual = negative1.divide(negative2)
@@ -619,33 +619,33 @@ class KBigDecimalTest {
     }
 
     @Test
-    fun divide_singleParameter_withDifferentScales_usesMaxScale() {
+    fun divide_singleParameter_withDifferentScales_usesDefaultScale() {
         // Arrange
         val dividend = "123.4567".toKBigDecimal() // scale 4
         val divisor = "12.34".toKBigDecimal() // scale 2
-        // Expected scale should be max(4, 2) = 4
+        val expected = "10.0045948136".toKBigDecimal()
 
         // Act
         val actual = dividend.divide(divisor)
 
         // Assert
-        assertEquals(4, actual.scale())
-        assertTrue(actual.toString().startsWith("10.00"))
+        assertEquals(10, actual.scale())
+        assertEquals(expected, actual)
     }
 
     @Test
-    fun divide_singleParameter_withSameScales_maintainsScale() {
+    fun divide_singleParameter_withSameScales_usesDefaultScale() {
         // Arrange
         val dividend = "123.45".toKBigDecimal() // scale 2
         val divisor = "12.34".toKBigDecimal() // scale 2
-        // Expected scale should be max(2, 2) = 2
+        val expected = "10.0040518639".toKBigDecimal()
 
         // Act
         val actual = dividend.divide(divisor)
 
         // Assert
-        assertEquals(2, actual.scale())
-        assertTrue(actual.toString().startsWith("10.00"))
+        assertEquals(10, actual.scale())
+        assertEquals(expected, actual)
     }
 
     // SETSCALE FUNCTION TESTS
