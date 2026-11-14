@@ -126,9 +126,10 @@ shared/src/
 ├── commonTest/kotlin/          # Common tests
 ├── androidMain/kotlin/         # Android-specific implementations
 ├── androidUnitTest/kotlin/     # Android tests
-├── iosMain/kotlin/            # iOS-specific implementations
-└── iosTest/kotlin/            # iOS tests
+└── iosMain/kotlin/             # iOS-specific implementations
 ```
+
+The iOS simulator currently runs the shared `commonTest` suite; there are no iOS-only test sources in this repository.
 
 ## 🧪 Testing
 

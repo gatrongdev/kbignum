@@ -152,6 +152,10 @@ val sign = bigDecimal1.signum()
 
 ```kotlin
 // Mathematical operations
+val bigInteger1 = "48".toKBigInteger()
+val bigInteger2 = "18".toKBigInteger()
+val bigDecimal1 = "12.5".toKBigDecimal()
+
 val gcd = KBigMath.gcd(bigInteger1, bigInteger2)
 val lcm = KBigMath.lcm(bigInteger1, bigInteger2)
 val power = bigDecimal1.pow(5)
