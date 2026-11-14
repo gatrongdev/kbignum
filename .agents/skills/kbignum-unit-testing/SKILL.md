@@ -21,6 +21,8 @@ Use this skill for test work in the KBigNum library. Read [`docs/architecture.md
 4. Keep randomized tests deterministic with explicit seeds and bounded workloads. Use a reference oracle only in a source set where that oracle is available; do not convert exact values through floating-point types to simplify an assertion.
 5. Re-run `./gradlew runAllChecks` after test changes. If common behavior needs iOS validation, run `./gradlew :shared:iosSimulatorArm64Test` when that target is available.
 
+For multiplication changes, add focused magnitude cases immediately below and at the measured word-count dispatches, all-ones limbs that force carry propagation, unequal operand lengths, and Karatsuba half-differences that are positive, negative, or zero. Put `java.math.BigInteger` oracle cases in `androidUnitTest`; use `commonTest` for platform-independent fixed results and identities.
+
 ## Coverage guardrail
 
 `runAllChecks` invokes `koverVerify`. The global minimum is 87% line coverage and 80% branch coverage, based on the current project baseline. Keep both floors or improve them when production code is added or changed.

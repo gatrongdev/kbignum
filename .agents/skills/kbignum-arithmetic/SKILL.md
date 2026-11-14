@@ -15,6 +15,17 @@ Use this workflow for arithmetic changes in `shared`. For general Gradle, releas
 - `KBigDecimal` represents `unscaledValue × 10^-scale`. Check the current validation and scale behavior before changing it. The default `divide(other)` currently uses `max(this.scale, other.scale)` with `HalfUp`; treat a change to that behavior as an API behavior change.
 - Preserve exactness, sign behavior, overflow handling, and error semantics established by tests. Do not route exact arithmetic through primitive numeric approximations.
 
+## Multiplication performance work
+
+- Profile the current leaf kernel and dispatch before changing thresholds. Keep the schoolbook, Karatsuba, and any future Toom-Cook code in `commonMain` unless a concrete platform API requirement justifies an `expect`/`actual` path.
+- Calibrate top-level and recursive thresholds independently with the checked-in JMH suite. Keep seeded inputs, JVM, fork count, warmup, and measurement time fixed between baseline and candidate runs; use repeated runs when differences are near the target.
+- Keep the forced-schoolbook crossover reference in sync with the production leaf kernel. Treat an algorithm crossover as stable only when confidence intervals separate for several adjacent operand sizes; isolated points can be scheduling noise.
+- Measure both `KBigInteger` and `KBigDecimal` multiplication. Include scale-mismatched decimal operations that multiply by powers of ten, and screen unrelated arithmetic for regressions before accepting a dispatch change.
+- For follow-up work, benchmark squaring separately because `pow()` repeatedly multiplies a value by itself; also compare balanced and unbalanced operand ratios before choosing a shared threshold. Consider scratch-buffer allocation reduction before higher-order algorithms when allocation profiles justify it.
+- Do not assume HotSpot's `java.math.BigInteger` intrinsic applies to Kotlin code. HotSpot can JIT Kotlin/JVM bytecode, but a library intrinsic is registered for a particular JDK method and signature; Android ART and Kotlin/Native use different runtimes.
+- Update the focused A/B CSV/chart and architecture guidance when a measured optimization changes the shared multiplication path. Report run-to-run spread separately from formal confidence intervals.
+- Refresh crossover-only artifacts with `scripts/render_benchmark_charts.py <filtered-jmh-json> --crossover-only`; use the full benchmark renderer when updating the complete operation comparison.
+
 ## Workflow
 
 1. Trace the affected public operation into its implementation and tests. Identify representation invariants and the observable behavior for zero, signs, boundaries, and errors that apply to the change.
