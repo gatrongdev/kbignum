@@ -9,6 +9,8 @@ import html
 import json
 import math
 import platform
+import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict
@@ -495,7 +497,15 @@ def main() -> None:
     crossover_chart_path = root / "docs/assets/benchmark-multiplication-crossover.svg"
     crossover_chart_path.write_text(render_crossover_svg(crossover, generated_utc, jvm_version, jmh_version), encoding="utf-8")
     update_readme(root / "README.md", render_summary(results, crossover, generated_utc, jvm_version, jmh_version))
-    print(f"Updated {chart_path.relative_to(root)}, {crossover_chart_path.relative_to(root)}, and README benchmark summary")
+    print(
+        f"Updated {chart_path.relative_to(root)}, {crossover_chart_path.relative_to(root)}, and README benchmark summary",
+        flush=True,
+    )
+    decimal_renderer = root / "scripts/render_decimal_benchmarks.py"
+    subprocess.run(
+        [sys.executable, str(decimal_renderer), str(args.jmh_json), "--root", str(root)],
+        check=True,
+    )
 
 
 if __name__ == "__main__":

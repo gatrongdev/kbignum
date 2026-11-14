@@ -51,6 +51,10 @@ The multiplication crossover chart compares the production multiplication path w
 
 ![KBigInteger multiplication crossover](docs/assets/benchmark-multiplication-crossover.svg)
 
+The BigDecimal chart compares `KBigDecimal` with `java.math.BigDecimal` at 34, 100, 500, and 1000 input digits. It covers same-scale and mismatched-scale addition and subtraction, multiplication, division at scale 16 with `HalfUp`, rescaling from 8 to 4 with `HalfUp`, parsing, and plain-string formatting. Inputs are seeded and signed; each corresponding result is checked before timing. Parsing and formatting are measured separately from arithmetic.
+
+![KBigDecimal JVM latency by input precision](docs/assets/benchmark-bigdecimal-latency.svg)
+
 <!-- BENCHMARK_SUMMARY_START -->
 
 ### KBigInteger latency ratio
@@ -61,29 +65,70 @@ Interval overlap is a conservative visual cue, not a formal paired significance 
 
 | Operation (KBigInteger / Java BigInteger) | 1024 bits | 2048 bits | 2560 bits | 3072 bits | 4096 bits | 8192 bits |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| Addition | **↓ 0.68x** | **↓ 0.65x** | **↓ 0.64x** | **↓ 0.63x** | 0.55x† | **↓ 0.70x** |
-| Subtraction | 1.37x† | 1.46x† | 2.02x† | 1.42x† | 1.33x† | 1.06x† |
-| Multiplication | **↑ 3.68x** | 5.34x† | **↑ 2.69x** | **↑ 3.14x** | **↑ 3.07x** | **↑ 2.38x** |
-| Division | 1.28x† | 1.28x† | **↑ 2.00x** | 1.31x† | 0.93x† | 0.98x† |
-| Remainder | 0.97x† | 1.12x† | 1.23x† | 0.97x† | 1.02x† | 1.38x† |
+| Addition | **↓ 0.64x** | **↓ 0.53x** | **↓ 0.66x** | **↓ 0.75x** | **↓ 0.74x** | **↓ 0.67x** |
+| Subtraction | 1.61x† | **↑ 1.29x** | **↑ 1.14x** | 1.09x† | 0.80x† | 0.84x† |
+| Multiplication | **↑ 3.38x** | **↑ 3.77x** | **↑ 2.80x** | **↑ 3.34x** | **↑ 3.66x** | **↑ 3.01x** |
+| Division | 0.97x† | 0.99x† | 1.02x† | 1.00x† | 1.02x† | **↑ 1.65x** |
+| Remainder | 1.00x† | 1.04x† | 0.98x† | 1.06x† | 0.98x† | **↑ 1.50x** |
 
 ### Current multiplication crossover check
 
 | Operand ratio (larger : smaller) | First size where production CI is below schoolbook CI |
 | :---: | :--- |
-| 1:1 | 88 words |
-| 2:1 | 96 words |
-| 4:1 | 160 words |
+| 1:1 | 80 words |
+| 2:1 | 128 words |
+| 4:1 | 128 words |
 
-Generated 2026-11-14 02:34 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`latest.csv`](benchmarks/results/latest.csv) and [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
+Generated 2026-11-14 03:29 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`latest.csv`](benchmarks/results/latest.csv) and [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
 
 <!-- BENCHMARK_SUMMARY_END -->
 
+<!-- BIGDECIMAL_BENCHMARK_SUMMARY_START -->
+
+### KBigDecimal latency ratio
+
+Each cell is `KBigDecimal ns/op ÷ Java BigDecimal ns/op`. `↓`/`↑` mark non-overlapping JMH intervals; `†` marks overlapping intervals, so the ratio is inconclusive.
+
+Interval overlap is a conservative visual cue, not a formal paired significance test.
+
+| Operation (KBigDecimal / Java BigDecimal) | 34 digits | 100 digits | 500 digits | 1000 digits |
+| :--- | :---: | :---: | :---: | :---: |
+| Addition (scale 8) | 1.24x† | 1.25x† | **↑ 1.14x** | 1.13x† |
+| Addition (scales 8 and 16) | **↑ 2.20x** | **↑ 2.57x** | **↑ 2.36x** | **↑ 2.13x** |
+| Subtraction (scale 8) | 1.26x† | 1.51x† | 1.19x† | 1.19x† |
+| Subtraction (scales 8 and 16) | **↑ 2.01x** | **↑ 2.47x** | **↑ 3.75x** | **↑ 2.45x** |
+| Multiplication (scales 8 and 16) | **↑ 2.28x** | **↑ 2.85x** | **↑ 3.80x** | **↑ 2.95x** |
+| Division (result scale 16, HalfUp) | 0.46x† | 0.81x† | **↑ 1.49x** | **↑ 1.52x** |
+| setScale 8 to 4 (HalfUp) | **↑ 1.54x** | 1.01x† | 1.01x† | 0.96x† |
+| Parsing | **↑ 1.20x** | **↑ 1.25x** | **↑ 1.10x** | 1.02x† |
+| Plain-string formatting | 0.90x† | 0.91x† | 1.01x† | **↑ 1.11x** |
+
+Across every tested input size in this run, KBigDecimal had separated slower intervals for Addition (scales 8 and 16), Subtraction (scales 8 and 16), Multiplication (scales 8 and 16). Treat these as profiling candidates for the recorded JVM and machine.
+
+Generated 2026-11-14 03:32 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`latest-bigdecimal.csv`](benchmarks/results/latest-bigdecimal.csv).
+
+<!-- BIGDECIMAL_BENCHMARK_SUMMARY_END -->
+
 ### Regenerate the benchmark
 
-Run `./gradlew updateBenchmark` with JDK 17 or newer and Python 3.8 or newer. This runs the JMH suite, saves the arithmetic and crossover measurements to CSV, updates both charts, and refreshes the ratio table above.
+Run `./gradlew updateBenchmark` with JDK 17 or newer and Python 3.8 or newer. This runs the integer, decimal, and multiplication crossover JMH suites, saves the measurements to CSV, updates all charts, and refreshes the ratio tables above.
 
 The chart is a JVM snapshot for the recorded machine and JDK. It does not predict Android, iOS, JS, or Native performance and is not used as a CI pass/fail threshold.
+
+## BigDecimal scale and rounding
+
+`KBigDecimal` stores a value as `unscaledValue × 10^-scale`. Scale is part of representation: `1.0` and `1.00` compare numerically as equal, but `equals` returns false because their scales differ. Trailing zeros are preserved by parsing and formatting.
+
+Division has explicit scale behavior. The `/` operator returns 10 fractional digits with `HalfUp`; `divide(other)` returns `max(this.scale, other.scale)` fractional digits with `HalfUp`; use the overload with `scale` and `rounding` when a calculation needs a specific result scale.
+
+```kotlin
+val amount = "1.00".toKBigDecimal()
+val divisor = "3.0".toKBigDecimal()
+
+val operatorResult = amount / divisor // scale 10, HalfUp
+val defaultResult = amount.divide(divisor) // max input scale (2), HalfUp
+val explicitResult = amount.divide(divisor, scale = 6, rounding = KBRoundingMode.HalfEven)
+```
 
 
 ## Quick Start
