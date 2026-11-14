@@ -3,6 +3,7 @@ package io.github.gatrongdev.kbignum.math
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
+import java.math.BigInteger
 import kotlin.random.Random
 
 class KBigDecimalComplianceTest {
@@ -111,6 +112,62 @@ class KBigDecimalComplianceTest {
         val result = kA.subtract(kB)
 
         assertEquals("Scale Mismatch Sub failed", expected.toPlainString(), result.toJavaBigDecimal().toPlainString())
+    }
+
+    @Test
+    fun testScaleAlignmentAcrossBenchmarkGaps() {
+        val gaps = listOf(1, 8, 32, 128)
+        val leftUnscaledValues =
+            listOf(
+                BigInteger("123456789012345678901234567890"),
+                BigInteger("-98765432109876543210987654321"),
+                BigInteger.ZERO,
+            )
+        val rightUnscaledValues =
+            listOf(
+                BigInteger("9876543210123456789"),
+                BigInteger("-12345678987654321"),
+            )
+
+        for (gap in gaps) {
+            for (leftUnscaled in leftUnscaledValues) {
+                for (rightUnscaled in rightUnscaledValues) {
+                    val left = BigDecimal(leftUnscaled, 8)
+                    val right = BigDecimal(rightUnscaled, 8 + gap)
+                    val kLeft = createKBigDecimal(left)
+                    val kRight = createKBigDecimal(right)
+
+                    assertEquals(
+                        "Addition failed at scale gap $gap for $left + $right",
+                        left.add(right).toPlainString(),
+                        kLeft.add(kRight).toJavaBigDecimal().toPlainString(),
+                    )
+                    assertEquals(
+                        "Subtraction failed at scale gap $gap for $left - $right",
+                        left.subtract(right).toPlainString(),
+                        kLeft.subtract(kRight).toJavaBigDecimal().toPlainString(),
+                    )
+                }
+            }
+        }
+
+        val reusableLeft = BigDecimal(BigInteger("12345678901234567890"), 8)
+        val reusableKLeft = createKBigDecimal(reusableLeft)
+        for (gap in listOf(128, 101, 128, 129)) {
+            val right = BigDecimal(BigInteger("9876543210987654321"), 8 + gap)
+            val kRight = createKBigDecimal(right)
+
+            assertEquals(
+                "Addition failed when reusing a receiver at scale gap $gap",
+                reusableLeft.add(right).toPlainString(),
+                reusableKLeft.add(kRight).toJavaBigDecimal().toPlainString(),
+            )
+            assertEquals(
+                "Subtraction failed when reusing a receiver at scale gap $gap",
+                reusableLeft.subtract(right).toPlainString(),
+                reusableKLeft.subtract(kRight).toJavaBigDecimal().toPlainString(),
+            )
+        }
     }
 
     // --- Rounding Mode Tests ---

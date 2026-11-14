@@ -53,9 +53,11 @@ The multiplication crossover chart compares the production multiplication path w
 
 ![KBigInteger multiplication crossover](docs/assets/benchmark-multiplication-crossover.svg)
 
-The BigDecimal chart compares `KBigDecimal` with `java.math.BigDecimal` at 34, 100, 500, and 1000 input digits. It covers same-scale and mismatched-scale addition and subtraction, multiplication, division at scale 16 with `HalfUp`, rescaling from 8 to 4 with `HalfUp`, parsing, and plain-string formatting. Inputs are seeded and signed; each corresponding result is checked before timing. Parsing and formatting are measured separately from arithmetic.
+The BigDecimal chart compares `KBigDecimal` with `java.math.BigDecimal` at 34, 100, 500, and 1000 input digits. It covers same-scale and mismatched-scale addition and subtraction, multiplication, division at scale 16 with `HalfUp`, rescaling from 8 to 4 with `HalfUp`, parsing, and plain-string formatting. Inputs are seeded and signed; each corresponding result is checked before timing. Parsing and formatting are measured separately from arithmetic. The scale-alignment sweep reuses 32 seeded operand pairs and measures addition and subtraction with scale gaps of 1, 8, 32, and 128.
 
 ![KBigDecimal JVM latency by input precision](docs/assets/benchmark-bigdecimal-latency.svg)
+
+![KBigDecimal scale-alignment latency by scale gap and input precision](docs/assets/benchmark-decimal-scale-alignment.svg)
 
 <!-- BENCHMARK_SUMMARY_START -->
 
@@ -95,19 +97,36 @@ Interval overlap is a conservative visual cue, not a formal paired significance 
 
 | Operation (KBigDecimal / Java BigDecimal) | 34 digits | 100 digits | 500 digits | 1000 digits |
 | :--- | :---: | :---: | :---: | :---: |
-| Addition (scale 8) | 1.24x† | 1.25x† | **↑ 1.14x** | 1.13x† |
-| Addition (scales 8 and 16) | **↑ 2.20x** | **↑ 2.57x** | **↑ 2.36x** | **↑ 2.13x** |
-| Subtraction (scale 8) | 1.26x† | 1.51x† | 1.19x† | 1.19x† |
-| Subtraction (scales 8 and 16) | **↑ 2.01x** | **↑ 2.47x** | **↑ 3.75x** | **↑ 2.45x** |
-| Multiplication (scales 8 and 16) | **↑ 2.28x** | **↑ 2.85x** | **↑ 3.80x** | **↑ 2.95x** |
-| Division (result scale 16, HalfUp) | 0.46x† | 0.81x† | **↑ 1.49x** | **↑ 1.52x** |
-| setScale 8 to 4 (HalfUp) | **↑ 1.54x** | 1.01x† | 1.01x† | 0.96x† |
-| Parsing | **↑ 1.20x** | **↑ 1.25x** | **↑ 1.10x** | 1.02x† |
-| Plain-string formatting | 0.90x† | 0.91x† | 1.01x† | **↑ 1.11x** |
+| Addition (scale 8) | **↑ 1.16x** | 1.22x† | 0.98x† | **↑ 1.38x** |
+| Addition (scales 8 and 16) | **↑ 2.20x** | **↑ 2.25x** | **↑ 2.18x** | **↑ 2.35x** |
+| Subtraction (scale 8) | 0.98x† | 1.19x† | 0.97x† | 0.96x† |
+| Subtraction (scales 8 and 16) | **↑ 2.16x** | **↑ 2.22x** | **↑ 2.10x** | **↑ 2.11x** |
+| Multiplication (scales 8 and 16) | **↑ 1.57x** | **↑ 2.55x** | **↑ 4.03x** | **↑ 3.01x** |
+| Division (result scale 16, HalfUp) | 0.94x† | 0.95x† | **↑ 1.54x** | **↑ 1.50x** |
+| setScale 8 to 4 (HalfUp) | 1.27x† | 1.06x† | 1.00x† | 0.84x† |
+| Parsing | **↑ 1.22x** | 1.78x† | 1.08x† | 0.93x† |
+| Plain-string formatting | 1.03x† | 0.70x† | **↓ 0.89x** | **↑ 1.11x** |
 
 Across every tested input size in this run, KBigDecimal had separated slower intervals for Addition (scales 8 and 16), Subtraction (scales 8 and 16), Multiplication (scales 8 and 16). Treat these as profiling candidates for the recorded JVM and machine.
 
-Generated 2026-11-14 03:32 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`latest-bigdecimal.csv`](benchmarks/results/latest-bigdecimal.csv).
+Generated 2026-11-14 04:25 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`latest-bigdecimal.csv`](benchmarks/results/latest-bigdecimal.csv).
+
+### Scale-alignment latency ratio
+
+Addition and subtraction align a left operand at scale 8 with a right operand at scale `8 + gap`. Each cell is `KBigDecimal ns/op ÷ Java BigDecimal ns/op`; lower is faster. `↓`/`↑` mark non-overlapping JMH intervals and `†` marks overlap.
+
+| Operation / scale gap | 34 digits | 100 digits | 500 digits | 1000 digits |
+| :--- | :---: | :---: | :---: | :---: |
+| Addition, gap 1 | **↑ 1.78x** | **↑ 1.78x** | **↑ 1.95x** | **↑ 2.18x** |
+| Addition, gap 8 | **↑ 2.61x** | **↑ 2.23x** | **↑ 2.18x** | **↑ 2.22x** |
+| Addition, gap 32 | **↑ 1.82x** | **↑ 1.57x** | **↑ 2.14x** | **↑ 2.18x** |
+| Addition, gap 128 | **↑ 2.77x** | **↑ 2.12x** | **↑ 2.76x** | **↑ 2.71x** |
+| Subtraction, gap 1 | **↑ 1.80x** | **↑ 1.74x** | **↑ 1.81x** | **↑ 2.05x** |
+| Subtraction, gap 8 | **↑ 1.65x** | **↑ 2.45x** | **↑ 2.56x** | **↑ 2.14x** |
+| Subtraction, gap 32 | **↑ 1.58x** | **↑ 1.74x** | **↑ 2.18x** | **↑ 2.17x** |
+| Subtraction, gap 128 | **↑ 2.54x** | **↑ 2.16x** | **↑ 2.69x** | **↑ 3.24x** |
+
+The chart and raw measurements are available in [`benchmark-decimal-scale-alignment.svg`](docs/assets/benchmark-decimal-scale-alignment.svg) and [`scale-alignment.csv`](benchmarks/results/scale-alignment.csv).
 
 <!-- BIGDECIMAL_BENCHMARK_SUMMARY_END -->
 
