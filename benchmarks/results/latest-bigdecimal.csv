@@ -1,0 +1,73 @@
+operation,implementation,input_digits,score_ns_op,ci_lower_ns_op,ci_upper_ns_op,jmh_version,jvm_version,platform,generated_utc
+Addition (scale 8),Java BigDecimal,34,17.100523,15.557013,18.644033,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scale 8),Java BigDecimal,100,19.887723,19.216293,20.559152,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scale 8),Java BigDecimal,500,53.884073,49.933257,57.834889,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scale 8),Java BigDecimal,1000,101.394488,85.865531,116.923445,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scale 8),KBigDecimal,34,21.127958,18.508192,23.747724,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scale 8),KBigDecimal,100,24.877812,19.512834,30.242789,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scale 8),KBigDecimal,500,61.487564,58.215952,64.759176,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scale 8),KBigDecimal,1000,115.049502,111.585558,118.513446,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scales 8 and 16),Java BigDecimal,34,22.479061,21.168831,23.789290,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scales 8 and 16),Java BigDecimal,100,29.480670,28.541136,30.420204,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scales 8 and 16),Java BigDecimal,500,115.288948,109.295980,121.281917,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scales 8 and 16),Java BigDecimal,1000,234.432828,224.685597,244.180059,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scales 8 and 16),KBigDecimal,34,49.556682,47.648927,51.464437,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scales 8 and 16),KBigDecimal,100,75.712462,59.748736,91.676189,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scales 8 and 16),KBigDecimal,500,272.521021,253.737282,291.304760,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Addition (scales 8 and 16),KBigDecimal,1000,498.846769,486.662183,511.031354,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scale 8),Java BigDecimal,34,18.089970,15.249438,20.930501,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scale 8),Java BigDecimal,100,22.476831,21.909980,23.043682,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scale 8),Java BigDecimal,500,58.374711,50.275823,66.473600,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scale 8),Java BigDecimal,1000,108.043933,93.584379,122.503486,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scale 8),KBigDecimal,34,22.747368,19.756768,25.737969,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scale 8),KBigDecimal,100,33.884403,4.683027,63.085779,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scale 8),KBigDecimal,500,69.235738,66.098858,72.372618,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scale 8),KBigDecimal,1000,128.413909,116.582941,140.244876,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scales 8 and 16),Java BigDecimal,34,25.897054,23.304588,28.489521,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scales 8 and 16),Java BigDecimal,100,33.548648,31.959178,35.138117,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scales 8 and 16),Java BigDecimal,500,114.922402,107.269009,122.575795,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scales 8 and 16),Java BigDecimal,1000,231.349879,218.093101,244.606656,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scales 8 and 16),KBigDecimal,34,52.174890,48.079825,56.269955,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scales 8 and 16),KBigDecimal,100,82.784175,67.230553,98.337796,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scales 8 and 16),KBigDecimal,500,430.444475,316.357043,544.531908,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Subtraction (scales 8 and 16),KBigDecimal,1000,566.736571,491.563667,641.909476,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Multiplication (scales 8 and 16),Java BigDecimal,34,24.993191,21.125043,28.861339,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Multiplication (scales 8 and 16),Java BigDecimal,100,64.326815,60.296565,68.357064,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Multiplication (scales 8 and 16),Java BigDecimal,500,627.456442,620.692907,634.219978,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Multiplication (scales 8 and 16),Java BigDecimal,1000,2589.754656,2519.077110,2660.432202,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Multiplication (scales 8 and 16),KBigDecimal,34,56.979868,34.683671,79.276065,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Multiplication (scales 8 and 16),KBigDecimal,100,183.288196,164.279686,202.296706,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Multiplication (scales 8 and 16),KBigDecimal,500,2382.579768,2294.214049,2470.945487,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Multiplication (scales 8 and 16),KBigDecimal,1000,7638.642000,7379.654417,7897.629584,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+"Division (result scale 16, HalfUp)",Java BigDecimal,34,345.030515,-394.267006,1084.328036,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+"Division (result scale 16, HalfUp)",Java BigDecimal,100,350.150929,150.148274,550.153585,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+"Division (result scale 16, HalfUp)",Java BigDecimal,500,752.231110,713.004376,791.457844,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+"Division (result scale 16, HalfUp)",Java BigDecimal,1000,1484.697375,1372.139625,1597.255125,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+"Division (result scale 16, HalfUp)",KBigDecimal,34,157.347190,147.797302,166.897078,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+"Division (result scale 16, HalfUp)",KBigDecimal,100,281.926163,268.864080,294.988246,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+"Division (result scale 16, HalfUp)",KBigDecimal,500,1120.052012,1082.317977,1157.786046,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+"Division (result scale 16, HalfUp)",KBigDecimal,1000,2255.216341,2052.051708,2458.380975,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+setScale 8 to 4 (HalfUp),Java BigDecimal,34,46.251479,41.392689,51.110269,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+setScale 8 to 4 (HalfUp),Java BigDecimal,100,99.070208,87.861226,110.279190,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+setScale 8 to 4 (HalfUp),Java BigDecimal,500,313.255746,308.213259,318.298233,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+setScale 8 to 4 (HalfUp),Java BigDecimal,1000,655.986365,636.189752,675.782978,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+setScale 8 to 4 (HalfUp),KBigDecimal,34,71.199372,66.764168,75.634575,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+setScale 8 to 4 (HalfUp),KBigDecimal,100,100.415470,89.024061,111.806880,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+setScale 8 to 4 (HalfUp),KBigDecimal,500,316.024889,300.158640,331.891138,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+setScale 8 to 4 (HalfUp),KBigDecimal,1000,627.994636,549.645245,706.344027,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Parsing,Java BigDecimal,34,167.610083,161.847910,173.372257,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Parsing,Java BigDecimal,100,452.709653,442.767988,462.651317,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Parsing,Java BigDecimal,500,5648.412380,5501.001744,5795.823015,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Parsing,Java BigDecimal,1000,22091.940503,21723.032815,22460.848192,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Parsing,KBigDecimal,34,200.539605,184.675885,216.403326,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Parsing,KBigDecimal,100,567.490334,539.813995,595.166673,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Parsing,KBigDecimal,500,6236.762358,5861.927134,6611.597582,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Parsing,KBigDecimal,1000,22425.176789,20111.628704,24738.724873,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Plain-string formatting,Java BigDecimal,34,313.137098,291.789054,334.485141,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Plain-string formatting,Java BigDecimal,100,1075.300519,944.359257,1206.241782,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Plain-string formatting,Java BigDecimal,500,11533.131403,11152.936675,11913.326132,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Plain-string formatting,Java BigDecimal,1000,32740.620567,32014.879156,33466.361978,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Plain-string formatting,KBigDecimal,34,281.656688,255.359383,307.953994,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Plain-string formatting,KBigDecimal,100,981.404281,652.053165,1310.755398,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Plain-string formatting,KBigDecimal,500,11598.454951,9257.079341,13939.830561,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC
+Plain-string formatting,KBigDecimal,1000,36302.878072,34709.214554,37896.541590,1.36,21.0.8+9-b1140.54,Darwin 25.2.0 / arm64,2026-11-14 03:32 UTC

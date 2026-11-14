@@ -19,7 +19,7 @@ tasks.register<Delete>("clean") {
 
 tasks.register<Exec>("updateBenchmark") {
     group = "documentation"
-    description = "Run the JVM benchmarks and regenerate the README chart and summary"
+    description = "Run the JVM benchmarks and regenerate integer and decimal README charts and summaries"
     dependsOn(":benchmarks:jmh")
 
     val renderer = layout.projectDirectory.file("scripts/render_benchmark_charts.py")
