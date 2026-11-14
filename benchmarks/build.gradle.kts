@@ -9,11 +9,11 @@ dependencies {
 jmh {
     jmhVersion = "1.36"
     benchmarkMode = listOf("avgt")
-    warmupIterations = 3
-    iterations = 5
-    fork = 2
-    warmup = "500ms"
-    timeOnIteration = "500ms"
+    warmupIterations = 2
+    iterations = 4
+    fork = 3
+    warmup = "250ms"
+    timeOnIteration = "250ms"
     timeUnit = "ns"
     threads = 1
     resultFormat = "JSON"
