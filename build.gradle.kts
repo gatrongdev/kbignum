@@ -16,3 +16,11 @@ plugins {
 tasks.register<Delete>("clean") {
     delete(layout.buildDirectory)
 }
+
+// Keep the documented `./gradlew clean build test` entry point working with the
+// Android KMP plugin, which exposes testAndroid/testAndroidHostTest instead of `test`.
+tasks.register("test") {
+    group = "verification"
+    description = "Runs the shared module's Android host and desktop test suites."
+    dependsOn(":shared:runAllTest")
+}
