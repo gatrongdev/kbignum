@@ -41,67 +41,35 @@ dependencies {
 ```
 
 ## Performance
-`KBignum` offers competitive performance by utilizing efficient algorithms (Knuth's Algorithm D for division, optimized magnitude arithmetic). Below is a comparison against Java's native implementations on JVM:
+The previous hand-timed figures were removed because their one-shot millisecond measurements and operand generation were not reproducible. This JVM baseline uses JMH to compare `KBigInteger` with `java.math.BigInteger` using the same seeded operands. Each result is checked for equality before timing.
 
-### KBigInteger
+The chart shows average latency in nanoseconds per operation across 1024-, 2048-, 2560-, 3072-, 4096-, and 8192-bit operands. The 2560-bit point is included to track the current multiplication algorithm threshold. JMH runs one thread, two forks, three warmup iterations, and five measurement iterations of 500 ms each.
 
-#### 2048-bit Numbers
-| Operation | Java (ms) | KBignum (ms) | Relative |
-| :--- | :---: | :---: | :---: |
-| **Add** | 19 | 15 | **0.79x ✓** |
-| **Subtract** | 48 | 38 | **0.79x ✓** |
-| **Multiply** | 62 | 66 | 1.06x |
-| **Divide** | 94 | 90 | **0.96x ✓** |
-| **Modulo** | 28 | 42 | 1.50x |
+![KBigInteger JVM latency by operand size](docs/assets/benchmark-integer-latency.svg)
 
-#### 4096-bit Numbers
-| Operation | Java (ms) | KBignum (ms) | Relative |
-| :--- | :---: | :---: | :---: |
-| **Add** | 5 | 19 | 3.80x |
-| **Subtract** | 16 | 21 | 1.31x |
-| **Multiply** | 71 | 94 | 1.32x |
-| **Divide** | 29 | 22 | **0.76x ✓** |
-| **Modulo** | 44 | 26 | **0.59x ✓** |
+<!-- BENCHMARK_SUMMARY_START -->
 
-### Factorial
-| Operation | Java (ms) | KBignum (ms) | Relative |
-| :--- | :---: | :---: | :---: |
-| **Factorial(100)** | 15 | 9 | **0.60x ✓** |
-| **Factorial(500)** | 22 | 27 | 1.23x |
-| **Factorial(1000)** | 25 | 55 | 2.20x |
+### KBigInteger latency ratio
 
-### KBigMath (Integer)
-| Operation | Java (ms) | KBignum (ms) | Relative |
-| :--- | :---: | :---: | :---: |
-| **GCD** | 1545 | 5403 | 3.50x |
-| **LCM** | 52 | 193 | 3.71x |
-| **Pow^100** | 50 | 128 | 2.56x |
-### KBigDecimal
+Each cell is `KBigInteger ns/op ÷ Java BigInteger ns/op`; below `1.00x` means KBigInteger was faster in this run.
 
-#### 600-digit (~2000 bits)
-| Operation | Java (ms) | KBigDecimal (ms) | Relative |
-| :--- | :---: | :---: | :---: |
-| **Add** | 2 | 2 | **1.00x ✓** |
-| **Sub** | 2 | 3 | 1.50x |
-| **Mul** | 1 | 4 | 4.00x |
-| **Div** | 4 | 5 | 1.25x |
+| Operation (KBigInteger / Java BigInteger) | 1024 bits | 2048 bits | 2560 bits | 3072 bits | 4096 bits | 8192 bits |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| Addition | **0.87x** | **0.54x** | **0.75x** | **0.85x** | **0.68x** | 1.08x |
+| Subtraction | 1.44x | 1.65x | 3.22x | 3.18x | 1.22x | 1.53x |
+| Multiplication | 3.16x | 3.25x | 3.29x | 2.83x | 3.21x | 3.66x |
+| Division | **0.68x** | **0.80x** | **0.86x** | **0.96x** | **0.97x** | 1.37x |
+| Remainder | **0.42x** | **0.42x** | **0.46x** | **0.87x** | **0.93x** | **0.84x** |
 
-#### 1200-digit (~4000 bits)
-| Operation | Java (ms) | KBigDecimal (ms) | Relative |
-| :--- | :---: | :---: | :---: |
-| **Add** | 1 | 1 | **1.00x ✓** |
-| **Sub** | 1 | 1 | **1.00x ✓** |
-| **Mul** | 3 | 6 | 2.00x |
-| **Div** | 3 | 7 | 2.33x |
+Generated 2026-11-14 01:40 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Source summary: [`benchmarks/results/latest.csv`](benchmarks/results/latest.csv).
 
-### KBigMath (Decimal)
-| Operation | Java (ms) | KBignum (ms) | Relative |
-| :--- | :---: | :---: | :---: |
-| **Sqrt** | 23 | 41 | 1.78x |
-| **Sqrt** | 60 | 43 | **0.72x ✓** |
-| **Sqrt** | 63 | 39 | **0.62x ✓** |
+<!-- BENCHMARK_SUMMARY_END -->
 
-*Note: Benchmarks run on macOS/JVM. ✓ indicates KBignum is faster or equal to Java. KBignum prioritizes portability across KMP targets (Android, iOS, JS, Native).*
+### Regenerate the benchmark
+
+Run `./gradlew updateBenchmark` with JDK 17 or newer and Python 3.10 or newer. This runs the JMH suite, saves the summarized measurements to [`benchmarks/results/latest.csv`](benchmarks/results/latest.csv), updates the chart, and refreshes the ratio table above.
+
+The chart is a JVM snapshot for the recorded machine and JDK. It does not predict Android, iOS, JS, or Native performance and is not used as a CI pass/fail threshold.
 
 
 ## Quick Start

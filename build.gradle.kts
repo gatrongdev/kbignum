@@ -16,3 +16,19 @@ plugins {
 tasks.register<Delete>("clean") {
     delete(layout.buildDirectory)
 }
+
+tasks.register<Exec>("updateBenchmark") {
+    group = "documentation"
+    description = "Run the JVM benchmarks and regenerate the README chart and summary"
+    dependsOn(":benchmarks:jmh")
+
+    val renderer = layout.projectDirectory.file("scripts/render_benchmark_charts.py")
+    val results = layout.projectDirectory.file("benchmarks/build/reports/jmh/results.json")
+
+    doFirst {
+        if (!results.asFile.isFile) {
+            error("JMH result file was not created: ${results.asFile}")
+        }
+        commandLine("python3", renderer.asFile.absolutePath, results.asFile.absolutePath)
+    }
+}
