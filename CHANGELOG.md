@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add Java `BigDecimal` compliance coverage for positive, negative, and zero operands at each benchmarked scale gap.
+
+### Changed
+- Reuse the most recently computed power of ten for exponents 101–128 to reduce repeated scale-alignment work in `KBigDecimal` while keeping larger powers uncached.
+- Expand the BigDecimal benchmark and README results to compare addition and subtraction across scale gaps 1, 8, 32, and 128.
+
 ## [0.0.19] - 2025-01-02
 
 ### Fixed
