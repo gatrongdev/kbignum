@@ -1,4 +1,5 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
@@ -161,6 +162,12 @@ kover {
                 annotatedBy("*Generated*")
             }
         }
+        verify {
+            rule {
+                minBound(87, CoverageUnit.LINE)
+                minBound(80, CoverageUnit.BRANCH)
+            }
+        }
     }
 }
 
@@ -201,8 +208,8 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
 // Tạo task để chạy tất cả checks
 tasks.register("runAllChecks") {
     group = "verification"
-    description = "Run all code quality checks"
-    dependsOn("test", "ktlintCheck", "detekt", "koverXmlReport")
+    description = "Run tests, coverage verification, and code quality checks"
+    dependsOn("test", "ktlintCheck", "detekt", "koverXmlReport", "koverVerify")
 }
 
 tasks.register("runAllTest") {
