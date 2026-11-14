@@ -26,8 +26,10 @@ public class IntegerArithmeticBenchmark {
 
     private BigInteger[] javaLeft;
     private BigInteger[] javaRight;
+    private BigInteger[] javaDivisor;
     private KBigInteger[] kBigLeft;
     private KBigInteger[] kBigRight;
+    private KBigInteger[] kBigDivisor;
     private int cursor;
 
     @Setup(Level.Trial)
@@ -35,14 +37,18 @@ public class IntegerArithmeticBenchmark {
         Random random = new Random(0x4B4269674E756DL + bits);
         javaLeft = new BigInteger[INPUT_COUNT];
         javaRight = new BigInteger[INPUT_COUNT];
+        javaDivisor = new BigInteger[INPUT_COUNT];
         kBigLeft = new KBigInteger[INPUT_COUNT];
         kBigRight = new KBigInteger[INPUT_COUNT];
+        kBigDivisor = new KBigInteger[INPUT_COUNT];
 
         for (int i = 0; i < INPUT_COUNT; i++) {
             javaLeft[i] = randomPositiveInteger(bits, random);
             javaRight[i] = randomPositiveInteger(bits, random);
+            javaDivisor[i] = randomPositiveInteger(bits / 2, random);
             kBigLeft[i] = KBigInteger.Companion.fromString(javaLeft[i].toString());
             kBigRight[i] = KBigInteger.Companion.fromString(javaRight[i].toString());
+            kBigDivisor[i] = KBigInteger.Companion.fromString(javaDivisor[i].toString());
         }
 
         verifyEquivalentResults();
@@ -92,25 +98,25 @@ public class IntegerArithmeticBenchmark {
     @Benchmark
     public Object integerDivideJava() {
         int index = nextIndex();
-        return javaLeft[index].divide(javaRight[index]);
+        return javaLeft[index].divide(javaDivisor[index]);
     }
 
     @Benchmark
     public Object integerDivideKBigNum() {
         int index = nextIndex();
-        return kBigLeft[index].divide(kBigRight[index]);
+        return kBigLeft[index].divide(kBigDivisor[index]);
     }
 
     @Benchmark
     public Object integerRemainderJava() {
         int index = nextIndex();
-        return javaLeft[index].remainder(javaRight[index]);
+        return javaLeft[index].remainder(javaDivisor[index]);
     }
 
     @Benchmark
     public Object integerRemainderKBigNum() {
         int index = nextIndex();
-        return kBigLeft[index].mod(kBigRight[index]);
+        return kBigLeft[index].mod(kBigDivisor[index]);
     }
 
     private int nextIndex() {
@@ -124,8 +130,8 @@ public class IntegerArithmeticBenchmark {
             requireSame(javaLeft[i].add(javaRight[i]), kBigLeft[i].add(kBigRight[i]));
             requireSame(javaLeft[i].subtract(javaRight[i]), kBigLeft[i].subtract(kBigRight[i]));
             requireSame(javaLeft[i].multiply(javaRight[i]), kBigLeft[i].multiply(kBigRight[i]));
-            requireSame(javaLeft[i].divide(javaRight[i]), kBigLeft[i].divide(kBigRight[i]));
-            requireSame(javaLeft[i].remainder(javaRight[i]), kBigLeft[i].mod(kBigRight[i]));
+            requireSame(javaLeft[i].divide(javaDivisor[i]), kBigLeft[i].divide(kBigDivisor[i]));
+            requireSame(javaLeft[i].remainder(javaDivisor[i]), kBigLeft[i].mod(kBigDivisor[i]));
         }
     }
 

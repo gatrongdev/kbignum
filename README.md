@@ -43,31 +43,45 @@ dependencies {
 ## Performance
 The previous hand-timed figures were removed because their one-shot millisecond measurements and operand generation were not reproducible. This JVM baseline uses JMH to compare `KBigInteger` with `java.math.BigInteger` using the same seeded operands. Each result is checked for equality before timing.
 
-The chart shows average latency in nanoseconds per operation across 1024-, 2048-, 2560-, 3072-, 4096-, and 8192-bit operands. The 2560-bit point is included to track the current multiplication algorithm threshold. JMH runs one thread, two forks, three warmup iterations, and five measurement iterations of 500 ms each.
+The chart shows average latency in nanoseconds per operation across 1024-, 2048-, 2560-, 3072-, 4096-, and 8192-bit operands. Division and remainder use a 2:1 dividend-to-divisor bit-length ratio so the quotient is nontrivial. JMH runs one thread, three forks, two warmup iterations, and four measurement iterations of 250 ms each. Ratio markers distinguish separated confidence intervals from inconclusive overlaps.
 
 ![KBigInteger JVM latency by operand size](docs/assets/benchmark-integer-latency.svg)
+
+The multiplication crossover chart compares the production multiplication path with a forced schoolbook reference around its measured dispatch points. It sweeps balanced operands and 2:1 and 4:1 size ratios; raw measurements are in [`benchmarks/results/multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
+
+![KBigInteger multiplication crossover](docs/assets/benchmark-multiplication-crossover.svg)
 
 <!-- BENCHMARK_SUMMARY_START -->
 
 ### KBigInteger latency ratio
 
-Each cell is `KBigInteger ns/op ÷ Java BigInteger ns/op`; below `1.00x` means KBigInteger was faster in this run.
+Each cell is `KBigInteger ns/op ÷ Java BigInteger ns/op`. `↓`/`↑` mark non-overlapping JMH intervals; `†` marks overlapping intervals, so the ratio is inconclusive.
+
+Interval overlap is a conservative visual cue, not a formal paired significance test.
 
 | Operation (KBigInteger / Java BigInteger) | 1024 bits | 2048 bits | 2560 bits | 3072 bits | 4096 bits | 8192 bits |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| Addition | **0.87x** | **0.54x** | **0.75x** | **0.85x** | **0.68x** | 1.08x |
-| Subtraction | 1.44x | 1.65x | 3.22x | 3.18x | 1.22x | 1.53x |
-| Multiplication | 3.16x | 3.25x | 3.29x | 2.83x | 3.21x | 3.66x |
-| Division | **0.68x** | **0.80x** | **0.86x** | **0.96x** | **0.97x** | 1.37x |
-| Remainder | **0.42x** | **0.42x** | **0.46x** | **0.87x** | **0.93x** | **0.84x** |
+| Addition | **↓ 0.68x** | **↓ 0.65x** | **↓ 0.64x** | **↓ 0.63x** | 0.55x† | **↓ 0.70x** |
+| Subtraction | 1.37x† | 1.46x† | 2.02x† | 1.42x† | 1.33x† | 1.06x† |
+| Multiplication | **↑ 3.68x** | 5.34x† | **↑ 2.69x** | **↑ 3.14x** | **↑ 3.07x** | **↑ 2.38x** |
+| Division | 1.28x† | 1.28x† | **↑ 2.00x** | 1.31x† | 0.93x† | 0.98x† |
+| Remainder | 0.97x† | 1.12x† | 1.23x† | 0.97x† | 1.02x† | 1.38x† |
 
-Generated 2026-11-14 01:40 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Source summary: [`benchmarks/results/latest.csv`](benchmarks/results/latest.csv).
+### Current multiplication crossover check
+
+| Operand ratio (larger : smaller) | First size where production CI is below schoolbook CI |
+| :---: | :--- |
+| 1:1 | 88 words |
+| 2:1 | 96 words |
+| 4:1 | 160 words |
+
+Generated 2026-11-14 02:34 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`latest.csv`](benchmarks/results/latest.csv) and [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
 
 <!-- BENCHMARK_SUMMARY_END -->
 
 ### Regenerate the benchmark
 
-Run `./gradlew updateBenchmark` with JDK 17 or newer and Python 3.10 or newer. This runs the JMH suite, saves the summarized measurements to [`benchmarks/results/latest.csv`](benchmarks/results/latest.csv), updates the chart, and refreshes the ratio table above.
+Run `./gradlew updateBenchmark` with JDK 17 or newer and Python 3.8 or newer. This runs the JMH suite, saves the arithmetic and crossover measurements to CSV, updates both charts, and refreshes the ratio table above.
 
 The chart is a JVM snapshot for the recorded machine and JDK. It does not predict Android, iOS, JS, or Native performance and is not used as a CI pass/fail threshold.
 

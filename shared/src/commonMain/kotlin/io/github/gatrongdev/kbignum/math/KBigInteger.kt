@@ -13,12 +13,7 @@ class KBigInteger(
         val ONE = KBigInteger(1, intArrayOf(1))
         val TEN = KBigInteger(1, intArrayOf(10))
 
-        /**
-         * Threshold for switching from schoolbook to Karatsuba multiplication.
-         * Value is in number of Ints (32-bit words).
-         * 80 ints ~= 2560 bits.
-         * Tuned to outperform schoolbook at around 3000-4000 bits.
-         */
+        /** Crossover threshold in 32-bit magnitude words; keep it aligned with the multiplication benchmark. */
         private const val KARATSUBA_THRESHOLD = 80
 
         fun fromLong(value: Long): KBigInteger {
@@ -475,10 +470,7 @@ class KBigInteger(
         return KBigInteger(resultSign, newMag)
     }
 
-    // Helper: Multiplies two absolute values
-    // Uses optimized schoolbook algorithm - O(n²) but low overhead
-    // Karatsuba (O(n^1.585)) is only beneficial for extremely large numbers (>10000 bits)
-    // and its overhead from recursion/allocations makes it slower for typical use cases
+    // Uses schoolbook for small operands and Karatsuba once both magnitudes meet the crossover threshold.
     private fun multiplyMagnitude(
         x: IntArray,
         y: IntArray,
