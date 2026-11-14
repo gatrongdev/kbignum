@@ -7,12 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.22] - 2026-11-14
+
 ### Added
-- Add Java `BigDecimal` compliance coverage for positive, negative, and zero operands at each benchmarked scale gap.
+- Add JMH benchmarks and reproducible benchmark charts for integer and decimal arithmetic, including multiplication crossover measurements.
+- Add Java `BigDecimal` compliance coverage across the benchmarked scale gaps.
 
 ### Changed
-- Reuse the most recently computed power of ten for exponents 101–128 to reduce repeated scale-alignment work in `KBigDecimal` while keeping larger powers uncached.
-- Expand the BigDecimal benchmark and README results to compare addition and subtraction across scale gaps 1, 8, 32, and 128.
+- Optimize common `KBigInteger` multiplication based on calibrated benchmark results.
+- Reuse the most recently computed power of ten for exponents 101–128 while keeping larger powers uncached.
+- Expand BigDecimal benchmark and README results to compare addition and subtraction across scale gaps 1, 8, 32, and 128.
+
+## [0.0.21] - 2026-11-14
+
+### Added
+- Added `DivisionConfig`, `DivisionStrategy`, and `PrecisionScale` for configurable decimal division.
+- Added `KBigDecimal.divide(other, config)`.
+- Added regression tests for scientific notation, scale validation, magnitude immutability, and square roots beyond the `Double` range.
+
+### Changed
+- **Breaking:** `divide(other)` and the `/` operator now both use the same default: scale 10 with `HALF_UP` rounding. Previously the single-argument form used the larger of the two operand scales.
+- Parse scientific notation emitted by `Float.toString()` and `Double.toString()`, including signed exponents.
+- Defensively copy and normalize `KBigInteger` magnitude data so instances remain stable values.
+- Calculate square roots from a decimal-magnitude seed, including inputs outside the `Double` range.
+
+### Fixed
+- Reject negative decimal scales and guard scale arithmetic against integer overflow.
+- Fixed `KBigMath.sqrt` for very large and very small values that previously produced an incorrect seed or failed to converge.
+- Rejected malformed scientific notation such as mixed `e`/`E` markers or out-of-range exponents.
+
+## [0.0.20] - 2026-08-03
+
+### Added
+- **Desktop platform support (MVP)**: Added JVM/Compose Desktop target alongside Android and iOS.
+- **Scientific notation parsing**: `KBigDecimal` and `KBigInteger` now support scientific notation input.
+- **Code quality automation**: Integrated Ktlint, Detekt, and Kover for linting and test coverage.
+
+### Changed
+- **API refactor**: Replaced `KBigDecimalFactory`/`KBigNumberFactory` with the `KBigDecimal`/`KBigInteger` types directly.
+- **Code cleanup**: Removed unused variables and redundant assignments across `KBigDecimal`, `KBigInteger`, and associated test suites.
+
+### Fixed
+- Fixed indentation violation in `shared/build.gradle.kts` that blocked the `ktlintKotlinScriptCheck` build task.
 
 ## [0.0.19] - 2025-01-02
 
@@ -73,16 +109,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Example Usage
 ```kotlin
 // Before
-val result = price.divide(quantity, 2, RoundingMode.HALF_UP)
+val result = price.divide(quantity, 2, KBRoundingMode.HalfUp)
 
 // After - using strategy
 val result = price.divide(quantity, DivisionStrategy.CURRENCY)
 
 // After - using custom config
-val result = price.divide(quantity, DivisionConfig(scale = 4, roundingMode = RoundingMode.HALF_EVEN))
+val result = price.divide(quantity, DivisionConfig(scale = 4, roundingMode = KBRoundingMode.HalfEven))
 
 // Using scale constants
-val result = price.divide(quantity, PrecisionScale.CRYPTOCURRENCY, RoundingMode.HALF_UP)
+val result = price.divide(quantity, PrecisionScale.CRYPTOCURRENCY, KBRoundingMode.HalfUp)
 ```
 
 ## [0.0.16] - 2025-01-XX
@@ -110,7 +146,12 @@ val result = price.divide(quantity, PrecisionScale.CRYPTOCURRENCY, RoundingMode.
 - Rounding mode support for decimal operations
 - Platform-optimized implementations using native libraries
 
-[Unreleased]: https://github.com/gatrongdev/kbignum/compare/v0.0.17...HEAD
+[Unreleased]: https://github.com/gatrongdev/kbignum/compare/v0.0.22...HEAD
+[0.0.22]: https://github.com/gatrongdev/kbignum/compare/v0.0.21...v0.0.22
+[0.0.21]: https://github.com/gatrongdev/kbignum/compare/v0.0.20...v0.0.21
+[0.0.20]: https://github.com/gatrongdev/kbignum/compare/v0.0.19...v0.0.20
+[0.0.19]: https://github.com/gatrongdev/kbignum/compare/v0.0.18...v0.0.19
+[0.0.18]: https://github.com/gatrongdev/kbignum/compare/v0.0.17...v0.0.18
 [0.0.17]: https://github.com/gatrongdev/kbignum/compare/v0.0.16...v0.0.17
 [0.0.16]: https://github.com/gatrongdev/kbignum/releases/tag/v0.0.16
 [0.0.1]: https://github.com/gatrongdev/kbignum/releases/tag/v0.0.1

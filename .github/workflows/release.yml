@@ -122,13 +122,13 @@ jobs:
           java-version: '17'
 
       - name: 📱 Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: 🐘 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: 🔨 Build and test
-        run: ./gradlew clean build test
+        run: ./gradlew clean :shared:assembleAndroidMain :shared:desktopJar :shared:testAndroid :shared:desktopTest
 
       - name: 📝 Generate changelog
         id: changelog
@@ -259,7 +259,7 @@ jobs:
           java-version: '17'
 
       - name: 📱 Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: 🐘 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
