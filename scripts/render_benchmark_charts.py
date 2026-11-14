@@ -51,6 +51,19 @@ CoreResults = Dict[str, Dict[str, Dict[int, Measurement]]]
 CrossoverResults = Dict[int, Dict[str, Dict[int, Measurement]]]
 
 
+def stable_crossover_size(results: CrossoverResults, ratio: int) -> int | None:
+    """Return the first of three adjacent sizes with separated production wins."""
+    for index in range(len(EXPECTED_BASE_WORDS) - 2):
+        sizes = EXPECTED_BASE_WORDS[index:index + 3]
+        if all(
+            results[ratio]["multiplyProduction"][words]["upper"]
+            < results[ratio]["multiplySchoolbookReference"][words]["lower"]
+            for words in sizes
+        ):
+            return sizes[0]
+    return None
+
+
 def parse_results(path: Path) -> tuple[CoreResults, CrossoverResults, str, str]:
     entries = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(entries, list) or not entries:
@@ -138,6 +151,56 @@ def parse_results(path: Path) -> tuple[CoreResults, CrossoverResults, str, str]:
         raise ValueError("Incomplete multiplication crossover run; missing: " + ", ".join(missing_crossover))
 
     return results, crossover, jvm_version, jmh_version
+
+
+def parse_crossover_results(path: Path) -> tuple[CrossoverResults, str, str]:
+    entries = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(entries, list) or not entries:
+        raise ValueError("JMH JSON must contain a non-empty result array")
+
+    crossover: CrossoverResults = {
+        ratio: {method: {} for method in CROSSOVER_METHODS}
+        for ratio in OPERAND_RATIOS
+    }
+    jvm_version = str(entries[0].get("vmVersion", "unknown"))
+    jmh_version = str(entries[0].get("jmhVersion", "unknown"))
+    for entry in entries:
+        method = str(entry.get("benchmark", "")).rsplit(".", 1)[-1]
+        if method not in CROSSOVER_METHODS:
+            continue
+        try:
+            base_words = int(entry["params"]["baseWords"])
+            ratio = int(entry["params"]["operandRatio"])
+            metric = entry["primaryMetric"]
+            score = float(metric["score"])
+            confidence = metric.get("scoreConfidence", [score, score])
+            lower = float(confidence[0]) if len(confidence) > 0 else score
+            upper = float(confidence[1]) if len(confidence) > 1 else score
+        except (KeyError, TypeError, ValueError, IndexError) as error:
+            raise ValueError(f"Malformed JMH crossover result for {method}: {error}") from error
+
+        if (
+            base_words not in EXPECTED_BASE_WORDS
+            or ratio not in OPERAND_RATIOS
+            or not all(math.isfinite(value) for value in (score, lower, upper))
+            or score <= 0
+        ):
+            raise ValueError(f"Invalid crossover measurement for {method} at {base_words} words, ratio {ratio}:1")
+        samples = crossover[ratio][method]
+        if base_words in samples:
+            raise ValueError(f"Duplicate crossover result for {method} at {base_words} words, ratio {ratio}:1")
+        samples[base_words] = {"score": score, "lower": lower, "upper": upper}
+
+    missing = [
+        f"{method}/{words}words/{ratio}:1"
+        for ratio, methods in crossover.items()
+        for method, samples in methods.items()
+        for words in EXPECTED_BASE_WORDS
+        if words not in samples
+    ]
+    if missing:
+        raise ValueError("Incomplete multiplication crossover run; missing: " + ", ".join(missing))
+    return crossover, jvm_version, jmh_version
 
 
 def render_svg(
@@ -256,17 +319,12 @@ def render_summary(
         rows.append(f"| {operation} | " + " | ".join(cells) + " |")
 
     crossover_rows = [
-        "| Operand ratio (larger : smaller) | First size where production CI is below schoolbook CI |",
+        "| Operand ratio (larger : smaller) | First size with production CI below schoolbook CI for 3 consecutive sizes |",
         "| :---: | :--- |",
     ]
     for ratio in OPERAND_RATIOS:
-        clear_wins = [
-            words
-            for words in EXPECTED_BASE_WORDS
-            if crossover[ratio]["multiplyProduction"][words]["upper"]
-            < crossover[ratio]["multiplySchoolbookReference"][words]["lower"]
-        ]
-        result = f"{clear_wins[0]} words" if clear_wins else "No clear win in tested range"
+        stable_size = stable_crossover_size(crossover, ratio)
+        result = f"{stable_size} words" if stable_size is not None else "No stable win in tested range"
         crossover_rows.append(f"| {ratio}:1 | {result} |")
 
     machine = f"{platform.system()} {platform.release()} / {platform.machine()}"
@@ -280,13 +338,42 @@ def render_summary(
             "",
             *rows,
             "",
+            f"Full operation comparison generated {generated_utc} on {machine} with JMH {jmh_version} and JVM {jvm_version}. Data: [`latest.csv`](benchmarks/results/latest.csv).",
+            "",
             "### Current multiplication crossover check",
             "",
             *crossover_rows,
             "",
-            f"Generated {generated_utc} on {machine} with JMH {jmh_version} and JVM {jvm_version}. Data: [`latest.csv`](benchmarks/results/latest.csv) and [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).",
+            f"Crossover comparison generated {generated_utc} on {machine} with JMH {jmh_version} and JVM {jvm_version}. Data: [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).",
         ],
     )
+
+
+def render_crossover_summary(
+    crossover: CrossoverResults,
+    generated_utc: str,
+    jvm_version: str,
+    jmh_version: str,
+) -> str:
+    rows = [
+        "### Current multiplication crossover check",
+        "",
+        "A crossover is reported only when the production confidence interval is below the schoolbook interval at three consecutive tested sizes; isolated wins are treated as noise.",
+        "",
+        "| Operand ratio (larger : smaller) | First size with a stable win |",
+        "| :---: | :--- |",
+    ]
+    for ratio in OPERAND_RATIOS:
+        stable_size = stable_crossover_size(crossover, ratio)
+        result = f"{stable_size} words" if stable_size is not None else "No stable win in tested range"
+        rows.append(f"| {ratio}:1 | {result} |")
+
+    machine = f"{platform.system()} {platform.release()} / {platform.machine()}"
+    rows.extend([
+        "",
+        f"Crossover comparison generated {generated_utc} on {machine} with JMH {jmh_version} and JVM {jvm_version}. Data: [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).",
+    ])
+    return "\n".join(rows)
 
 
 def render_crossover_svg(
@@ -479,15 +566,37 @@ def update_readme(path: Path, summary: str) -> None:
     path.write_text(readme[:start] + "\n\n" + summary + "\n\n" + readme[end:], encoding="utf-8")
 
 
+def update_crossover_readme(path: Path, summary: str) -> None:
+    readme = path.read_text(encoding="utf-8")
+    start_marker = "### Current multiplication crossover check"
+    end_marker = "<!-- BENCHMARK_SUMMARY_END -->"
+    start = readme.find(start_marker)
+    end = readme.find(end_marker, start)
+    if start < 0 or end < 0:
+        raise ValueError("README is missing the multiplication crossover summary")
+    path.write_text(readme[:start] + summary + "\n\n" + readme[end:], encoding="utf-8")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("jmh_json", type=Path, help="JSON output produced by the JMH Gradle task")
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--crossover-only", action="store_true", help="refresh only multiplication crossover artifacts from a filtered JMH run")
     args = parser.parse_args()
 
-    results, crossover, jvm_version, jmh_version = parse_results(args.jmh_json)
     generated_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     root = args.root.resolve()
+
+    if args.crossover_only:
+        crossover, jvm_version, jmh_version = parse_crossover_results(args.jmh_json)
+        write_crossover_csv(root / "benchmarks/results/multiplication-crossover.csv", crossover, jvm_version, jmh_version, generated_utc)
+        crossover_chart_path = root / "docs/assets/benchmark-multiplication-crossover.svg"
+        crossover_chart_path.write_text(render_crossover_svg(crossover, generated_utc, jvm_version, jmh_version), encoding="utf-8")
+        update_crossover_readme(root / "README.md", render_crossover_summary(crossover, generated_utc, jvm_version, jmh_version))
+        print(f"Updated {crossover_chart_path.relative_to(root)} and multiplication crossover README summary", flush=True)
+        return
+
+    results, crossover, jvm_version, jmh_version = parse_results(args.jmh_json)
 
     write_csv(root / "benchmarks/results/latest.csv", results, jvm_version, jmh_version, generated_utc)
     write_crossover_csv(root / "benchmarks/results/multiplication-crossover.csv", crossover, jvm_version, jmh_version, generated_utc)

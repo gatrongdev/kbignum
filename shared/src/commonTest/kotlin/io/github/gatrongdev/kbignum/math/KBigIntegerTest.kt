@@ -210,6 +210,15 @@ class KBigIntegerTest {
         assertEquals("888888888888888887111111111111111112", actual.toString())
     }
 
+    @Test
+    fun multiply_atKaratsubaCrossover_matchesClosedForm() {
+        val base = KBigInteger.ONE.shl(32 * 40)
+        val operand = base.subtract(KBigInteger.ONE)
+        val expected = base.shl(32 * 40).subtract(base.shl(1)).add(KBigInteger.ONE)
+
+        assertEquals(expected, operand.multiply(operand))
+    }
+
     // DIVIDE FUNCTION TESTS
     @Test
     fun divide_byDivisor_returnsCorrectIntegerQuotient() {

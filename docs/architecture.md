@@ -21,6 +21,16 @@ The configured library targets are Android, desktop JVM, and iOS (`iosX64`, `ios
 - `KBigMath` holds higher-level operations over the public integer and decimal APIs. Keep primitive floating-point approximations out of exact results; an approximation may only be an initial estimate where the algorithm refines or checks the result with the library's arithmetic.
 - `KBigNumberExtensions` and `KBRoundingMode` provide focused conversion and rounding helpers. Avoid introducing generic service layers or wrappers around the arithmetic core without a concrete use case.
 
+## Multiplication performance path
+
+`KBigInteger` keeps multiplication in `commonMain`. The current measured dispatch uses schoolbook multiplication below 40 32-bit words, Karatsuba at the top level from 40 words, and a separately measured 48-word recursive leaf cutoff. The schoolbook kernel handles its first row without reading zero-filled output limbs; Karatsuba uses absolute half-differences and combines the middle product in one carry pass.
+
+These cutoffs are JVM JMH defaults, not cross-platform performance guarantees. HotSpot applies general JIT optimization to Kotlin/JVM bytecode, but its `BigInteger` multiplication intrinsic is specific to the JDK method. Do not assume that intrinsic transfers to `KBigInteger`, Android ART, or Kotlin/Native. Keep exact arithmetic portable; remeasure on a target before changing shared dispatch based on a JVM result.
+
+When changing this path, compare repeated baseline and candidate JMH runs with the same seeded operands and configuration. Record integer multiplication and BigDecimal multiplication together, then check scale-alignment operations that invoke multiplication. Keep the focused A/B result in `benchmarks/results/multiplication-optimization.csv` and its chart in `docs/assets/benchmark-multiplication-optimization.svg`. To refresh only the crossover graph after a filtered crossover run, pass its JMH JSON to `scripts/render_benchmark_charts.py --crossover-only`.
+
+The next candidates to measure are a dedicated square kernel (used repeatedly by `KBigInteger.pow`) and a size-ratio-aware dispatch. Keep the forced-schoolbook crossover reference synchronized with the production leaf kernel, and require separated intervals at three adjacent sizes before publishing a stable crossover. If allocation profiling becomes dominant, try a reusable scratch buffer before adding a higher-order algorithm; each candidate needs its own benchmark and correctness cases.
+
 ## Test strategy
 
 Use `shared/src/commonTest` for observable behavior that should be the same across platforms. Keep tests deterministic; seeded property or fuzz tests are useful when they compare against a clear invariant or exact expected result. Use `androidUnitTest` for the `java.math.BigInteger` / `BigDecimal` oracle, since those Java classes are not available from common code.

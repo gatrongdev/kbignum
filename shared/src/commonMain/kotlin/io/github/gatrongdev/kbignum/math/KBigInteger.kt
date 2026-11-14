@@ -13,8 +13,11 @@ class KBigInteger(
         val ONE = KBigInteger(1, intArrayOf(1))
         val TEN = KBigInteger(1, intArrayOf(10))
 
-        /** Crossover threshold in 32-bit magnitude words; keep it aligned with the multiplication benchmark. */
-        private const val KARATSUBA_THRESHOLD = 80
+        /** Top-level Karatsuba crossover in 32-bit words, calibrated with the JMH multiplication suite. */
+        private const val KARATSUBA_THRESHOLD = 40
+
+        /** Recursive leaf crossover in 32-bit words; measured separately from the top-level dispatch. */
+        private const val KARATSUBA_RECURSIVE_THRESHOLD = 48
 
         fun fromLong(value: Long): KBigInteger {
             if (value == 0L) return ZERO
@@ -474,11 +477,12 @@ class KBigInteger(
     private fun multiplyMagnitude(
         x: IntArray,
         y: IntArray,
+        threshold: Int = KARATSUBA_THRESHOLD,
     ): IntArray {
-        if (x.size < KARATSUBA_THRESHOLD || y.size < KARATSUBA_THRESHOLD) {
+        if (x.size < threshold || y.size < threshold) {
             return schoolbookMultiply(x, y)
         }
-        return karatsubaMultiply(x, y)
+        return karatsubaMultiply(x, y, threshold)
     }
 
     /**
@@ -486,16 +490,17 @@ class KBigInteger(
      * xy = z2*B^2 + z1*B + z0
      * z2 = x1*y1
      * z0 = x0*y0
-     * z1 = (x1+x0)*(y1+y0) - z2 - z0
+     * z1 = x1*y0 + x0*y1 = z2 + z0 - (x1-x0)*(y1-y0)
      */
     private fun karatsubaMultiply(
         x: IntArray,
         y: IntArray,
+        threshold: Int,
     ): IntArray {
         val n = kotlin.math.max(x.size, y.size)
 
         // Fallback to schoolbook if small enough
-        if (n < KARATSUBA_THRESHOLD) {
+        if (n < threshold) {
             return schoolbookMultiply(x, y)
         }
 
@@ -510,19 +515,19 @@ class KBigInteger(
         val y0 = getLower(y, half)
         val y1 = getUpper(y, half)
 
-        val p1 = multiplyMagnitude(x1, y1) // z2
-        val p2 = multiplyMagnitude(x0, y0) // z0
+        val p1 = multiplyMagnitude(x1, y1, KARATSUBA_RECURSIVE_THRESHOLD) // z2
+        val p2 = multiplyMagnitude(x0, y0, KARATSUBA_RECURSIVE_THRESHOLD) // z0
 
-        val xSum = addMagnitude(x0, x1)
-        val ySum = addMagnitude(y0, y1)
-
-        val p3 = multiplyMagnitude(xSum, ySum) // (x1+x0)*(y1+y0)
-
-        // z1 = p3 - p1 - p2
-        // Calculate p3 - p1
-        val p3MinusP1 = subtractMagnitude(p3, p1)
-        // Calculate (p3 - p1) - p2
-        val z1 = subtractMagnitude(p3MinusP1, p2)
+        // The difference form keeps evaluation operands from growing by a carry word.
+        val xDifferenceSign = compareMagnitudeArrays(x1, x0)
+        val xDifference =
+            if (xDifferenceSign >= 0) subtractMagnitude(x1, x0) else subtractMagnitude(x0, x1)
+        val yDifferenceSign = compareMagnitudeArrays(y1, y0)
+        val yDifference =
+            if (yDifferenceSign >= 0) subtractMagnitude(y1, y0) else subtractMagnitude(y0, y1)
+        val differenceProduct = multiplyMagnitude(xDifference, yDifference, KARATSUBA_RECURSIVE_THRESHOLD)
+        val addDifference = (xDifferenceSign >= 0) != (yDifferenceSign >= 0)
+        val z1 = combineCrossProduct(p1, p2, differenceProduct, addDifference)
 
         // result = p1 << (2*half*32) + z1 << (half*32) + p2
         // Note: shiftLeft creates new arrays.
@@ -564,6 +569,43 @@ class KBigInteger(
         return stripZeros(result)
     }
 
+    private fun compareMagnitudeArrays(
+        a: IntArray,
+        b: IntArray,
+    ): Int {
+        if (a.size != b.size) return a.size.compareTo(b.size)
+        for (i in a.lastIndex downTo 0) {
+            val comparison = (a[i].toLong() and 0xFFFFFFFFL).compareTo(b[i].toLong() and 0xFFFFFFFFL)
+            if (comparison != 0) return comparison
+        }
+        return 0
+    }
+
+    private fun combineCrossProduct(
+        lowProduct: IntArray,
+        highProduct: IntArray,
+        differenceProduct: IntArray,
+        addDifference: Boolean,
+    ): IntArray {
+        // Compute p1 + p2 +/- |(x1 - x0)(y1 - y0)| in one pass.
+        val length = maxOf(lowProduct.size, highProduct.size, differenceProduct.size)
+        val result = IntArray(length + 1)
+        var carry = 0L
+        for (i in 0 until length) {
+            val low = if (i < lowProduct.size) lowProduct[i].toLong() and 0xFFFFFFFFL else 0L
+            val high = if (i < highProduct.size) highProduct[i].toLong() and 0xFFFFFFFFL else 0L
+            val difference =
+                if (i < differenceProduct.size) differenceProduct[i].toLong() and 0xFFFFFFFFL else 0L
+            val signedDifference = if (addDifference) difference else -difference
+            val value = low + high + signedDifference + carry
+            result[i] = value.toInt()
+            carry = value shr 32
+        }
+        check(carry >= 0L) { "Karatsuba cross product became negative" }
+        if (carry != 0L) result[length] = carry.toInt()
+        return stripZeros(result)
+    }
+
     // Adds source to dest starting at word offset `offset`
     private fun addWithOffset(
         dest: IntArray,
@@ -594,20 +636,35 @@ class KBigInteger(
         x: IntArray,
         y: IntArray,
     ): IntArray {
-        val xLen = x.size
-        val yLen = y.size
-        val result = IntArray(xLen + yLen)
+        val outer = if (x.size <= y.size) x else y
+        val inner = if (x.size <= y.size) y else x
+        val outerLength = outer.size
+        val innerLength = inner.size
+        if (outerLength == 0 || innerLength == 0) return IntArray(0)
 
-        for (i in 0 until xLen) {
-            val xVal = x[i].toLong() and 0xFFFFFFFFL
-            var carry: Long = 0
-            for (j in 0 until yLen) {
-                val yVal = y[j].toLong() and 0xFFFFFFFFL
-                val product = xVal * yVal + (result[i + j].toLong() and 0xFFFFFFFFL) + carry
-                result[i + j] = product.toInt()
+        val result = IntArray(outerLength + innerLength)
+        val firstOuterValue = outer[0].toLong() and 0xFFFFFFFFL
+        var carry = 0L
+        for (j in 0 until innerLength) {
+            val product = firstOuterValue * (inner[j].toLong() and 0xFFFFFFFFL) + carry
+            result[j] = product.toInt()
+            carry = product ushr 32
+        }
+        result[innerLength] = carry.toInt()
+
+        for (i in 1 until outerLength) {
+            val outerValue = outer[i].toLong() and 0xFFFFFFFFL
+            carry = 0L
+            var resultIndex = i
+            for (j in 0 until innerLength) {
+                val product =
+                    outerValue * (inner[j].toLong() and 0xFFFFFFFFL) +
+                        (result[resultIndex].toLong() and 0xFFFFFFFFL) + carry
+                result[resultIndex] = product.toInt()
                 carry = product ushr 32
+                resultIndex++
             }
-            result[i + yLen] = carry.toInt()
+            result[resultIndex] = carry.toInt()
         }
 
         return stripZeros(result)

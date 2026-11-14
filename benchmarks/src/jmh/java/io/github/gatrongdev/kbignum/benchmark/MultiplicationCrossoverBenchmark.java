@@ -64,20 +64,36 @@ public class MultiplicationCrossoverBenchmark {
         return magnitude;
     }
 
-    /** Mirrors KBigInteger's private schoolbook limb loop so it can be forced in JMH. */
+    /** Mirrors KBigInteger's optimized schoolbook limb loop so it can be forced in JMH. */
     private static int[] schoolbookMultiply(int[] x, int[] y) {
-        int[] result = new int[x.length + y.length];
+        int[] outer = x.length <= y.length ? x : y;
+        int[] inner = x.length <= y.length ? y : x;
+        if (outer.length == 0 || inner.length == 0) {
+            return new int[0];
+        }
 
-        for (int i = 0; i < x.length; i++) {
-            long xValue = x[i] & 0xFFFFFFFFL;
-            long carry = 0;
-            for (int j = 0; j < y.length; j++) {
-                long yValue = y[j] & 0xFFFFFFFFL;
-                long product = xValue * yValue + (result[i + j] & 0xFFFFFFFFL) + carry;
-                result[i + j] = (int) product;
+        int[] result = new int[outer.length + inner.length];
+        long firstOuterValue = outer[0] & 0xFFFFFFFFL;
+        long carry = 0;
+        for (int j = 0; j < inner.length; j++) {
+            long product = firstOuterValue * (inner[j] & 0xFFFFFFFFL) + carry;
+            result[j] = (int) product;
+            carry = product >>> 32;
+        }
+        result[inner.length] = (int) carry;
+
+        for (int i = 1; i < outer.length; i++) {
+            long outerValue = outer[i] & 0xFFFFFFFFL;
+            carry = 0;
+            int resultIndex = i;
+            for (int j = 0; j < inner.length; j++) {
+                long product = outerValue * (inner[j] & 0xFFFFFFFFL)
+                        + (result[resultIndex] & 0xFFFFFFFFL) + carry;
+                result[resultIndex] = (int) product;
                 carry = product >>> 32;
+                resultIndex++;
             }
-            result[i + y.length] = (int) carry;
+            result[resultIndex] = (int) carry;
         }
 
         return stripLeadingZeros(result);
