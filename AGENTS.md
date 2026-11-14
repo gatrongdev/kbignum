@@ -4,11 +4,19 @@ KBigNum is a Kotlin Multiplatform arbitrary-precision math library. Its arithmet
 
 ## Architecture and code quality
 
+- Use [`docs/architecture.md`](docs/architecture.md) for the current module, source-set, and test layout; update it when those boundaries change.
 - Keep the mathematical core small and cohesive. This is a library, so do not add app-style layers, repositories, interfaces, or wrappers without a concrete need.
 - Keep public APIs focused and stable. Prefer direct implementations and small private helpers over speculative abstractions.
 - Make numeric edge cases and error behavior explicit. Do not convert whole values through `Float`, `Double`, `Long`, or similar types in exact operations. Fixed-width limb arithmetic is fine when the algorithm handles overflow deliberately.
 - Name algorithms and intermediate values for their role. Comments should explain an invariant or a non-obvious algorithmic choice, not repeat the code.
 - Treat `plan.md` as historical context. Check current source, tests, README, and changelog before relying on its descriptions or unchecked items.
+
+## Tests and coverage
+
+- Put platform-independent behavioral tests in `shared/src/commonTest`; use `shared/src/androidUnitTest` for JVM-only reference-oracle or Android-specific tests.
+- Add tests for changed behavior, including relevant boundary, sign, zero, rounding, and failure paths. Prefer observable results over tests coupled to private helpers.
+- Keep Kover's aggregate minimums at 87% line coverage and 80% branch coverage or higher. `runAllChecks` runs `koverVerify`; do not lower or bypass the gate to accommodate uncovered production logic.
+- Use `./gradlew runAllChecks` before integration. Use `./gradlew :shared:iosSimulatorArm64Test` when validating shared behavior on the iOS simulator.
 
 ## Worktrees
 
