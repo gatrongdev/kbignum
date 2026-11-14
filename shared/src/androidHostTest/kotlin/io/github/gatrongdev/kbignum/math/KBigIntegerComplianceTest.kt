@@ -112,6 +112,54 @@ class KBigIntegerComplianceTest {
         assertEquals("Large Mul failed", expected.toString(), result.toJavaBigInteger().toString())
     }
 
+    @Test
+    fun testSchoolbookMultiplicationCarriesAcrossRows() {
+        val oneWord = intArrayOf(-1)
+        val maximumWords = IntArray(39) { -1 }
+        val karatsubaBoundaryWords = IntArray(40) { -1 }
+        val unevenMagnitude = IntArray(39) { if (it == 38) -1 else 0x7FFFFFFF }
+
+        assertMultiplicationMatchesJava(oneWord, maximumWords)
+        assertMultiplicationMatchesJava(maximumWords, oneWord)
+        assertMultiplicationMatchesJava(maximumWords, maximumWords)
+        assertMultiplicationMatchesJava(maximumWords, unevenMagnitude)
+        assertMultiplicationMatchesJava(karatsubaBoundaryWords, karatsubaBoundaryWords)
+    }
+
+    @Test
+    fun testKaratsubaCrossProductWithEqualAndOppositeHalfDifferences() {
+        fun magnitude(
+            words: Int,
+            lowerWord: Int,
+            upperWord: Int,
+        ): IntArray {
+            return IntArray(words) { index -> if (index < words / 2) lowerWord else upperWord }
+        }
+
+        val cases =
+            listOf(
+                magnitude(80, 1, 2) to magnitude(80, 3, 4),
+                magnitude(80, 1, 2) to magnitude(80, 4, 3),
+                magnitude(80, 3, 3) to magnitude(80, 5, 5),
+                magnitude(96, 0x7FFFFFFF, -1) to magnitude(96, -1, 0x7FFFFFFF),
+            )
+
+        cases.forEach { (left, right) ->
+            assertMultiplicationMatchesJava(left, right)
+        }
+    }
+
+    private fun assertMultiplicationMatchesJava(
+        left: IntArray,
+        right: IntArray,
+    ) {
+        val kLeft = KBigInteger(1, left)
+        val kRight = KBigInteger(1, right)
+        val expected = kLeft.toJavaBigInteger().multiply(kRight.toJavaBigInteger())
+
+        assertEquals(expected.toString(), kLeft.multiply(kRight).toJavaBigInteger().toString())
+    }
+
     private fun generateRandomPair(): Pair<BigInteger, BigInteger> {
         val a = Random.nextLong()
         val b = Random.nextLong()

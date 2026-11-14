@@ -17,6 +17,8 @@ class KBigDecimal(
         val ONE = KBigDecimal(KBigInteger.ONE, 0)
         val TEN = KBigDecimal(KBigInteger.TEN, 0)
 
+        private const val MAX_CACHED_POWER_OF_TEN_EXPONENT = 128
+
         fun fromString(value: String): KBigDecimal {
             if (value.isEmpty()) throw NumberFormatException("Zero length string")
 
@@ -116,14 +118,30 @@ class KBigDecimal(
     }
 
     private val powerOfTenCache = mutableMapOf<Int, KBigInteger>()
+    private var lastLargePowerOfTen: Pair<Int, KBigInteger>? = null
 
     private fun powerOfTen(n: Int): KBigInteger {
         if (n == 0) return KBigInteger.ONE
         if (n < 0) throw IllegalArgumentException("Negative power")
 
-        powerOfTenCache[n]?.let { return it }
+        if (n <= 100) {
+            powerOfTenCache[n]?.let { return it }
+        } else if (n <= MAX_CACHED_POWER_OF_TEN_EXPONENT) {
+            lastLargePowerOfTen?.let { cached ->
+                if (cached.first == n) return cached.second
+            }
+        }
+
+        // Use binary exponentiation for O(log n) instead of O(n)
         val result = fastPowerOfTen(n)
-        if (n <= 100) powerOfTenCache[n] = result
+
+        // Cache commonly used values (up to 100)
+        if (n <= 100) {
+            powerOfTenCache[n] = result
+        } else if (n <= MAX_CACHED_POWER_OF_TEN_EXPONENT) {
+            // Retain one measured large power without holding arbitrarily large values.
+            lastLargePowerOfTen = n to result
+        }
         return result
     }
 

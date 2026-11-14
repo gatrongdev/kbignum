@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.22] - 2026-11-14
+
+### Added
+- Add JMH benchmarks and reproducible benchmark charts for integer and decimal arithmetic, including multiplication crossover measurements.
+- Add Java `BigDecimal` compliance coverage across the benchmarked scale gaps.
+
+### Changed
+- Optimize common `KBigInteger` multiplication based on calibrated benchmark results.
+- Reuse the most recently computed power of ten for exponents 101–128 while keeping larger powers uncached.
+- Expand BigDecimal benchmark and README results to compare addition and subtraction across scale gaps 1, 8, 32, and 128.
+
 ## [0.0.21] - 2026-11-14
 
 ### Added
@@ -135,7 +146,8 @@ val result = price.divide(quantity, PrecisionScale.CRYPTOCURRENCY, KBRoundingMod
 - Rounding mode support for decimal operations
 - Platform-optimized implementations using native libraries
 
-[Unreleased]: https://github.com/gatrongdev/kbignum/compare/v0.0.21...HEAD
+[Unreleased]: https://github.com/gatrongdev/kbignum/compare/v0.0.22...HEAD
+[0.0.22]: https://github.com/gatrongdev/kbignum/compare/v0.0.21...v0.0.22
 [0.0.21]: https://github.com/gatrongdev/kbignum/compare/v0.0.20...v0.0.21
 [0.0.20]: https://github.com/gatrongdev/kbignum/compare/v0.0.19...v0.0.20
 [0.0.19]: https://github.com/gatrongdev/kbignum/compare/v0.0.18...v0.0.19
