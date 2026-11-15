@@ -7,14 +7,12 @@ This document describes the structure that exists in the current source tree. Ke
 | Area | Responsibility |
 | --- | --- |
 | `shared/src/commonMain` | Public arbitrary-precision integer, decimal, rounding, extensions, and math APIs; platform-independent implementation. |
-| `shared/src/androidMain`, `desktopMain`, `iosMain`, `jsMain` | Platform identity `actual` implementations. Arithmetic stays in common code unless a concrete platform API requires otherwise. The JS actual reports the Node.js runtime version and does not read browser globals. |
+| `shared/src/androidMain`, `desktopMain`, `iosMain`, `jsMain` | Platform identity `actual` implementations. Arithmetic stays in common code unless a concrete platform API requires otherwise. The JS actual reports the Node.js version when `process.version` exists, reports `Browser` when the page globals exist, and reads every global only behind an existence check. |
 | `shared/src/commonTest` | Behavioral tests that use only common APIs and run on every supported test target. |
 | `shared/src/androidUnitTest` | JVM-specific compliance tests and `java.math` reference helpers. Keep Java-only APIs out of common tests. |
 | `benchmarks` | JVM JMH code and benchmark-only references; this is measurement tooling, not a production arithmetic layer. |
 
-The configured library targets are Android, desktop JVM 17, iOS (`iosX64`, `iosArm64`, and `iosSimulatorArm64`), and Kotlin/JS IR on Node.js (`js(IR) { nodejs() }`). CI runs host checks on Linux with JDK 17 and 21, common tests on an iOS simulator on macOS, and common tests on Node.js. Browser and Wasm targets are not configured. Kover reports host test execution; it does not claim Native or JS execution coverage. See the [Kover Gradle documentation](https://kotlin.github.io/kotlinx-kover/gradle-plugin/) for report and verification behavior.
-
-The build relies on Kotlin's default source-set hierarchy for iOS, so common iOS code is shared through `iosMain` without manual `dependsOn` edges. Add a custom intermediate source set only when another target needs it.
+The configured library targets are Android, desktop JVM 17, iOS (`iosX64`, `iosArm64`, and `iosSimulatorArm64`), and Kotlin/JS IR on Node.js and in browsers (`js(IR) { nodejs(); browser() }`). CI runs host checks on Linux with JDK 17 and 21, common tests on an iOS simulator on macOS, and common tests on both Node.js and browser JS. Both JavaScript environments share the same `jsMain` and `jsTest` compilations. The Kotlin Gradle plugin's default source-set hierarchy creates the shared `iosMain` intermediate source set, so the build does not declare manual `dependsOn` edges. Node tests use the built-in Node.js runner, while browser tests use Karma with headless Chrome. Kotlin Gradle Plugin 2.2.20 has no Playwright-based browser-test DSL, so Karma is the available browser runner here; its upstream project is deprecated, and moving off it requires a later Kotlin plugin. Wasm is not configured. Kover reports host test execution; it does not claim Native or JS execution coverage. See the [Kover Gradle documentation](https://kotlin.github.io/kotlinx-kover/gradle-plugin/) for report and verification behavior.
 
 ## Core model and boundaries
 
@@ -36,7 +34,7 @@ The Gradle configuration does not currently declare a public API dump or compati
 
 Keep exact arithmetic in commonMain and avoid expect/actual forks for performance without target-specific measurements. Add a target only when it serves a real consumer need and the project can compile, execute relevant common tests, publish, document, and maintain it.
 
-Kotlin/JS on Node.js is configured and the common suite runs on it in CI. Add another runtime, such as a browser or Wasm, only when there is a consumer need and the project can compile, test, publish, document, and maintain it. JS and Wasm have different runtimes and compatibility requirements; recheck target stability when changing the Kotlin toolchain.
+Kotlin/JS on Node.js and in browsers is configured, and the common suite runs in both environments in CI. Add another runtime, such as Wasm, only when there is a consumer need and the project can compile, test, publish, document, and maintain it. JS and Wasm have different runtimes and compatibility requirements; recheck target stability when changing the Kotlin toolchain.
 
 For every target claimed as supported, compile the library and common tests, regularly execute common tests on that target runtime (or document a tiered CI schedule), provide actual implementations for remaining expect declarations, publish the target artifact, and document target-specific requirements. Keep common tests common; add platform tests only for real platform behavior.
 
@@ -54,7 +52,7 @@ The next candidates to measure are a dedicated square kernel (used repeatedly by
 
 ## Test strategy
 
-Use `shared/src/commonTest` for observable behavior that should be the same across platforms. Keep tests deterministic; seeded property or fuzz tests are useful when they compare against a clear invariant or exact expected result. The same common test suite runs on desktop JVM, Android unit tests, the iOS simulator, and Kotlin/JS on Node.js. Use `androidUnitTest` for the `java.math.BigInteger` / `BigDecimal` oracle, since those Java classes are not available from common code. `runAllChecks` covers host tests; dedicated CI jobs execute common tests on iOS and Node.js.
+Use `shared/src/commonTest` for observable behavior that should be the same across platforms. Keep tests deterministic; seeded property or fuzz tests are useful when they compare against a clear invariant or exact expected result. The same common test suite runs on desktop JVM, Android unit tests, the iOS simulator, Kotlin/JS on Node.js, and Kotlin/JS in headless Chrome. Because both JS runtimes share `jsTest`, the platform-identity test checks whether `window` exists and asserts the matching runtime name. Use `androidUnitTest` for the `java.math.BigInteger` / `BigDecimal` oracle, since those Java classes are not available from common code. `runAllChecks` covers host tests; dedicated CI jobs execute common tests on iOS, Node.js, and browser JS.
 
 For arithmetic changes, cover the applicable normal path and boundaries: signs, zero, carry/borrow, word or scale boundaries, division and remainder identities, rounding ties, and documented exceptions. Assert the public contract rather than implementation details. A high coverage percentage does not replace meaningful assertions, and tests must not be weakened or excluded just to satisfy a report.
 
@@ -64,7 +62,8 @@ The current Kover baseline is approximately 87.58% line coverage and 80.59% bran
 
 - `./gradlew runAllChecks` runs host JVM/Android tests, Kover verification/reporting, ktlint, and detekt.
 - `./gradlew :shared:jsNodeTest` runs the common tests on the Kotlin/JS Node.js target; CI runs it in the dedicated JS/Node job and collects its test report.
+- `./gradlew :shared:jsBrowserTest` runs the common tests in headless Chrome; CI installs Chrome, runs it in the dedicated JS/browser job, and collects its test report.
 - `./gradlew :shared:koverHtmlReport` regenerates the navigable report under `shared/build/reports/kover/html/` for locating uncovered lines and branches.
 - `./gradlew :shared:iosSimulatorArm64Test` runs common tests on the iOS simulator when shared behavior needs that target checked.
 
-Coverage is measured for the host JVM/Android test executions supported by Kover. Use the iOS simulator and JS Node test tasks to validate common behavior on those runtimes; do not treat the Kover percentage as proof of native or JS execution.
+Coverage is measured for the host JVM/Android test executions supported by Kover. Use the iOS simulator and JS Node/browser test tasks to validate common behavior on those runtimes; do not treat the Kover percentage as proof of native or JS execution.

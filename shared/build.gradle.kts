@@ -49,6 +49,15 @@ kotlin {
 
     js(IR) {
         nodejs()
+        browser {
+            testTask {
+                useKarma {
+                    // GitHub-hosted Ubuntu restricts unprivileged user namespaces, which
+                    // prevents Chrome's sandbox from starting under Karma.
+                    useChromeHeadlessNoSandbox()
+                }
+            }
+        }
     }
 
     val xcf = XCFramework()

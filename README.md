@@ -6,7 +6,7 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/gatrongdev/kbignum/ci.yml?branch=main&logo=github&label=Build)](https://github.com/gatrongdev/kbignum/actions)
 [![Test Coverage](https://img.shields.io/codecov/c/github/gatrongdev/kbignum/main?logo=codecov&label=Coverage)](https://codecov.io/gh/gatrongdev/kbignum)
 
-A **Kotlin Multiplatform** library for arbitrary precision mathematics, providing unified APIs for high-precision arithmetic operations across Android, JVM, iOS, and Kotlin/JS on Node.js.
+A **Kotlin Multiplatform** library for arbitrary precision mathematics, providing unified APIs for high-precision arithmetic operations across Android, JVM, iOS, and Kotlin/JS on Node.js and in browsers.
 
 ## Features
 
@@ -14,7 +14,7 @@ A **Kotlin Multiplatform** library for arbitrary precision mathematics, providin
 - **Mathematical Mathematical**: `gcd`, `lcm`, `factorial`, `sqrt`, `pow`.
 - **Bitwise Operations**: `and`, `or`, `xor`, `not`, `andNot` (with full 2's complement behavior).
 - **Pure Kotlin Implementation**: No JNI or native dependencies required, ensuring maximum compatibility.
-- **Multiplatform Support**: Single codebase targets **Android**, **iOS**, **JVM**, and **Kotlin/JS on Node.js**.
+- **Multiplatform Support**: Single codebase targets **Android**, **iOS**, **JVM**, and **Kotlin/JS on Node.js and in browsers**.
 - **Type-Safe API**: Strongly typed interfaces mimicking Java's `BigDecimal`/`BigInteger`.
 - **Natural Syntax**: Operator overloading (`+`, `-`, `*`, `/`) for intuitive mathematical expressions.
 
@@ -263,11 +263,11 @@ val power = bigDecimal1.pow(5)
 - **Targets**: iosArm64 device, iosSimulatorArm64 Apple Silicon simulator, and iosX64 Intel simulator.
 - **Output**: XCFramework
 
-### JavaScript (Node.js)
-- **Target**: Kotlin/JS IR with the Node.js preset (`js(IR) { nodejs() }`).
-- **Implementation**: Pure Kotlin (Single Codebase), shared with the other targets.
-- **Tests**: `./gradlew :shared:jsNodeTest` runs the portable contract tests on Node.js.
-- **Scope**: Node.js is the configured JavaScript runtime. Browser and WebAssembly targets are not configured.
+### JavaScript (Node.js and browsers)
+- **Target**: Kotlin/JS IR configured for both runtimes: `js(IR) { nodejs(); browser { ... } }`.
+- **Implementation**: Pure Kotlin (Single Codebase), shared with the other targets. The platform identity reports the Node.js version when available and falls back to a browser identity without accessing Node globals unless they are present.
+- **Tests**: `./gradlew :shared:jsNodeTest` runs the portable contract tests on Node.js, and `./gradlew :shared:jsBrowserTest` runs the same suite in headless Chrome through Karma.
+- **Scope**: Node.js and browser JavaScript are configured and tested. WebAssembly is not configured. Browser tests require Chrome; CI installs it explicitly. Kotlin Gradle Plugin 2.2.20 provides Karma as its browser test runner; the Playwright-based browser test DSL is not available at that version.
 
 ## Development Toolchain
 
@@ -275,6 +275,7 @@ val power = bigDecimal1.pow(5)
 - **Gradle wrapper**: 8.14.4.
 - **JDK toolchain**: 17; CI also checks JDK 21.
 - **Node.js**: The Kotlin Gradle plugin provisions Node.js by default; a local installation is optional.
+- **Chrome**: Required only for `:shared:jsBrowserTest`; CI installs Chrome explicitly for the headless browser test job.
 
 ## License
 
