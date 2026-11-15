@@ -106,11 +106,11 @@ A crossover is reported only when the production confidence interval is below th
 
 | Operand ratio (larger : smaller) | First size with a stable win |
 | :---: | :--- |
-| 1:1 | No stable win in tested range |
-| 2:1 | No stable win in tested range |
-| 4:1 | No stable win in tested range |
+| 1:1 | 112 words |
+| 2:1 | 128 words |
+| 4:1 | 112 words |
 
-Crossover comparison generated 2026-11-14 06:40 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
+Crossover comparison generated 2026-11-15 04:48 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
 
 <!-- BENCHMARK_SUMMARY_END -->
 
