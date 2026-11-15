@@ -31,6 +31,8 @@ Use this skill for test work in the KBigNum library. Read [`docs/architecture.md
 
 For multiplication changes, add focused magnitude cases immediately below and at the measured word-count dispatches, all-ones limbs that force carry propagation, unequal operand lengths, and Karatsuba half-differences that are positive, negative, or zero. Put `java.math.BigInteger` oracle cases in `androidHostTest`; use `commonTest` for platform-independent fixed results and identities.
 
+For `pow()` changes, cover exponents 0, 1, odd, and even, negative bases, decimal scale preservation, and values around multiplication dispatch boundaries. Keep timing out of correctness assertions; an opt-in platform benchmark may report measurements without failing on a latency threshold.
+
 ## Coverage guardrail
 
 `runAllChecks` invokes `koverVerify`. The global minimum is 87% line coverage and 80% branch coverage, based on the current project baseline. Keep both floors or improve them when production code is added or changed.

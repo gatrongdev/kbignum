@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add Kotlin/JS support for Node.js and browser targets, with common tests in CI.
 
+### Changed
+- Avoid the unused final square in `KBigInteger.pow` and `KBigDecimal.pow`; return the existing value directly for exponent 1.
+
 ## [0.0.22] - 2026-11-14
 
 ### Added

@@ -303,6 +303,7 @@ class KBigDecimal(
     fun pow(exponent: Int): KBigDecimal {
         if (exponent < 0) throw ArithmeticException("Negative exponent not supported")
         if (exponent == 0) return ONE
+        if (exponent == 1) return this
 
         var result = ONE
         var base = this
@@ -310,8 +311,8 @@ class KBigDecimal(
 
         while (exp > 0) {
             if (exp % 2 == 1) result = result.multiply(base)
-            base = base.multiply(base)
             exp /= 2
+            if (exp > 0) base = base.multiply(base)
         }
         return result
     }

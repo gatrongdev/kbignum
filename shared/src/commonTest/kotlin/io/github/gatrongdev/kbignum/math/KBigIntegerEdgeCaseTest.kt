@@ -46,6 +46,27 @@ class KBigIntegerEdgeCaseTest {
         assertEquals(KBigInteger.ZERO, KBigInteger(0, intArrayOf(5)))
     }
 
+    @Test
+    fun pow_squareMatchesMultiplicationAtDispatchBoundaries() {
+        for (wordCount in listOf(1, 39, 40, 47, 48, 79, 80, 128)) {
+            val magnitude = IntArray(wordCount) { -1 }
+            val value = KBigInteger(1, magnitude)
+            val sameValue = KBigInteger(1, magnitude)
+            val expected = value.multiply(sameValue)
+
+            assertEquals(expected, value.multiply(value), "Square failed at $wordCount words")
+            assertEquals(expected, value.pow(2), "pow(2) failed at $wordCount words")
+        }
+
+        val negative = KBigInteger.fromString("-123456789012345678901234567890")
+        assertEquals("15241578753238836750495351562536198787501905199875019052100", negative.multiply(negative).toString())
+        assertEquals(negative.multiply(negative), negative.pow(2))
+        assertEquals(negative, negative.pow(1))
+        assertEquals("-1728", KBigInteger.fromInt(-12).pow(3).toString())
+        assertEquals(KBigInteger.ONE, negative.pow(0))
+        assertEquals(KBigInteger.ZERO, KBigInteger.ZERO.pow(5))
+    }
+
     // --- KBigInteger Edge Cases ---
 
     @Test
