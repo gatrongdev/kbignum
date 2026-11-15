@@ -32,6 +32,15 @@ Load the project and global OpenCode skills that apply to the task, and skip unr
 - For general Gradle, release, or documentation-only work, follow `AGENTS.md` and existing contribution guidance.
 - Read `docs/architecture.md` for the module, source-set, and test layout before touching boundaries.
 
+## Goal tracking (Codex)
+
+Codex uses its native Goal tracking for sustained objectives that span multiple sessions or have meaningful milestones. OpenCode keeps implementation continuity through its session ID instead (see next section).
+
+- Create a Goal when the objective spans sessions or has milestones worth tracking; short self-contained tasks do not need one.
+- Keep the objective and its progress current as work proceeds.
+- Mark a Goal complete only after the outcome is actually achieved, not when work merely stops.
+- This is Codex coordination. OpenCode does not manage Codex Goals; it continues its own session by ID.
+
 ## One session per task
 
 Keep one OpenCode session per task and continue that same session for every follow-up on it. When supported, the provider may reuse cached prompt context across turns; caching is provider-managed and not guaranteed.
