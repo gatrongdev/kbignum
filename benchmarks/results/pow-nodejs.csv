@@ -1,0 +1,5 @@
+target,bits,optimized_ns_per_op,legacy_ns_per_op,speedup,iterations_per_sample,sample_count,runtime,platform
+Kotlin/JS Node.js,512,344041.625,794934.875,2.310577608160059,16,5,v24.16.0,darwin
+Kotlin/JS Node.js,1024,1265989.5,2296312.5,1.8138479821515108,8,5,v24.16.0,darwin
+Kotlin/JS Node.js,2048,3062146.0,6659417.0,2.1747548941167403,2,5,v24.16.0,darwin
+Kotlin/JS Node.js,4096,9562541.0,20043458.0,2.0960389084867717,1,5,v24.16.0,darwin

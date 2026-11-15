@@ -76,6 +76,30 @@ The measured target was reached at 4/6 KBigInteger sizes (at least 20% reduction
 
 <!-- MULTIPLICATION_OPTIMIZATION_END -->
 
+### Exponentiation and repeated squaring
+
+Binary exponentiation previously squared its base after processing the final exponent bit, even though that result was unused. The integer and decimal `pow` loops now skip that multiplication and return the original immutable value for exponent 1. The chart compares `pow(5)` before and after this change using the same seeded operands and JMH setup. Filled markers indicate non-overlapping 99.9% JMH intervals; `†` marks overlapping intervals, which are inconclusive.
+
+![KBigInteger and KBigDecimal pow latency before and after the final-square removal](docs/assets/benchmark-pow-optimization.svg)
+
+| Input bits | KBigInteger baseline | After | Speedup | KBigDecimal baseline | After | Speedup |
+| :---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1024 | 15.23 µs/op | 6.46 µs/op | **2.36×** | 15.22 µs/op | 8.45 µs/op | **1.80×** |
+| 2048 | 48.31 µs/op | 22.55 µs/op | **2.14×** | 51.06 µs/op | 37.69 µs/op | 1.35×† |
+| 4096 | 208.94 µs/op | 76.93 µs/op | **2.72×** | 161.93 µs/op | 105.32 µs/op | 1.54×† |
+| 8192 | 746.61 µs/op | 536.76 µs/op | 1.39×† | 682.98 µs/op | 335.35 µs/op | 2.04×† |
+
+The JMH intervals are separated for `KBigInteger.pow(5)` at 1024–4096 bits and `KBigDecimal.pow(5)` at 1024 bits. Other cells are point estimates with overlapping intervals. The Kotlin/JS Node.js harness compares the new loop with the previous binary-exponentiation loop in the same process; it measured 1.8–2.3× lower median latency for 512–4096-bit integer inputs on this machine.
+
+| Input bits | Legacy loop | Updated loop | Speedup |
+| :---: | ---: | ---: | ---: |
+| 512 | 0.79 ms/op | 0.34 ms/op | 2.31× |
+| 1024 | 2.30 ms/op | 1.27 ms/op | 1.81× |
+| 2048 | 6.66 ms/op | 3.06 ms/op | 2.17× |
+| 4096 | 20.04 ms/op | 9.56 ms/op | 2.10× |
+
+Run the optional Node.js measurement with `KBIGNUM_POW_BENCHMARK=1 ./gradlew :shared:jsNodeTest --tests '*KBigIntegerPowBenchmarkTest*'`; it reports measurements without a timing threshold. The raw Node.js results are in [`pow-nodejs.csv`](benchmarks/results/pow-nodejs.csv). Raw JMH scores and confidence intervals are in [`pow-optimization.csv`](benchmarks/results/pow-optimization.csv). Regenerate both artifacts by running the same JMH settings on baseline and candidate JSON files, running the Node.js measurement, then calling `python3 scripts/render_pow_benchmark_comparison.py before.json after.json --node-test-xml shared/build/test-results/jsNodeTest/TEST-jsNodeTest.io.github.gatrongdev.kbignum.math.KBigIntegerPowBenchmarkTest.xml`.
+
 The BigDecimal chart compares `KBigDecimal` with `java.math.BigDecimal` at 34, 100, 500, and 1000 input digits. It covers same-scale and mismatched-scale addition and subtraction, multiplication, division at scale 16 with `HalfUp`, rescaling from 8 to 4 with `HalfUp`, parsing, and plain-string formatting. Inputs are seeded and signed; each corresponding result is checked before timing. Parsing and formatting are measured separately from arithmetic. The scale-alignment sweep reuses 32 seeded operand pairs and measures addition and subtraction with scale gaps of 1, 8, 32, and 128.
 
 ![KBigDecimal JVM latency by input precision](docs/assets/benchmark-bigdecimal-latency.svg)

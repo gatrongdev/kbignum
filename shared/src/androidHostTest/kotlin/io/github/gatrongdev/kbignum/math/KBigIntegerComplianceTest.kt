@@ -127,6 +127,17 @@ class KBigIntegerComplianceTest {
     }
 
     @Test
+    fun testPowSquareMatchesJavaAtMultiplicationBoundaries() {
+        for (wordCount in listOf(39, 40, 47, 48, 79, 80, 128)) {
+            val value = KBigInteger(1, IntArray(wordCount) { -1 })
+            val expected = value.toJavaBigInteger().multiply(value.toJavaBigInteger())
+
+            assertEquals(expected.toString(), value.multiply(value).toJavaBigInteger().toString())
+            assertEquals(expected.toString(), value.pow(2).toJavaBigInteger().toString())
+        }
+    }
+
+    @Test
     fun testKaratsubaCrossProductWithEqualAndOppositeHalfDifferences() {
         fun magnitude(
             words: Int,

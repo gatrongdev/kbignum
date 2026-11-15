@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="560" viewBox="0 0 1120 560">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#172033}.muted{fill:#5b6474}.grid{stroke:#d8dee8;stroke-width:1}.axis{stroke:#64748b;stroke-width:1}</style>
+<text x="60" y="42" font-size="25" font-weight="700">Pow latency before and after the final-square removal</text>
+<text x="60" y="69" font-size="13" class="muted">Speedup = baseline ÷ candidate · JMH 1.36 · JVM 21.0.8+9-b1140.54 · generated 2026-11-15 15:03 UTC</text>
+<circle cx="70" cy="100" r="5" fill="#172033"/><text x="84" y="104" font-size="12">Non-overlapping 99.9% JMH intervals</text>
+<circle cx="325" cy="100" r="5" fill="#fff" stroke="#172033" stroke-width="2"/><text x="339" y="104" font-size="12">Intervals overlap; result inconclusive</text>
+<text x="70" y="130" font-size="16" font-weight="700">KBigInteger.pow(5)</text>
+<line x1="125" y1="345.0" x2="558" y2="345.0" class="grid"/>
+<text x="115" y="349.0" text-anchor="end" font-size="11">1.0×</text>
+<line x1="125" y1="295.0" x2="558" y2="295.0" class="grid"/>
+<text x="115" y="299.0" text-anchor="end" font-size="11">1.5×</text>
+<line x1="125" y1="245.0" x2="558" y2="245.0" class="grid"/>
+<text x="115" y="249.0" text-anchor="end" font-size="11">2.0×</text>
+<line x1="125" y1="195.0" x2="558" y2="195.0" class="grid"/>
+<text x="115" y="199.0" text-anchor="end" font-size="11">2.5×</text>
+<line x1="125" y1="145.0" x2="558" y2="145.0" class="grid"/>
+<text x="115" y="149.0" text-anchor="end" font-size="11">3.0×</text>
+<line x1="125" y1="345.0" x2="558" y2="345.0" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="125" y1="145" x2="125" y2="445" class="axis"/>
+<line x1="125" y1="445" x2="558" y2="445" class="axis"/>
+<text x="125.0" y="465" text-anchor="middle" font-size="11">1024</text>
+<circle cx="125.0" cy="209.1" r="5" fill="#dc2626" stroke="#dc2626" stroke-width="2"/>
+<text x="125.0" y="199.1" text-anchor="middle" font-size="11" font-weight="700">2.36×</text>
+<text x="269.3" y="465" text-anchor="middle" font-size="11">2048</text>
+<circle cx="269.3" cy="230.7" r="5" fill="#dc2626" stroke="#dc2626" stroke-width="2"/>
+<text x="269.3" y="220.7" text-anchor="middle" font-size="11" font-weight="700">2.14×</text>
+<text x="413.7" y="465" text-anchor="middle" font-size="11">4096</text>
+<circle cx="413.7" cy="173.4" r="5" fill="#dc2626" stroke="#dc2626" stroke-width="2"/>
+<text x="413.7" y="163.4" text-anchor="middle" font-size="11" font-weight="700">2.72×</text>
+<text x="558.0" y="465" text-anchor="middle" font-size="11">8192</text>
+<circle cx="558.0" cy="305.9" r="5" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+<text x="558.0" y="295.9" text-anchor="middle" font-size="11" font-weight="700">1.39×</text>
+<path d="M 125.0 209.1 L 269.3 230.7 L 413.7 173.4 L 558.0 305.9" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.75"/>
+<text x="341.5" y="488" text-anchor="middle" font-size="11" class="muted">Operand size (bits)</text>
+<text x="580" y="130" font-size="16" font-weight="700">KBigDecimal.pow(5)</text>
+<line x1="635" y1="345.0" x2="1068" y2="345.0" class="grid"/>
+<text x="625" y="349.0" text-anchor="end" font-size="11">1.0×</text>
+<line x1="635" y1="295.0" x2="1068" y2="295.0" class="grid"/>
+<text x="625" y="299.0" text-anchor="end" font-size="11">1.5×</text>
+<line x1="635" y1="245.0" x2="1068" y2="245.0" class="grid"/>
+<text x="625" y="249.0" text-anchor="end" font-size="11">2.0×</text>
+<line x1="635" y1="195.0" x2="1068" y2="195.0" class="grid"/>
+<text x="625" y="199.0" text-anchor="end" font-size="11">2.5×</text>
+<line x1="635" y1="145.0" x2="1068" y2="145.0" class="grid"/>
+<text x="625" y="149.0" text-anchor="end" font-size="11">3.0×</text>
+<line x1="635" y1="345.0" x2="1068" y2="345.0" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="635" y1="145" x2="635" y2="445" class="axis"/>
+<line x1="635" y1="445" x2="1068" y2="445" class="axis"/>
+<text x="635.0" y="465" text-anchor="middle" font-size="11">1024</text>
+<circle cx="635.0" cy="264.9" r="5" fill="#7c3aed" stroke="#7c3aed" stroke-width="2"/>
+<text x="635.0" y="254.9" text-anchor="middle" font-size="11" font-weight="700">1.80×</text>
+<text x="779.3" y="465" text-anchor="middle" font-size="11">2048</text>
+<circle cx="779.3" cy="309.5" r="5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<text x="779.3" y="299.5" text-anchor="middle" font-size="11" font-weight="700">1.35×</text>
+<text x="923.7" y="465" text-anchor="middle" font-size="11">4096</text>
+<circle cx="923.7" cy="291.2" r="5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<text x="923.7" y="281.2" text-anchor="middle" font-size="11" font-weight="700">1.54×</text>
+<text x="1068.0" y="465" text-anchor="middle" font-size="11">8192</text>
+<circle cx="1068.0" cy="241.3" r="5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<text x="1068.0" y="231.3" text-anchor="middle" font-size="11" font-weight="700">2.04×</text>
+<path d="M 635.0 264.9 L 779.3 309.5 L 923.7 291.2 L 1068.0 241.3" fill="none" stroke="#7c3aed" stroke-width="2" opacity="0.75"/>
+<text x="851.5" y="488" text-anchor="middle" font-size="11" class="muted">Operand size (bits)</text>
+<text x="60" y="535" font-size="11" class="muted">Intervals are separate measurements, not paired confidence intervals. Full scores and intervals are in pow-optimization.csv.</text>
+</svg>

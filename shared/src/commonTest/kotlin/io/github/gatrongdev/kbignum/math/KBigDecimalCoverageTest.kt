@@ -82,6 +82,15 @@ class KBigDecimalCoverageTest {
     }
 
     @Test
+    fun pow_usesSquareAndPreservesScale() {
+        val base = KBigDecimal.fromString("1.25")
+        assertEquals("2.44140625", base.pow(4).toString())
+        assertEquals("-1.728", KBigDecimal.fromString("-1.2").pow(3).toString())
+        assertEquals(base, base.pow(1))
+        assertEquals(KBigDecimal.ONE, base.pow(0))
+    }
+
+    @Test
     fun testFromStringInvalid() {
         assertFailsWith<NumberFormatException> {
             KBigDecimal.fromString("")
