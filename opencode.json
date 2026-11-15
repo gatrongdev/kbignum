@@ -1,4 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "opencode-go/deepseek-v4-pro"
+  "default_agent": "build",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "agent": {
+    "build": {
+      "model": "opencode-go/deepseek-v4.1-flash#max"
+    }
+  }
 }

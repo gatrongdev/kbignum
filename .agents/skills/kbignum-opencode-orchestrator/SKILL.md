@@ -70,28 +70,29 @@ Keep it factual; do not claim QC is done. Codex handles publication unless it ex
 
 ## CLI reference
 
-The project default model is already `opencode-go/deepseek-v4-pro` (set in the root `opencode.json`), so a plain `opencode run` in this repo selects DeepSeek. State the model explicitly when you want to be certain.
+The project default model is `opencode-go/deepseek-v4.1-flash` (set in the root `opencode.json`). The root `model` field cannot retain variants, so the default `build` agent pins `opencode-go/deepseek-v4.1-flash#max`; `max` is the highest available DeepSeek Flash thinking effort ([DeepSeek thinking mode documentation](https://api-docs.deepseek.com/guides/thinking_mode/)). A plain `opencode run` in this repo therefore selects DeepSeek Flash at `#max`. State the model explicitly when you want to be certain.
 
-Start a new DeepSeek implementation session and capture its session ID. Use `--title` to label the task and `--format json` so the returned session ID is observable in the output:
+Start a new DeepSeek Flash implementation session and capture its session ID. Use `--title` to label the task and `--format json` so the returned session ID is observable in the output:
 
 ```sh
-opencode run --model opencode-go/deepseek-v4-pro --title "kbignum <task>" --format json "<task description>"
+opencode run --model opencode-go/deepseek-v4.1-flash#max --title "kbignum <task>" --format json "<task description>"
 ```
 
-Use `--session <id>` for every follow-up on that task:
+Use `--session <id>` for every follow-up on that task, keeping the model pinned to the highest available DeepSeek Flash effort:
 
 ```sh
-opencode run --session ses_4f2a1c "<follow-up>"
+opencode run --session ses_4f2a1c --model opencode-go/deepseek-v4.1-flash#max "<follow-up>"
 ```
 
 Reserve `--continue` for when the most recent session is unambiguous (only one task active):
 
 ```sh
-opencode run --continue "<follow-up>"
+opencode run --continue --model opencode-go/deepseek-v4.1-flash#max "<follow-up>"
 ```
 
 ## What not to do
 
+- OpenCode must use only `opencode-go/deepseek-v4.1-flash#max` for this project; do not select a different model or a lower effort variant.
 - Do not use `--auto` (auto-approves permissions).
 - Do not configure periodic cache-warming or any background warm-up job.
 - Do not change global OpenCode configuration (`~/.config/opencode/`). Only this project's root `opencode.json` and `.agents/skills/` are in scope.
