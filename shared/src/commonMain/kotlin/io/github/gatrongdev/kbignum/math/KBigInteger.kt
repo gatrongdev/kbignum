@@ -22,6 +22,21 @@ class KBigInteger(
         /** Use chunked multiplication when one magnitude is at least four times longer than the other. */
         private const val LOPSIDED_MULTIPLY_RATIO = 4
 
+        /**
+         * Divisor length in 32-bit words at which recursive division starts. Calibrated on the
+         * 8192-bit / 4096-bit shape; smaller divisors stayed on Knuth in local measurements.
+         */
+        private const val BURNIKEL_ZIEGLER_DIVISOR_WORDS = 128
+
+        /**
+         * Minimum dividend-minus-divisor word-count gap before recursive division is worth its
+         * setup. 128 words is the measured 8192-bit / 4096-bit crossover.
+         */
+        private const val BURNIKEL_ZIEGLER_QUOTIENT_WORD_GAP = 128
+
+        /** Block size at which recursive division stops splitting and delegates to Knuth. */
+        private const val BURNIKEL_ZIEGLER_BASE_WORDS = 40
+
         fun fromLong(value: Long): KBigInteger {
             if (value == 0L) return ZERO
             if (value == Long.MIN_VALUE) return fromString("-9223372036854775808")
@@ -960,7 +975,202 @@ class KBigInteger(
             return qRes to rRes
         }
 
+        if (v.size >= BURNIKEL_ZIEGLER_DIVISOR_WORDS && u.size - v.size >= BURNIKEL_ZIEGLER_QUOTIENT_WORD_GAP) {
+            return burnikelZieglerDivide(u, v)
+        }
+
         return knuthDivide(u, v)
+    }
+
+    /**
+     * Burnikel-Ziegler recursive division, following the block decomposition from
+     * "Fast Recursive Division" (Burnikel and Ziegler, 1998).
+     *
+     * Both magnitudes are shifted so the divisor occupies a power-of-two number of words with its
+     * top bit set. The quotient is unchanged by that normalization; the remainder is shifted back.
+     */
+    private fun burnikelZieglerDivide(
+        uMag: IntArray,
+        vMag: IntArray,
+    ): Pair<IntArray, IntArray> {
+        val level = nextPowerOfTwo(vMag.size)
+        val shift = level * 32 - bitLength(vMag)
+        val u = if (shift == 0) uMag.copyOf() else shiftLeft(uMag, shift)
+        val v = if (shift == 0) vMag.copyOf() else shiftLeft(vMag, shift)
+
+        val (quotient, normalizedRemainder) = divideInBlocks(u, v, level)
+        val remainder = if (shift == 0) normalizedRemainder else shiftRight(normalizedRemainder, shift)
+        return quotient to remainder
+    }
+
+    /**
+     * Peels the dividend into blocks of [level] words and divides each (remainder, block) pair by
+     * the divisor. A leading block smaller than the divisor is used directly as the remainder.
+     */
+    private fun divideInBlocks(
+        dividend: IntArray,
+        divisor: IntArray,
+        level: Int,
+    ): Pair<IntArray, IntArray> {
+        val blockCount = (dividend.size + level - 1) / level
+        val quotient = IntArray(blockCount * level)
+        var blockIndex = blockCount - 1
+        var remainder = IntArray(0)
+
+        val topBlock = magnitudeBlock(dividend, blockIndex * level, level)
+        if (compareMagnitudeArrays(topBlock, divisor) < 0) {
+            remainder = topBlock
+            blockIndex--
+        }
+
+        while (blockIndex >= 0) {
+            val block = magnitudeBlock(dividend, blockIndex * level, level)
+            val (quotientBlock, nextRemainder) = divideTwoBlocksByOne(remainder, block, divisor, level)
+            quotientBlock.copyInto(quotient, blockIndex * level)
+            remainder = nextRemainder
+            blockIndex--
+        }
+
+        return stripZeros(quotient) to stripZeros(remainder)
+    }
+
+    /**
+     * Divides `high * B^blockWords + low` by [divisor]. Requires `high < divisor` and a divisor
+     * whose top bit is set, so the quotient fits in [blockWords] words.
+     */
+    private fun divideTwoBlocksByOne(
+        high: IntArray,
+        low: IntArray,
+        divisor: IntArray,
+        blockWords: Int,
+    ): Pair<IntArray, IntArray> {
+        if (blockWords <= BURNIKEL_ZIEGLER_BASE_WORDS || blockWords % 2 != 0) {
+            return knuthDivide(concatMagnitudes(high, low, blockWords), divisor)
+        }
+
+        val half = blockWords / 2
+        val divisorHigh = magnitudeBlock(divisor, half, half)
+        val divisorLow = magnitudeBlock(divisor, 0, half)
+        val a1 = magnitudeBlock(high, half, half)
+        val a2 = magnitudeBlock(high, 0, half)
+        val a3 = magnitudeBlock(low, half, half)
+        val a4 = magnitudeBlock(low, 0, half)
+
+        val (quotientHigh, remainderHigh) =
+            divideThreeBlocksByTwo(a1, a2, a3, divisorHigh, divisorLow, half)
+        val (quotientLow, remainderLow) =
+            divideThreeBlocksByTwo(
+                magnitudeBlock(remainderHigh, half, half),
+                magnitudeBlock(remainderHigh, 0, half),
+                a4,
+                divisorHigh,
+                divisorLow,
+                half,
+            )
+
+        return concatMagnitudes(quotientHigh, quotientLow, half) to remainderLow
+    }
+
+    /**
+     * Divides `a1 * B^2n + a2 * B^n + a3` by `b1 * B^n + b2`, where the quotient is smaller than
+     * `B^n`. Uses one two-block division and one multiplication, then corrects the quotient by at
+     * most two (the paper's bound for a normalized `b1`).
+     */
+    private fun divideThreeBlocksByTwo(
+        a1: IntArray,
+        a2: IntArray,
+        a3: IntArray,
+        b1: IntArray,
+        b2: IntArray,
+        blockWords: Int,
+    ): Pair<IntArray, IntArray> {
+        val quotientEstimate: IntArray
+        val remainderEstimate: IntArray
+        val productEstimate: IntArray
+
+        if (compareMagnitudeArrays(a1, b1) < 0) {
+            val (quotient, remainder) = divideTwoBlocksByOne(a1, a2, b1, blockWords)
+            quotientEstimate = quotient
+            remainderEstimate = remainder
+            productEstimate = multiplyMagnitude(quotient, b2)
+        } else {
+            quotientEstimate = IntArray(blockWords) { -1 } // B^blockWords - 1
+            remainderEstimate =
+                addMagnitude(
+                    concatMagnitudes(subtractMagnitude(a1, b1), a2, blockWords),
+                    b1,
+                )
+            productEstimate = subtractMagnitude(shiftLeftWords(b2, blockWords), b2)
+        }
+
+        var quotient = quotientEstimate
+        var remainder = concatMagnitudes(remainderEstimate, a3, blockWords)
+        val divisor = concatMagnitudes(b1, b2, blockWords)
+
+        var corrections = 0
+        while (compareMagnitudeArrays(remainder, productEstimate) < 0) {
+            quotient = decrementMagnitude(quotient)
+            remainder = addMagnitude(remainder, divisor)
+            corrections++
+            check(corrections <= 2) { "Recursive division quotient correction exceeded" }
+        }
+
+        return quotient to subtractMagnitude(remainder, productEstimate)
+    }
+
+    private fun nextPowerOfTwo(value: Int): Int {
+        var result = 1
+        while (result < value) result = result shl 1
+        return result
+    }
+
+    private fun magnitudeBlock(
+        magnitude: IntArray,
+        start: Int,
+        words: Int,
+    ): IntArray {
+        if (start >= magnitude.size) return IntArray(0)
+        val end = minOf(start + words, magnitude.size)
+        return stripZeros(magnitude.copyOfRange(start, end))
+    }
+
+    /** Returns `high * B^lowWords + low`; [low] must not exceed [lowWords] words. */
+    private fun concatMagnitudes(
+        high: IntArray,
+        low: IntArray,
+        lowWords: Int,
+    ): IntArray {
+        check(low.size <= lowWords) { "Low magnitude exceeds its block size" }
+        if (high.isEmpty()) return low.copyOf()
+        val result = IntArray(high.size + lowWords)
+        low.copyInto(result)
+        high.copyInto(result, lowWords)
+        return stripZeros(result)
+    }
+
+    private fun shiftLeftWords(
+        magnitude: IntArray,
+        words: Int,
+    ): IntArray {
+        if (magnitude.isEmpty()) return IntArray(0)
+        val result = IntArray(magnitude.size + words)
+        magnitude.copyInto(result, words)
+        return result
+    }
+
+    private fun decrementMagnitude(magnitude: IntArray): IntArray {
+        check(magnitude.isNotEmpty()) { "Cannot decrement zero magnitude" }
+        val result = magnitude.copyOf()
+        var index = 0
+        while (index < result.size) {
+            if (result[index] != 0) {
+                result[index]--
+                break
+            }
+            result[index] = -1
+            index++
+        }
+        return stripZeros(result)
     }
 
     /**
