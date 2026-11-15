@@ -1,6 +1,6 @@
 # KBigNum development guidance
 
-KBigNum is a Kotlin Multiplatform arbitrary-precision math library. Its arithmetic implementation lives in `shared/src/commonMain`; shared behavior is tested in `shared/src/commonTest`. Android and iOS source sets currently provide platform identity actuals, so keep arithmetic in common code unless a real platform API requires otherwise.
+KBigNum is a Kotlin Multiplatform arbitrary-precision math library. Its arithmetic implementation lives in `shared/src/commonMain`; shared behavior is tested in `shared/src/commonTest`. Android, desktop JVM, iOS, and Kotlin/JS source sets provide platform identity actuals, so keep arithmetic in common code unless a real platform API requires otherwise.
 
 ## Architecture and code quality
 
@@ -13,7 +13,7 @@ KBigNum is a Kotlin Multiplatform arbitrary-precision math library. Its arithmet
 
 ## Tests and coverage
 
-- Put platform-independent behavioral tests in `shared/src/commonTest`; use `shared/src/androidUnitTest` for JVM-only reference-oracle or Android-specific tests.
+- Put platform-independent behavioral tests in `shared/src/commonTest`; use `shared/src/androidHostTest` for JVM-only reference-oracle or Android-specific tests.
 - Add tests for changed behavior, including relevant boundary, sign, zero, rounding, and failure paths. Prefer observable results over tests coupled to private helpers.
 - Keep Kover's aggregate minimums at 87% line coverage and 80% branch coverage or higher. `runAllChecks` runs `koverVerify`; do not lower or bypass the gate to accommodate uncovered production logic.
 - Use `./gradlew runAllChecks` before integration. Use `./gradlew :shared:iosSimulatorArm64Test` when validating shared behavior on the iOS simulator.

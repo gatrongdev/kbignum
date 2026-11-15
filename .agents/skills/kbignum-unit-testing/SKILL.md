@@ -10,7 +10,7 @@ Use this skill for test work in the KBigNum library. Read [`docs/architecture.md
 ## Choose the right test source set
 
 - Put platform-independent contract tests in `shared/src/commonTest` and use `kotlin.test` assertions.
-- Put tests that need `java.math.BigInteger`, `java.math.BigDecimal`, or another JVM-only API in `shared/src/androidUnitTest`. Keep production code and common tests free of Java-only dependencies.
+- Put tests that need `java.math.BigInteger`, `java.math.BigDecimal`, or another JVM-only API in `shared/src/androidHostTest`. Keep production code and common tests free of Java-only dependencies.
 - Extend an existing test class for the behavior under test when practical; avoid duplicate test scaffolding and tests that only call private implementation helpers.
 
 ## Test the supported target matrix
@@ -29,7 +29,7 @@ Use this skill for test work in the KBigNum library. Read [`docs/architecture.md
 4. Keep randomized tests deterministic with explicit seeds and bounded workloads. Use a reference oracle only in a source set where that oracle is available; do not convert exact values through floating-point types to simplify an assertion.
 5. Re-run `./gradlew runAllChecks` after test changes. Run `./gradlew :shared:iosSimulatorArm64Test` when validating common behavior on the configured iOS target. Run target-specific test tasks for every added target the patch claims to support.
 
-For multiplication changes, add focused magnitude cases immediately below and at the measured word-count dispatches, all-ones limbs that force carry propagation, unequal operand lengths, and Karatsuba half-differences that are positive, negative, or zero. Put `java.math.BigInteger` oracle cases in `androidUnitTest`; use `commonTest` for platform-independent fixed results and identities.
+For multiplication changes, add focused magnitude cases immediately below and at the measured word-count dispatches, all-ones limbs that force carry propagation, unequal operand lengths, and Karatsuba half-differences that are positive, negative, or zero. Put `java.math.BigInteger` oracle cases in `androidHostTest`; use `commonTest` for platform-independent fixed results and identities.
 
 ## Coverage guardrail
 

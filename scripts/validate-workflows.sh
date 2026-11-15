@@ -22,9 +22,9 @@ echo "🔍 KBigNum Workflow Validation"
 echo "=============================="
 echo ""
 
-# Test 1: Basic build
-print_info "Testing basic build..."
-if ./gradlew build --quiet; then
+# Test 1: Build artifacts supported by the Linux CI runner
+print_info "Testing Android and Desktop builds..."
+if ./gradlew :shared:assembleAndroidMain :shared:desktopJar --quiet; then
     print_success "Build completed successfully"
 else
     print_error "Build failed"
@@ -33,7 +33,7 @@ fi
 
 # Test 2: Run tests
 print_info "Testing unit tests..."
-if ./gradlew test --quiet; then
+if ./gradlew :shared:testAndroid :shared:desktopTest --quiet; then
     print_success "All tests passed"
 else
     print_error "Tests failed"
@@ -42,7 +42,7 @@ fi
 
 # Test 3: Code quality checks
 print_info "Testing code quality checks..."
-if ./gradlew runAllChecks --quiet; then
+if ./gradlew :shared:runAllChecks --quiet; then
     print_success "Code quality checks passed"
 else
     print_error "Code quality checks failed"
@@ -60,7 +60,7 @@ fi
 
 # Test 5: Specific multiplatform compile tasks
 print_info "Testing multiplatform compile tasks..."
-if ./gradlew shared:compileCommonMainKotlinMetadata shared:compileDebugKotlinAndroid --quiet; then
+if ./gradlew :shared:compileAndroidMain :shared:compileKotlinDesktop --quiet; then
     print_success "Multiplatform compile tasks completed"
 else
     print_error "Multiplatform compile tasks failed"
@@ -73,8 +73,8 @@ WORKFLOW_ERRORS=0
 
 for workflow in .github/workflows/*.yml; do
     if [ -f "$workflow" ]; then
-        # Basic YAML syntax check
-        if ! python3 -c "import yaml; yaml.safe_load(open('$workflow'))" 2>/dev/null; then
+        # Basic YAML syntax check. Ruby ships with a YAML parser on GitHub-hosted runners.
+        if ! ruby -e "require 'yaml'; YAML.load_file(ARGV.fetch(0))" "$workflow" 2>/dev/null; then
             print_error "Invalid YAML syntax in $workflow"
             WORKFLOW_ERRORS=$((WORKFLOW_ERRORS + 1))
         fi
