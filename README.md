@@ -251,24 +251,30 @@ val power = bigDecimal1.pow(5)
     ```
 - Module builds automatically pick up the configured values; no manual edits inside `shared/build.gradle.kts` are required.
 
+### Desktop JVM
+
+- **Target**: desktop JVM with bytecode target 17.
+- **Implementation**: the same shared arithmetic core.
+- **Output**: JVM library artifact.
+
 ### iOS
-- **Minimum Version**: 13.0
+- **Minimum deployment version**: not explicitly overridden here; follows the Kotlin/Native toolchain default.
 - **Implementation**: Pure Kotlin (Single Codebase). No `NSDecimalNumber` bridging overhead.
-- **Output**: XCFramework with arm64 and x64 support
+- **Targets**: iosArm64 device, iosSimulatorArm64 Apple Silicon simulator, and iosX64 Intel simulator.
+- **Output**: XCFramework
 
 ### JavaScript (Node.js)
 - **Target**: Kotlin/JS IR with the Node.js preset (`js(IR) { nodejs() }`).
 - **Implementation**: Pure Kotlin (Single Codebase), shared with the other targets.
 - **Tests**: `./gradlew :shared:jsNodeTest` runs the portable contract tests on Node.js.
-- **Scope**: Node.js is the configured JavaScript target. A browser target and WebAssembly are not configured or tested.
+- **Scope**: Node.js is the configured JavaScript runtime. Browser and WebAssembly targets are not configured.
 
-## Requirements
+## Development Toolchain
 
-- **Kotlin**: 2.2.20+
-- **Gradle**: 8.14.4 (included wrapper)
-- **Android**: API level 21+
-- **iOS**: 13.0+
-- **Node.js**: The Kotlin Gradle plugin provisions Node.js for this target by default; a local installation is optional
+- **Kotlin Multiplatform Gradle plugin**: 2.2.20.
+- **Gradle wrapper**: 8.14.4.
+- **JDK toolchain**: 17; CI also checks JDK 21.
+- **Node.js**: The Kotlin Gradle plugin provisions Node.js by default; a local installation is optional.
 
 ## License
 
