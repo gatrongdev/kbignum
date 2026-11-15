@@ -258,7 +258,7 @@ val power = bigDecimal1.pow(5)
 - **Output**: JVM library artifact.
 
 ### iOS
-- **Minimum deployment version**: not explicitly overridden here; follows the Kotlin/Native toolchain default.
+- **Minimum deployment version**: iOS 14.0. The build pins this baseline because Kotlin 2.4 raises the default to iOS 15.0.
 - **Implementation**: Pure Kotlin (Single Codebase). No `NSDecimalNumber` bridging overhead.
 - **Targets**: iosArm64 device, iosSimulatorArm64 Apple Silicon simulator, and iosX64 Intel simulator.
 - **Output**: XCFramework
@@ -271,8 +271,8 @@ val power = bigDecimal1.pow(5)
 
 ## Development Toolchain
 
-- **Kotlin Multiplatform Gradle plugin**: 2.2.20.
-- **Gradle wrapper**: 8.14.4.
+- **Kotlin Multiplatform Gradle plugin**: 2.4.10.
+- **Gradle wrapper**: 8.14.6.
 - **JDK toolchain**: 17; CI also checks JDK 21.
 - **Node.js**: The Kotlin Gradle plugin provisions Node.js by default; a local installation is optional.
 
