@@ -1,6 +1,7 @@
 package io.github.gatrongdev.kbignum.benchmark;
 
 import io.github.gatrongdev.kbignum.math.KBigDecimal;
+import io.github.gatrongdev.kbignum.math.KBigInteger;
 import io.github.gatrongdev.kbignum.math.KBRoundingMode;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -34,9 +35,11 @@ public class DecimalArithmeticBenchmark {
     private BigDecimal[] javaLeft;
     private BigDecimal[] javaRightSameScale;
     private BigDecimal[] javaRightMismatchedScale;
+    private BigDecimal[] javaRightUnit;
     private KBigDecimal[] kBigLeft;
     private KBigDecimal[] kBigRightSameScale;
     private KBigDecimal[] kBigRightMismatchedScale;
+    private KBigDecimal[] kBigRightUnit;
     private String[] decimalText;
     private int cursor;
 
@@ -46,9 +49,11 @@ public class DecimalArithmeticBenchmark {
         javaLeft = new BigDecimal[INPUT_COUNT];
         javaRightSameScale = new BigDecimal[INPUT_COUNT];
         javaRightMismatchedScale = new BigDecimal[INPUT_COUNT];
+        javaRightUnit = new BigDecimal[INPUT_COUNT];
         kBigLeft = new KBigDecimal[INPUT_COUNT];
         kBigRightSameScale = new KBigDecimal[INPUT_COUNT];
         kBigRightMismatchedScale = new KBigDecimal[INPUT_COUNT];
+        kBigRightUnit = new KBigDecimal[INPUT_COUNT];
         decimalText = new String[INPUT_COUNT];
 
         for (int i = 0; i < INPUT_COUNT; i++) {
@@ -64,9 +69,11 @@ public class DecimalArithmeticBenchmark {
             javaLeft[i] = new BigDecimal(leftUnscaled, LEFT_SCALE);
             javaRightSameScale[i] = new BigDecimal(rightUnscaled, LEFT_SCALE);
             javaRightMismatchedScale[i] = new BigDecimal(rightUnscaled, MISMATCHED_SCALE);
+            javaRightUnit[i] = new BigDecimal(BigInteger.ONE, MISMATCHED_SCALE);
             kBigLeft[i] = fromJavaDecimal(javaLeft[i]);
             kBigRightSameScale[i] = fromJavaDecimal(javaRightSameScale[i]);
             kBigRightMismatchedScale[i] = fromJavaDecimal(javaRightMismatchedScale[i]);
+            kBigRightUnit[i] = new KBigDecimal(KBigInteger.Companion.getONE(), MISMATCHED_SCALE);
             decimalText[i] = javaLeft[i].toPlainString();
         }
 
@@ -136,6 +143,18 @@ public class DecimalArithmeticBenchmark {
     public Object decimalMultiplyKBigNum() {
         int index = nextIndex();
         return kBigLeft[index].multiply(kBigRightMismatchedScale[index]);
+    }
+
+    @Benchmark
+    public Object decimalMultiplyUnitJava() {
+        int index = nextIndex();
+        return javaLeft[index].multiply(javaRightUnit[index]);
+    }
+
+    @Benchmark
+    public Object decimalMultiplyUnitKBigNum() {
+        int index = nextIndex();
+        return kBigLeft[index].multiply(kBigRightUnit[index]);
     }
 
     @Benchmark
@@ -212,6 +231,7 @@ public class DecimalArithmeticBenchmark {
             requireSame(javaLeft[i].subtract(javaRightSameScale[i]), kBigLeft[i].subtract(kBigRightSameScale[i]));
             requireSame(javaLeft[i].subtract(javaRightMismatchedScale[i]), kBigLeft[i].subtract(kBigRightMismatchedScale[i]));
             requireSame(javaLeft[i].multiply(javaRightMismatchedScale[i]), kBigLeft[i].multiply(kBigRightMismatchedScale[i]));
+            requireSame(javaLeft[i].multiply(javaRightUnit[i]), kBigLeft[i].multiply(kBigRightUnit[i]));
             requireSame(
                 javaLeft[i].divide(javaRightMismatchedScale[i], DIVISION_SCALE, RoundingMode.HALF_UP),
                 kBigLeft[i].divide(kBigRightMismatchedScale[i], DIVISION_SCALE, KBRoundingMode.HalfUp)

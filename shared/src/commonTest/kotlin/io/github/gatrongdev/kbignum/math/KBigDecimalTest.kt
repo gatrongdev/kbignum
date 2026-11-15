@@ -304,6 +304,29 @@ class KBigDecimalTest {
     }
 
     @Test
+    fun multiply_largeValuesByScaledUnitsPreservesMagnitudeAndAddsScale() {
+        val unscaledValue = KBigInteger(1, IntArray(40) { -1 })
+        val largeValue = KBigDecimal(unscaledValue, 8)
+        val scaledUnit = KBigDecimal(KBigInteger.ONE, 16)
+
+        val result = largeValue.multiply(scaledUnit)
+
+        assertEquals(unscaledValue, result.unscaledValue)
+        assertEquals(24, result.scale)
+
+        val reversedResult = scaledUnit.multiply(largeValue)
+        assertEquals(unscaledValue, reversedResult.unscaledValue)
+        assertEquals(24, reversedResult.scale)
+
+        val negativeUnscaledValue = KBigInteger(-1, IntArray(40) { -1 })
+        val negativeLargeValue = KBigDecimal(negativeUnscaledValue, 8)
+        val negativeUnit = KBigDecimal(KBigInteger(-1, intArrayOf(1)), 16)
+        val negativeProduct = negativeLargeValue.multiply(negativeUnit)
+        assertEquals(negativeUnscaledValue.negate(), negativeProduct.unscaledValue)
+        assertEquals(24, negativeProduct.scale)
+    }
+
+    @Test
     fun multiply_largeNumbers_handlesCorrectlyWithoutOverflow() {
         // Arrange
         val a = "123456789012345678901234567890.123456789012345678901234567890".toKBigDecimal()

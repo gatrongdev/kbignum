@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="600" viewBox="0 0 1100 600" role="img" aria-labelledby="title description">
+<title id="title">Scaled-unit KBigDecimal multiplication latency</title>
+<desc id="description">Logarithmic latency comparison between the generic multiplication path and the plus-or-minus-one fast path for large scaled decimals on JVM and Node.js.</desc>
+<rect width="100%" height="100%" fill="#fff"/>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#172033}.muted{fill:#64748b}.grid{stroke:#e2e8f0;stroke-width:1}.axis{stroke:#64748b;stroke-width:1}.title{font-size:23px;font-weight:700}.panel{font-size:16px;font-weight:700}.small{font-size:11px}</style>
+<text x="55" y="42" class="title">Large KBigDecimal × scaled unit</text>
+<text x="55" y="68" class="muted" font-size="13">Latency per operation · lower is better · logarithmic scale</text>
+<rect x="55" y="91" width="14" height="14" rx="2" fill="#94a3b8"/><text x="76" y="103" font-size="12">Generic multiplication path</text>
+<rect x="270" y="91" width="14" height="14" rx="2" fill="#2563eb"/><text x="291" y="103" font-size="12">±1 fast path</text>
+<line x1="430" y1="98" x2="458" y2="98" stroke="#172033" stroke-width="1.5"/><line x1="430" y1="94" x2="430" y2="102" stroke="#172033"/><line x1="458" y1="94" x2="458" y2="102" stroke="#172033"/><text x="466" y="103" font-size="12">JMH 99.9% confidence interval</text>
+<line x1="137" y1="475.0" x2="510" y2="475.0" class="grid"/>
+<text x="129" y="479.0" text-anchor="end" class="small">1</text>
+<line x1="137" y1="378.3" x2="510" y2="378.3" class="grid"/>
+<text x="129" y="382.3" text-anchor="end" class="small">10</text>
+<line x1="137" y1="281.7" x2="510" y2="281.7" class="grid"/>
+<text x="129" y="285.7" text-anchor="end" class="small">100</text>
+<line x1="137" y1="185.0" x2="510" y2="185.0" class="grid"/>
+<text x="129" y="189.0" text-anchor="end" class="small">1000</text>
+<text x="75" y="145" class="panel">JVM · ns/op</text>
+<line x1="137" y1="185" x2="137" y2="475" class="axis"/>
+<line x1="137" y1="475" x2="510" y2="475" class="axis"/>
+<text x="230.2" y="497" text-anchor="middle" class="small">500 digits</text>
+<rect x="209.2" y="282.5" width="16" height="192.5" rx="2" fill="#94a3b8"/>
+<text x="217.2" y="276.5" text-anchor="middle" class="small">98</text>
+<line x1="217.2" y1="274.7" x2="217.2" y2="292.2" stroke="#172033" stroke-width="1.2"/>
+<line x1="213.2" y1="274.7" x2="221.2" y2="274.7" stroke="#172033" stroke-width="1.2"/>
+<line x1="213.2" y1="292.2" x2="221.2" y2="292.2" stroke="#172033" stroke-width="1.2"/>
+<rect x="235.2" y="386.5" width="16" height="88.5" rx="2" fill="#2563eb"/>
+<text x="243.2" y="380.5" text-anchor="middle" class="small">8</text>
+<line x1="243.2" y1="383.9" x2="243.2" y2="389.2" stroke="#172033" stroke-width="1.2"/>
+<line x1="239.2" y1="383.9" x2="247.2" y2="383.9" stroke="#172033" stroke-width="1.2"/>
+<line x1="239.2" y1="389.2" x2="247.2" y2="389.2" stroke="#172033" stroke-width="1.2"/>
+<text x="230.2" y="523" text-anchor="middle" class="small muted">11.9× faster</text>
+<text x="416.8" y="497" text-anchor="middle" class="small">1000 digits</text>
+<rect x="395.8" y="255.9" width="16" height="219.1" rx="2" fill="#94a3b8"/>
+<text x="403.8" y="249.9" text-anchor="middle" class="small">185</text>
+<line x1="403.8" y1="248.8" x2="403.8" y2="264.4" stroke="#172033" stroke-width="1.2"/>
+<line x1="399.8" y1="248.8" x2="407.8" y2="248.8" stroke="#172033" stroke-width="1.2"/>
+<line x1="399.8" y1="264.4" x2="407.8" y2="264.4" stroke="#172033" stroke-width="1.2"/>
+<rect x="421.8" y="374.7" width="16" height="100.3" rx="2" fill="#2563eb"/>
+<text x="429.8" y="368.7" text-anchor="middle" class="small">11</text>
+<line x1="429.8" y1="366.0" x2="429.8" y2="385.5" stroke="#172033" stroke-width="1.2"/>
+<line x1="425.8" y1="366.0" x2="433.8" y2="366.0" stroke="#172033" stroke-width="1.2"/>
+<line x1="425.8" y1="385.5" x2="433.8" y2="385.5" stroke="#172033" stroke-width="1.2"/>
+<text x="416.8" y="523" text-anchor="middle" class="small muted">16.9× faster</text>
+<line x1="647" y1="475.0" x2="1020" y2="475.0" class="grid"/>
+<text x="639" y="479.0" text-anchor="end" class="small">1</text>
+<line x1="647" y1="417.0" x2="1020" y2="417.0" class="grid"/>
+<text x="639" y="421.0" text-anchor="end" class="small">10</text>
+<line x1="647" y1="359.0" x2="1020" y2="359.0" class="grid"/>
+<text x="639" y="363.0" text-anchor="end" class="small">100</text>
+<line x1="647" y1="301.0" x2="1020" y2="301.0" class="grid"/>
+<text x="639" y="305.0" text-anchor="end" class="small">1000</text>
+<line x1="647" y1="243.0" x2="1020" y2="243.0" class="grid"/>
+<text x="639" y="247.0" text-anchor="end" class="small">10000</text>
+<line x1="647" y1="185.0" x2="1020" y2="185.0" class="grid"/>
+<text x="639" y="189.0" text-anchor="end" class="small">100000</text>
+<text x="585" y="145" class="panel">Kotlin/JS Node.js · ns/op</text>
+<line x1="647" y1="185" x2="647" y2="475" class="axis"/>
+<line x1="647" y1="475" x2="1020" y2="475" class="axis"/>
+<text x="709.2" y="497" text-anchor="middle" class="small">500 digits</text>
+<rect x="688.2" y="252.2" width="16" height="222.8" rx="2" fill="#94a3b8"/>
+<text x="696.2" y="246.2" text-anchor="middle" class="small">6,945</text>
+<rect x="714.2" y="341.4" width="16" height="133.6" rx="2" fill="#2563eb"/>
+<text x="722.2" y="335.4" text-anchor="middle" class="small">201</text>
+<text x="709.2" y="523" text-anchor="middle" class="small muted">34.6× faster</text>
+<text x="833.5" y="497" text-anchor="middle" class="small">1000 digits</text>
+<rect x="812.5" y="235.3" width="16" height="239.7" rx="2" fill="#94a3b8"/>
+<text x="820.5" y="229.3" text-anchor="middle" class="small">13,560</text>
+<rect x="838.5" y="342.8" width="16" height="132.2" rx="2" fill="#2563eb"/>
+<text x="846.5" y="336.8" text-anchor="middle" class="small">190</text>
+<text x="833.5" y="523" text-anchor="middle" class="small muted">71.2× faster</text>
+<text x="957.8" y="497" text-anchor="middle" class="small">2000 digits</text>
+<rect x="936.8" y="217.7" width="16" height="257.3" rx="2" fill="#94a3b8"/>
+<text x="944.8" y="211.7" text-anchor="middle" class="small">27,274</text>
+<rect x="962.8" y="344.3" width="16" height="130.7" rx="2" fill="#2563eb"/>
+<text x="970.8" y="338.3" text-anchor="middle" class="small">180</text>
+<text x="957.8" y="523" text-anchor="middle" class="small muted">151.9× faster</text>
+<text x="55" y="555" class="muted" font-size="11">JVM bars show JMH means and 99.9% intervals. Node.js uses 2000 warmups and medians of 15 samples × 100 operations.</text>
+<text x="55" y="575" class="muted" font-size="11">Input digits describe the unscaled coefficient; the right decimal has unscaled value 1 and scale 16.</text>
+</svg>

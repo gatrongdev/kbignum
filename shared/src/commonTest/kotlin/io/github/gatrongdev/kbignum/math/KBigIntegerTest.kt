@@ -198,6 +198,17 @@ class KBigIntegerTest {
     }
 
     @Test
+    fun multiply_byPositiveOrNegativeOnePreservesMagnitudeAndSign() {
+        val value = KBigInteger(-1, IntArray(40) { -1 })
+        val negativeOne = KBigInteger(-1, intArrayOf(1))
+
+        assertEquals(value, KBigInteger.ONE.multiply(value))
+        assertEquals(value, value.multiply(KBigInteger.ONE))
+        assertEquals(value.negate(), negativeOne.multiply(value))
+        assertEquals(value.negate(), value.multiply(negativeOne))
+    }
+
+    @Test
     fun multiply_largeNumbers_handlesCorrectlyWithoutOverflow() {
         // Arrange
         val a = "999999999999999999".toKBigInteger()

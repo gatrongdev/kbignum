@@ -501,6 +501,12 @@ class KBigInteger(
 
     fun multiply(other: KBigInteger): KBigInteger {
         if (signum == 0 || other.signum == 0) return ZERO
+        if (magnitudeWords.size == 1 && magnitudeWords[0] == 1) {
+            return if (signum > 0) other else other.negate()
+        }
+        if (other.magnitudeWords.size == 1 && other.magnitudeWords[0] == 1) {
+            return if (other.signum > 0) this else negate()
+        }
 
         val newMag = multiplyMagnitude(magnitudeWords, other.magnitudeWords)
         val resultSign = if (signum == other.signum) 1 else -1
