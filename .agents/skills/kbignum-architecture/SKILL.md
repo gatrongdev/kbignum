@@ -16,8 +16,9 @@ Read AGENTS.md, docs/architecture.md, shared/build.gradle.kts, the current sourc
 - Use expect/actual only for real target-specific behavior. Check whether an existing public expect/actual API is part of the product contract or leftover platform scaffolding before adding more actual implementations.
 
 Known current risks to check first:
-- KBigInteger exposes a public sign/magnitude constructor and a public IntArray magnitude property. The input and returned array can be mutated, and the constructor does not enforce a canonical sign/magnitude pair. Do not assume an instance is immutable or normalized at API boundaries.
+- KBigInteger's sign/magnitude representation is now guarded: the constructor validates the sign, copies and normalizes its input, and the public magnitude getter returns a copy. Preserve these guarantees in future representation changes.
 - KBigDecimal keeps a mutable per-instance power-of-ten cache. Review concurrent use on JVM and Native targets before relying on value-like thread safety.
+- Both `divide(other)` and `/` use scale 10 with `HalfUp`; use `DivisionConfig` for other precision and rounding policies.
 - Platform/getPlatform is public expect/actual code but is not used by the arithmetic implementation. Every added target currently needs an actual implementation unless this API is redesigned.
 
 Treat these as review findings, not permission to make a source- or binary-breaking change. Prefer a staged safe API and migration plan; remove or restrict public declarations only with compatibility and release-version consequences made explicit.
@@ -45,16 +46,16 @@ Read the declared targets in shared/build.gradle.kts and the current Kotlin targ
 - Account for target-specific requirements such as Node/browser runners, an Apple host for simulator execution, and one actual implementation for each public expect declaration.
 - Re-evaluate platform stability and Kotlin/Gradle compatibility at the time of a change; these facts can change between releases.
 
-As of the current dev source tree, the configured targets are Android, desktop JVM, and iOS (iosX64, iosArm64, iosSimulatorArm64). The repo has no JS or Wasm target. Keep the existing CI job for the configured iOS simulator tests. If there is demand for web support, Kotlin/JS on Node is a practical next target for this pure common library; Kotlin's current documentation lists JS as stable and Wasm as beta. Choose a browser target from consumer needs rather than treating JS and Wasm as interchangeable.
+The configured targets are Android, desktop JVM, iOS (`iosX64`, `iosArm64`, `iosSimulatorArm64`), and Kotlin/JS IR on Node.js and in browsers. CI runs common tests on the iOS simulator, Node.js, and headless Chrome. Wasm is not configured. Preserve these dedicated test jobs when changing the shared source sets or Gradle toolchain.
 
 ## Test the contract on the targets you support
 
 - Put portable behavior tests in shared/src/commonTest using kotlin.test. Keep deterministic seeds and bounded property/fuzz tests with exact expected values or mathematical invariants.
-- Keep java.math.BigInteger and BigDecimal oracle tests in shared/src/androidUnitTest. Never pull JVM-only APIs into commonTest.
+- Keep java.math.BigInteger and BigDecimal oracle tests in `shared/src/androidHostTest`. Never pull JVM-only APIs into commonTest.
 - Use commonTest once and execute it on the supported runtime matrix; do not copy the same contract tests into every platform source set.
 - Add platform-specific tests only for actual platform behavior. Ensure each supported target at least compiles in CI and regularly executes common tests on representative JVM, Native, and any added JS/Wasm backend.
-- The current workflow runs Linux host checks on JDK 17 and 21 and an iOS simulator test job on macOS. Keep both paths active when changing CI.
-- If JS/Node is added, run the generated Node test task in CI. If an Apple target is supported, run simulator tests on a macOS runner where available. Report unavailable target execution as a gap, not as a passing check.
+- The current workflow runs Linux host checks on JDK 17 and 21, an iOS simulator test job on macOS, and JS Node/browser test jobs. Keep all these paths active when changing CI.
+- Run the generated JS Node/browser tasks and iOS simulator task in CI. Report unavailable target execution as a gap, not as a passing check.
 - Treat Kover host coverage as host coverage only. Keep the existing line and branch gates; do not present them as evidence that Native or web code executed.
 
 ## Review output
