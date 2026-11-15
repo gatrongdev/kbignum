@@ -5,7 +5,7 @@ description: Use when changing KBigInteger, KBigDecimal, KBigMath, division or r
 
 # KBigNum arithmetic changes
 
-Use this workflow for arithmetic changes in `shared`. For general Gradle, release, or documentation-only work, follow the repository's `AGENTS.md` and existing contribution guidance instead.
+Use this workflow for arithmetic changes in `shared`. For public API, naming, representation, or platform support decisions, also follow [kbignum-architecture](../kbignum-architecture/SKILL.md). For general Gradle, release, or documentation-only work, follow the repository's `AGENTS.md` and existing contribution guidance instead.
 
 ## Contracts to preserve
 

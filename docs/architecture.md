@@ -12,14 +12,35 @@ This document describes the structure that exists in the current source tree. Ke
 | `shared/src/androidUnitTest` | JVM-specific compliance tests and `java.math` reference helpers. Keep Java-only APIs out of common tests. |
 | `benchmarks` | JVM JMH code and benchmark-only references; this is measurement tooling, not a production arithmetic layer. |
 
-The configured library targets are Android, desktop JVM, and iOS (`iosX64`, `iosArm64`, and `iosSimulatorArm64`). Kover reports host JVM/Android test coverage; they do not claim execution coverage for iOS native code. See the [Kover Gradle documentation](https://kotlin.github.io/kotlinx-kover/gradle-plugin/) for report and verification behavior.
+The configured library targets are Android, desktop JVM 17, and iOS (`iosX64`, `iosArm64`, and `iosSimulatorArm64`). The current CI workflow runs host checks on Linux with JDK 17 and 21 and runs `iosSimulatorArm64Test` on a macOS runner. No Kotlin/JS or Kotlin/Wasm target is configured. Kover reports host test execution; it does not claim Native or web execution coverage.
+
+The build relies on Kotlin's default source-set hierarchy for iOS, so common iOS code is shared through `iosMain` without manual `dependsOn` edges. If a future target needs a custom intermediate source set, add it only for that need and keep the default hierarchy warning resolved.
 
 ## Core model and boundaries
 
-- `KBigInteger` stores a sign and a little-endian `IntArray` magnitude using 32-bit words. Arithmetic helpers normalize their results; check constructor, sign, zero, and array-mutability behavior before changing representation assumptions.
-- `KBigDecimal` represents an unscaled `KBigInteger` and a decimal scale. Preserve the relationship `value = unscaledValue × 10^-scale`, along with current parsing, scale, and rounding semantics.
+- `KBigInteger` stores a sign and a little-endian `IntArray` magnitude using 32-bit words. Its public constructor accepts raw sign/magnitude values and its public `magnitude` property exposes a mutable array. Callers can mutate the input or returned array and violate normalization assumptions. Treat this as a correctness/API-safety risk; plan a staged defensive API migration before 1.0 instead of silently changing public declarations.
+- `KBigDecimal` represents an unscaled `KBigInteger` and a decimal scale. Preserve the relationship `value = unscaledValue × 10^-scale`, along with current parsing, scale, and rounding semantics. It also holds mutable per-instance powers-of-ten caches; review concurrent access on JVM and Native before claiming value-like thread safety.
 - `KBigMath` holds higher-level operations over the public integer and decimal APIs. Keep primitive floating-point approximations out of exact results; an approximation may only be an initial estimate where the algorithm refines or checks the result with the library's arithmetic.
 - `KBigNumberExtensions` and `KBRoundingMode` provide focused conversion and rounding helpers. Avoid introducing generic service layers or wrappers around the arithmetic core without a concrete use case.
+- `Platform`/`getPlatform()` is public expect/actual code but is not used by arithmetic. Decide whether it is product API or platform-template scaffolding before adding targets; each target needs an actual implementation.
+
+## API and naming policy
+
+KBigInteger and KBigDecimal expose descriptive arithmetic methods and Kotlin operator extensions. Keep results and error semantics aligned. Document the default precision and rounding used by decimal division and the decimal division operator.
+
+The public surface currently has signum() alongside the signum property, scale() alongside the scale property, PascalCase KBRoundingMode entries, and fromString factories beside String conversion extensions. These names are already public. For new APIs, use PascalCase types, lowerCamelCase members, isX Boolean queries, parse(String) as the canonical text entry point, fromInt/fromLong for primitive factories, toX for conversions, familiar operators, and one accessor per concept. Keep String.toKBigInteger/toKBigDecimal as ergonomic forwarding extensions. Prefer uppercase enum entries for future rounding modes. Add aliases and deprecate legacy names before removing them in a breaking release.
+
+The Gradle configuration does not currently declare a public API dump or compatibility check. Consider adding a reviewable API snapshot as the library approaches a stable 1.0 surface. Document exactness, valid input, overflow, rounding, and exceptions in KDoc and examples.
+
+## Platform support policy
+
+Keep exact arithmetic in commonMain and avoid expect/actual forks for performance without target-specific measurements. Add a target only when it serves a real consumer need and the project can compile, execute relevant common tests, publish, document, and maintain it.
+
+Keep common tests for the configured iOS simulator running in CI on a macOS runner. If web support is requested, Kotlin/JS on Node is the practical next target for this pure shared library: current Kotlin documentation lists Kotlin/JS as stable and Kotlin/Wasm as beta. Choose a browser target according to actual consumers; JS and Wasm have different runtimes and compatibility requirements. Recheck target stability when changing the Kotlin toolchain.
+
+For every target claimed as supported, compile the library and common tests, regularly execute common tests on that target runtime (or document a tiered CI schedule), provide actual implementations for remaining expect declarations, publish the target artifact, and document target-specific requirements. Keep common tests common; add platform tests only for real platform behavior.
+
+See [Kotlin's multiplatform library guidance](https://kotlinlang.org/docs/api-guidelines-build-for-multiplatform.html), [target stability table](https://kotlinlang.org/docs/multiplatform/supported-platforms.html), and [web target overview](https://kotlinlang.org/docs/web-overview.html) when evaluating targets.
 
 ## Multiplication performance path
 
@@ -33,7 +54,7 @@ The next candidates to measure are a dedicated square kernel (used repeatedly by
 
 ## Test strategy
 
-Use `shared/src/commonTest` for observable behavior that should be the same across platforms. Keep tests deterministic; seeded property or fuzz tests are useful when they compare against a clear invariant or exact expected result. Use `androidUnitTest` for the `java.math.BigInteger` / `BigDecimal` oracle, since those Java classes are not available from common code.
+Use `shared/src/commonTest` for observable behavior that should be the same across platforms. Keep tests deterministic; seeded property or fuzz tests are useful when they compare against a clear invariant or exact expected result. Use `androidUnitTest` for the `java.math.BigInteger` / `BigDecimal` oracle, since those Java classes are not available from common code. Execute the common contract suite on supported runtimes; `runAllChecks` covers host tests while the dedicated iOS simulator job executes common tests on Native.
 
 For arithmetic changes, cover the applicable normal path and boundaries: signs, zero, carry/borrow, word or scale boundaries, division and remainder identities, rounding ties, and documented exceptions. Assert the public contract rather than implementation details. A high coverage percentage does not replace meaningful assertions, and tests must not be weakened or excluded just to satisfy a report.
 

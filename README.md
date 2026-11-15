@@ -251,17 +251,25 @@ val power = bigDecimal1.pow(5)
     ```
 - Module builds automatically pick up the configured values; no manual edits inside `shared/build.gradle.kts` are required.
 
+### Desktop JVM
+
+- **Target**: desktop JVM with bytecode target 17.
+- **Implementation**: the same shared arithmetic core.
+- **Output**: JVM library artifact.
+
 ### iOS
-- **Minimum Version**: 13.0
+- **Minimum deployment version**: not explicitly overridden here; follows the Kotlin/Native toolchain default.
 - **Implementation**: Pure Kotlin (Single Codebase). No `NSDecimalNumber` bridging overhead.
-- **Output**: XCFramework with arm64 and x64 support
+- **Targets**: iosArm64 device, iosSimulatorArm64 Apple Silicon simulator, and iosX64 Intel simulator.
+- **Output**: XCFramework
 
-## Requirements
+Kotlin/JS and Kotlin/Wasm are not configured targets yet.
 
-- **Kotlin**: 1.9.10+
-- **Gradle**: 8.11.1+
-- **Android**: API level 21+
-- **iOS**: 13.0+
+## Development Toolchain
+
+- **Kotlin Multiplatform Gradle plugin**: 2.2.20.
+- **Gradle wrapper**: 8.14.4.
+- **JDK toolchain**: 17; CI also checks JDK 21.
 
 ## License
 
