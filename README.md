@@ -258,7 +258,7 @@ val power = bigDecimal1.pow(5)
 - **Output**: JVM library artifact.
 
 ### iOS
-- **Minimum deployment version**: not explicitly overridden here; follows the Kotlin/Native toolchain default.
+- **Minimum deployment version**: iOS 14.0. The build pins this baseline because Kotlin 2.4 raises the default to iOS 15.0.
 - **Implementation**: Pure Kotlin (Single Codebase). No `NSDecimalNumber` bridging overhead.
 - **Targets**: iosArm64 device, iosSimulatorArm64 Apple Silicon simulator, and iosX64 Intel simulator.
 - **Output**: XCFramework
@@ -267,12 +267,12 @@ val power = bigDecimal1.pow(5)
 - **Target**: Kotlin/JS IR configured for both runtimes: `js(IR) { nodejs(); browser { ... } }`.
 - **Implementation**: Pure Kotlin (Single Codebase), shared with the other targets. The platform identity reports the Node.js version when available and falls back to a browser identity without accessing Node globals unless they are present.
 - **Tests**: `./gradlew :shared:jsNodeTest` runs the portable contract tests on Node.js, and `./gradlew :shared:jsBrowserTest` runs the same suite in headless Chrome through Karma.
-- **Scope**: Node.js and browser JavaScript are configured and tested. WebAssembly is not configured. Browser tests require Chrome; CI installs it explicitly. Kotlin Gradle Plugin 2.2.20 provides Karma as its browser test runner; the Playwright-based browser test DSL is not available at that version.
+- **Scope**: Node.js and browser JavaScript are configured and tested. WebAssembly is not configured. Browser tests require Chrome; CI installs it explicitly. Kotlin Gradle Plugin 2.4.10 still uses Karma; its experimental Playwright-based browser test DSL was introduced in 2.4.20, so it is not available in this toolchain ([Kotlin 2.4.20 release notes](https://kotlinlang.org/docs/whatsnew2420.html)).
 
 ## Development Toolchain
 
-- **Kotlin Multiplatform Gradle plugin**: 2.2.20.
-- **Gradle wrapper**: 8.14.4.
+- **Kotlin Multiplatform Gradle plugin**: 2.4.10.
+- **Gradle wrapper**: 8.14.6.
 - **JDK toolchain**: 17; CI also checks JDK 21.
 - **Node.js**: The Kotlin Gradle plugin provisions Node.js by default; a local installation is optional.
 - **Chrome**: Required only for `:shared:jsBrowserTest`; CI installs Chrome explicitly for the headless browser test job.

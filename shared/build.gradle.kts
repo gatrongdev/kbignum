@@ -66,6 +66,9 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64(),
     ).forEach {
+        it.binaries.configureEach {
+            freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=14.0"
+        }
         it.binaries.framework {
             baseName = "shared"
             xcf.add(this)
