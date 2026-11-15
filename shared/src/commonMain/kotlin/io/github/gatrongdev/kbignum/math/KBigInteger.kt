@@ -19,6 +19,9 @@ class KBigInteger(
         /** Recursive leaf crossover in 32-bit words; measured separately from the top-level dispatch. */
         private const val KARATSUBA_RECURSIVE_THRESHOLD = 48
 
+        /** Use chunked multiplication when one magnitude is at least four times longer than the other. */
+        private const val LOPSIDED_MULTIPLY_RATIO = 4
+
         fun fromLong(value: Long): KBigInteger {
             if (value == 0L) return ZERO
             if (value == Long.MIN_VALUE) return fromString("-9223372036854775808")
@@ -473,16 +476,46 @@ class KBigInteger(
         return KBigInteger(resultSign, newMag)
     }
 
-    // Uses schoolbook for small operands and Karatsuba once both magnitudes meet the crossover threshold.
+    // Uses schoolbook for small operands, chunking for lopsided operands, and Karatsuba otherwise.
     private fun multiplyMagnitude(
         x: IntArray,
         y: IntArray,
         threshold: Int = KARATSUBA_THRESHOLD,
     ): IntArray {
-        if (x.size < threshold || y.size < threshold) {
+        val shorterSize = minOf(x.size, y.size)
+        if (shorterSize < threshold) {
             return schoolbookMultiply(x, y)
         }
+
+        val longerSize = maxOf(x.size, y.size)
+        if (longerSize / LOPSIDED_MULTIPLY_RATIO >= shorterSize) {
+            val longer = if (x.size >= y.size) x else y
+            val shorter = if (x.size >= y.size) y else x
+            return lopsidedMultiply(longer, shorter, threshold)
+        }
+
         return karatsubaMultiply(x, y, threshold)
+    }
+
+    /** Splits the longer magnitude into balanced chunks and accumulates each partial product. */
+    private fun lopsidedMultiply(
+        longer: IntArray,
+        shorter: IntArray,
+        threshold: Int,
+    ): IntArray {
+        val result = IntArray(longer.size + shorter.size)
+        var offset = 0
+
+        while (offset < longer.size) {
+            val chunkSize = minOf(shorter.size, longer.size - offset)
+            val chunk = IntArray(chunkSize)
+            longer.copyInto(chunk, startIndex = offset, endIndex = offset + chunkSize)
+            val partialProduct = multiplyMagnitude(chunk, shorter, threshold)
+            addWithOffset(result, partialProduct, offset)
+            offset += chunkSize
+        }
+
+        return stripZeros(result)
     }
 
     /**
