@@ -1,4 +1,7 @@
 plugins {
+    // Provides the root `clean` task; Kotlin/JS also applies this via its Node.js root plugin.
+    id("base")
+
     // trick: for the same plugin versions in all sub-modules
     alias(libs.plugins.android.library).apply(false)
     alias(libs.plugins.kotlin.multiplatform).apply(false)
@@ -11,10 +14,6 @@ plugins {
 
     // Dokka plugin for documentation
     id("org.jetbrains.dokka") version "1.9.20"
-}
-
-tasks.register<Delete>("clean") {
-    delete(layout.buildDirectory)
 }
 
 tasks.register<Exec>("updateBenchmark") {

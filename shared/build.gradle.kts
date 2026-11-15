@@ -47,6 +47,10 @@ kotlin {
         }
     }
 
+    js(IR) {
+        nodejs()
+    }
+
     val xcf = XCFramework()
     listOf(
         iosX64(),
@@ -61,30 +65,8 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                // put your multiplatform dependencies here
-            }
-        }
-        val iosMain by creating {
-            dependsOn(commonMain)
-        }
-        val iosX64Main by getting {
-            dependsOn(iosMain)
-        }
-        val iosArm64Main by getting {
-            dependsOn(iosMain)
-        }
-        val iosSimulatorArm64Main by getting {
-            dependsOn(iosMain)
-        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-        }
-        val desktopMain by getting {
-            dependencies {
-                // No additional desktop-specific dependencies required.
-            }
         }
     }
 
