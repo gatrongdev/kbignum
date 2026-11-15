@@ -11,8 +11,8 @@ Use this workflow for arithmetic changes in `shared`. For public API, naming, re
 
 - Read the current implementation and relevant tests first. `plan.md` is historical and may describe behavior that no longer exists.
 - Keep platform-independent arithmetic in `shared/src/commonMain`; add platform-specific code only when a real platform dependency or API requires it.
-- `KBigInteger` stores a sign separately from a little-endian array of 32-bit magnitude words. Check constructors, zero/sign handling, normalization, and mutability when changing this representation; preserve tested behavior and add coverage before tightening an invariant.
-- `KBigDecimal` represents `unscaledValue × 10^-scale`. Check the current validation and scale behavior before changing it. The default `divide(other)` currently uses `max(this.scale, other.scale)` with `HalfUp`; treat a change to that behavior as an API behavior change.
+- `KBigInteger` stores a sign separately from a little-endian array of 32-bit magnitude words. Its constructor validates the sign, copies and normalizes the input, and its public `magnitude` getter returns a copy. Preserve those value and zero/sign invariants when changing the representation.
+- `KBigDecimal` represents `unscaledValue × 10^-scale`. Check the current validation and scale behavior before changing it. Both `divide(other)` and `/` currently use scale 10 with `HalfUp`; `DivisionConfig` makes alternate precision and rounding explicit. Treat changes to these defaults as API behavior changes.
 - Preserve exactness, sign behavior, overflow handling, and error semantics established by tests. Do not route exact arithmetic through primitive numeric approximations.
 
 ## Multiplication performance work
@@ -22,6 +22,7 @@ Use this workflow for arithmetic changes in `shared`. For public API, naming, re
 - Keep the forced-schoolbook crossover reference in sync with the production leaf kernel. Treat an algorithm crossover as stable only when confidence intervals separate for several adjacent operand sizes; isolated points can be scheduling noise.
 - Measure both `KBigInteger` and `KBigDecimal` multiplication. Include scale-mismatched decimal operations that multiply by powers of ten, and screen unrelated arithmetic for regressions before accepting a dispatch change.
 - For follow-up work, benchmark squaring separately because `pow()` repeatedly multiplies a value by itself; also compare balanced and unbalanced operand ratios before choosing a shared threshold. Consider scratch-buffer allocation reduction before higher-order algorithms when allocation profiles justify it.
+- JMH measures the JVM target only. For a shared dispatch change, use a separate deterministic Kotlin/JS measurement on Node.js or a browser and report target-specific results; common tests establish correctness, not performance parity.
 - Do not assume HotSpot's `java.math.BigInteger` intrinsic applies to Kotlin code. HotSpot can JIT Kotlin/JVM bytecode, but a library intrinsic is registered for a particular JDK method and signature; Android ART and Kotlin/Native use different runtimes.
 - Update the focused A/B CSV/chart and architecture guidance when a measured optimization changes the shared multiplication path. Report run-to-run spread separately from formal confidence intervals.
 - Refresh crossover-only artifacts with `scripts/render_benchmark_charts.py <filtered-jmh-json> --crossover-only`; use the full benchmark renderer when updating the complete operation comparison.

@@ -167,15 +167,15 @@ The chart is a JVM snapshot for the recorded machine and JDK. It does not predic
 
 `KBigDecimal` stores a value as `unscaledValue × 10^-scale`. Scale is part of representation: `1.0` and `1.00` compare numerically as equal, but `equals` returns false because their scales differ. Trailing zeros are preserved by parsing and formatting.
 
-Division has explicit scale behavior. The `/` operator returns 10 fractional digits with `HalfUp`; `divide(other)` returns `max(this.scale, other.scale)` fractional digits with `HalfUp`; use the overload with `scale` and `rounding` when a calculation needs a specific result scale.
+Division has explicit scale behavior. Both the `/` operator and `divide(other)` return 10 fractional digits with `HalfUp`. Use `DivisionConfig` or the overload with `scale` and `rounding` when a calculation needs a different result scale.
 
 ```kotlin
 val amount = "1.00".toKBigDecimal()
 val divisor = "3.0".toKBigDecimal()
 
 val operatorResult = amount / divisor // scale 10, HalfUp
-val defaultResult = amount.divide(divisor) // max input scale (2), HalfUp
-val explicitResult = amount.divide(divisor, scale = 6, rounding = KBRoundingMode.HalfEven)
+val defaultResult = amount.divide(divisor) // scale 10, HalfUp
+val explicitResult = amount.divide(divisor, DivisionConfig(scale = 6, roundingMode = KBRoundingMode.HalfEven))
 ```
 
 
@@ -196,11 +196,13 @@ val sum = bigDecimal1 + bigDecimal2
 val difference = bigDecimal1 - bigDecimal2
 val product = bigDecimal1 * bigDecimal2
 
-// Division (Operator '/' defaults to scale 10, HALF_UP)
+// Division defaults to scale 10 with HALF_UP rounding
 val quotient = bigDecimal1 / bigDecimal2
+val sameDefault = bigDecimal1.divide(bigDecimal2)
 
 // Precise Division
 val preciseQuotient = bigDecimal1.divide(bigDecimal2, scale = 20, rounding = KBRoundingMode.HalfUp)
+val currencyQuotient = bigDecimal1.divide(bigDecimal2, DivisionStrategy.CURRENCY)
 
 // Advanced operations
 val sqrt = KBigMath.sqrt(bigDecimal1, 10)
@@ -222,6 +224,8 @@ val isPositive = bigDecimal1.isPositive()
 val absolute = bigDecimal1.abs()
 val sign = bigDecimal1.signum()
 ```
+
+`Float.toKBigDecimal()` and `Double.toKBigDecimal()` parse the runtime's decimal string representation. Their formatting can vary between targets, and the result represents that decimal text rather than the exact binary floating-point value. Use a decimal string or integer units when the input must be identical across platforms.
 
 ### Advanced Mathematics
 
@@ -264,15 +268,16 @@ val power = bigDecimal1.pow(5)
 - **Output**: XCFramework
 
 ### JavaScript (Node.js and browsers)
-- **Target**: Kotlin/JS IR configured for both runtimes: `js(IR) { nodejs(); browser { ... } }`.
+- **Target**: Kotlin/JS IR configured for both runtimes: `js { nodejs(); browser { ... } }`.
 - **Implementation**: Pure Kotlin (Single Codebase), shared with the other targets. The platform identity reports the Node.js version when available and falls back to a browser identity without accessing Node globals unless they are present.
 - **Tests**: `./gradlew :shared:jsNodeTest` runs the portable contract tests on Node.js, and `./gradlew :shared:jsBrowserTest` runs the same suite in headless Chrome through Karma.
-- **Scope**: Node.js and browser JavaScript are configured and tested. WebAssembly is not configured. Browser tests require Chrome; CI installs it explicitly. Kotlin Gradle Plugin 2.4.10 still uses Karma; its experimental Playwright-based browser test DSL was introduced in 2.4.20, so it is not available in this toolchain ([Kotlin 2.4.20 release notes](https://kotlinlang.org/docs/whatsnew2420.html)).
+- **Scope**: Node.js and browser JavaScript are configured and tested. WebAssembly is not configured. Browser tests require Chrome; CI installs it explicitly and currently runs them through Karma.
 
 ## Development Toolchain
 
-- **Kotlin Multiplatform Gradle plugin**: 2.4.10.
-- **Gradle wrapper**: 8.14.6.
+- **Kotlin Multiplatform Gradle plugin**: 2.4.20.
+- **Android Gradle plugin**: 9.3.1.
+- **Gradle wrapper**: 9.5.0.
 - **JDK toolchain**: 17; CI also checks JDK 21.
 - **Node.js**: The Kotlin Gradle plugin provisions Node.js by default; a local installation is optional.
 - **Chrome**: Required only for `:shared:jsBrowserTest`; CI installs Chrome explicitly for the headless browser test job.

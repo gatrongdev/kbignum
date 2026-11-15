@@ -25,14 +25,18 @@ fun Int.toKBigDecimal(): KBigDecimal = KBigDecimal.fromInt(this)
 fun Long.toKBigDecimal(): KBigDecimal = KBigDecimal.fromLong(this)
 
 /**
- * Converts a Double to a KBigDecimal.
+ * Converts a Double to a KBigDecimal using this runtime's decimal string representation.
+ * The result represents that decimal text, not the exact binary floating-point value.
+ * Formatting details can differ across Kotlin targets.
  * @receiver The Double value to convert
  * @return A KBigDecimal representing this double value
  */
 fun Double.toKBigDecimal(): KBigDecimal = KBigDecimal.fromString(this.toString())
 
 /**
- * Converts a Float to a KBigDecimal.
+ * Converts a Float to a KBigDecimal using this runtime's decimal string representation.
+ * The result represents that decimal text, not the exact binary floating-point value.
+ * Formatting details can differ across Kotlin targets.
  * @receiver The Float value to convert
  * @return A KBigDecimal representing this float value
  */
@@ -80,11 +84,10 @@ operator fun KBigDecimal.minus(other: KBigDecimal): KBigDecimal = this.subtract(
 operator fun KBigDecimal.times(other: KBigDecimal): KBigDecimal = this.multiply(other)
 
 /**
- * Division operator for KBigDecimal with default scale and rounding.
- * WARNING: This currently defaults to a fixed scale of 10 and HALF_UP rounding.
+ * Division operator for KBigDecimal using [DivisionStrategy.DEFAULT].
  * For precise control, use the [divide] method directly.
  */
-operator fun KBigDecimal.div(other: KBigDecimal): KBigDecimal = this.divide(other, 10, KBRoundingMode.HalfUp)
+operator fun KBigDecimal.div(other: KBigDecimal): KBigDecimal = this.divide(other)
 
 /**
  * Unary minus operator for KBigDecimal.
