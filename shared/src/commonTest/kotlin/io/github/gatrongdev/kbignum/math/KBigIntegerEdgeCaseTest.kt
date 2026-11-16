@@ -44,6 +44,9 @@ class KBigIntegerEdgeCaseTest {
 
         assertEquals("5", value.toString())
         assertEquals(KBigInteger.ZERO, KBigInteger(0, intArrayOf(5)))
+        assertEquals(KBigInteger.ZERO, KBigInteger(1, intArrayOf(0, 0)))
+        assertFailsWith<IllegalArgumentException> { KBigInteger(2, intArrayOf(1)) }
+        assertFailsWith<IllegalArgumentException> { KBigInteger(-2, intArrayOf(1)) }
     }
 
     @Test
