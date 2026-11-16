@@ -30,6 +30,16 @@ Use this workflow for arithmetic changes in `shared`. For public API, naming, re
 - For integer or decimal `pow()` changes, record JMH baseline/candidate data and an opt-in deterministic JS Node.js measurement. Do not add timing thresholds to correctness tests; mark overlapping benchmark intervals as inconclusive.
 - Refresh crossover-only artifacts with `scripts/render_benchmark_charts.py <filtered-jmh-json> --crossover-only`; use the full benchmark renderer when updating the complete operation comparison.
 
+## Decimal scale-alignment performance work
+
+- Preserve `KBigDecimal`'s exact representation contract: add/subtract results use the greater input scale, `compareTo` compares numeric value across different scales, and zero retains its sign and scale semantics.
+- Keep same-scale add/subtract/compare as direct unscaled-value paths. For mismatched scales, operate on aligned `KBigInteger` values; avoid temporary `KBigDecimal` wrappers and `Pair` values used only for alignment.
+- Profile zero operations and allocation before changing the powers-of-ten cache. The cache is mutable per instance, so keep it bounded and do not replace it with a shared mutable map without a cross-platform synchronization design.
+- Benchmark same-scale and mismatched-scale add/subtract, mismatched-scale `compareTo`, and zero cases at representative sizes. Compare JVM JMH time and `-prof gc` allocation with an opt-in Node.js measurement; never infer Kotlin/Native or browser performance from those two runtimes.
+- Keep baseline and candidate inputs, JMH settings, and Node.js harness identical. Record confidence intervals for JMH, report Node.js medians as medians only, and call overlapping or unstable measurements inconclusive.
+- Put scale, exact coefficient, sign, zero, and cross-scale comparison contract tests in `commonTest`. Do not assert latency in correctness tests.
+- Update the focused scale-alignment CSV/chart, README, architecture guide, this skill, and changelog when the shared path changes.
+
 ## Workflow
 
 1. Trace the affected public operation into its implementation and tests. Identify representation invariants and the observable behavior for zero, signs, boundaries, and errors that apply to the change.

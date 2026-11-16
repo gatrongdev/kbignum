@@ -33,6 +33,10 @@ public class DecimalScaleAlignmentBenchmark {
     private BigDecimal[] javaRight;
     private KBigDecimal[] kBigLeft;
     private KBigDecimal[] kBigRight;
+    private BigDecimal javaZeroLeft;
+    private BigDecimal javaZeroRight;
+    private KBigDecimal kBigZeroLeft;
+    private KBigDecimal kBigZeroRight;
     private int cursor;
 
     @Setup(Level.Trial)
@@ -42,6 +46,10 @@ public class DecimalScaleAlignmentBenchmark {
         javaRight = new BigDecimal[INPUT_COUNT];
         kBigLeft = new KBigDecimal[INPUT_COUNT];
         kBigRight = new KBigDecimal[INPUT_COUNT];
+        javaZeroLeft = BigDecimal.ZERO.setScale(LEFT_SCALE);
+        javaZeroRight = BigDecimal.ZERO.setScale(LEFT_SCALE + scaleGap);
+        kBigZeroLeft = new KBigDecimal(KBigDecimal.Companion.getZERO().getUnscaledValue(), LEFT_SCALE);
+        kBigZeroRight = new KBigDecimal(KBigDecimal.Companion.getZERO().getUnscaledValue(), LEFT_SCALE + scaleGap);
 
         for (int i = 0; i < INPUT_COUNT; i++) {
             BigInteger leftUnscaled = randomIntegerWithDigits(digits, random);
@@ -91,6 +99,54 @@ public class DecimalScaleAlignmentBenchmark {
         return kBigLeft[index].subtract(kBigRight[index]);
     }
 
+    @Benchmark
+    public Object scaleAlignmentCompareJava() {
+        int index = nextIndex();
+        return javaLeft[index].compareTo(javaRight[index]);
+    }
+
+    @Benchmark
+    public Object scaleAlignmentCompareKBigNum() {
+        int index = nextIndex();
+        return kBigLeft[index].compareTo(kBigRight[index]);
+    }
+
+    @Benchmark
+    public Object scaleAlignmentAddZeroJava() {
+        int index = nextIndex();
+        return javaZeroLeft.add(javaRight[index]);
+    }
+
+    @Benchmark
+    public Object scaleAlignmentAddZeroKBigNum() {
+        int index = nextIndex();
+        return kBigZeroLeft.add(kBigRight[index]);
+    }
+
+    @Benchmark
+    public Object scaleAlignmentSubtractZeroJava() {
+        int index = nextIndex();
+        return javaLeft[index].subtract(javaZeroRight);
+    }
+
+    @Benchmark
+    public Object scaleAlignmentSubtractZeroKBigNum() {
+        int index = nextIndex();
+        return kBigLeft[index].subtract(kBigZeroRight);
+    }
+
+    @Benchmark
+    public Object scaleAlignmentCompareZeroJava() {
+        int index = nextIndex();
+        return javaZeroLeft.compareTo(javaRight[index]);
+    }
+
+    @Benchmark
+    public Object scaleAlignmentCompareZeroKBigNum() {
+        int index = nextIndex();
+        return kBigZeroLeft.compareTo(kBigRight[index]);
+    }
+
     private int nextIndex() {
         int index = cursor;
         cursor = (cursor + 1) & (INPUT_COUNT - 1);
@@ -116,6 +172,21 @@ public class DecimalScaleAlignmentBenchmark {
             KBigDecimal right = fromJavaDecimal(javaRight[i]);
             requireSame(javaLeft[i].add(javaRight[i]), left.add(right));
             requireSame(javaLeft[i].subtract(javaRight[i]), left.subtract(right));
+        }
+        for (int i = 0; i < INPUT_COUNT; i++) {
+            KBigDecimal right = kBigRight[i];
+            requireSame(javaZeroLeft.add(javaRight[i]), kBigZeroLeft.add(right));
+            requireSame(javaLeft[i].subtract(javaZeroRight), kBigLeft[i].subtract(kBigZeroRight));
+            int javaComparison = javaLeft[i].compareTo(javaRight[i]);
+            int kBigComparison = kBigLeft[i].compareTo(right);
+            if (Integer.signum(javaComparison) != Integer.signum(kBigComparison)) {
+                throw new IllegalStateException("KBigDecimal comparison differs from java.math.BigDecimal");
+            }
+            int javaZeroComparison = javaZeroLeft.compareTo(javaRight[i]);
+            int kBigZeroComparison = kBigZeroLeft.compareTo(right);
+            if (Integer.signum(javaZeroComparison) != Integer.signum(kBigZeroComparison)) {
+                throw new IllegalStateException("KBigDecimal zero comparison differs from java.math.BigDecimal");
+            }
         }
     }
 
