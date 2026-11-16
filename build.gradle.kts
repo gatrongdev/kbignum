@@ -8,7 +8,7 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.30.0" apply false
 
     // Code quality and security plugins
-    id("org.jetbrains.kotlinx.kover") version "0.9.9" apply false
+    id("org.jetbrains.kotlinx.kover") version "0.9.11" apply false
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1" apply false
     id("dev.detekt") version "2.0.0-alpha.6" apply false
 
