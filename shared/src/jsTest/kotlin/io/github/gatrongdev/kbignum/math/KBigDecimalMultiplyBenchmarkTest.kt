@@ -8,8 +8,10 @@ import kotlin.time.TimeSource
 private const val WARMUP_ITERATIONS = 2_000
 private const val SAMPLE_COUNT = 15
 private const val OPERATIONS_PER_SAMPLE = 100
-private const val BALANCED_WARMUP_ITERATIONS = 200
-private const val BALANCED_OPERATIONS_PER_SAMPLE = 5
+private const val BOUNDARY_WARMUP_ITERATIONS = 400
+private const val BOUNDARY_OPERATIONS_PER_SAMPLE = 20
+private const val LARGE_BALANCED_WARMUP_ITERATIONS = 100
+private const val LARGE_BALANCED_OPERATIONS_PER_SAMPLE = 10
 
 private val isDecimalMultiplyBenchmarkEnabled: Boolean =
     js("typeof process !== 'undefined' && process.env.KBIGNUM_DECIMAL_MULTIPLY_BENCHMARK === '1'") as Boolean
@@ -19,29 +21,34 @@ private val nodePlatform: String = js("typeof process !== 'undefined' ? process.
 /** Optional Node.js microbenchmark. Set KBIGNUM_DECIMAL_MULTIPLY_BENCHMARK=1 to print measurements. */
 class KBigDecimalMultiplyBenchmarkTest {
     @Test
+    fun thresholdBoundaryMultiplicationReportsMedianLatency() {
+        if (!isDecimalMultiplyBenchmarkEnabled) return
+
+        for (digits in intArrayOf(400, 450, 500)) {
+            reportBalancedMultiplication(
+                digits = digits,
+                warmupIterations = BOUNDARY_WARMUP_ITERATIONS,
+                operationsPerSample = BOUNDARY_OPERATIONS_PER_SAMPLE,
+            )
+        }
+    }
+
+    @Test
     fun largeValueMultiplicationReportsMedianLatency() {
         if (!isDecimalMultiplyBenchmarkEnabled) return
 
-        for (digits in intArrayOf(500, 1000, 2000)) {
-            val left = KBigDecimal(createUnscaledValue(digits, digits), 8)
-            val right = KBigDecimal(createUnscaledValue(digits, digits xor 0x5A5A), 16)
-            val operation = { left.multiply(right) }
-            val result = operation()
-
-            assertEquals(24, result.scale)
-            assertTrue(result.signum() > 0)
-
-            repeat(BALANCED_WARMUP_ITERATIONS) { operation() }
-            val samples =
-                DoubleArray(SAMPLE_COUNT) {
-                    measureAverageNanos(BALANCED_OPERATIONS_PER_SAMPLE, operation)
-                }
-            println(
-                "DECIMAL_MULTIPLY_BALANCED_BENCHMARK digits=$digits " +
-                    "iterations=$BALANCED_OPERATIONS_PER_SAMPLE samples=$SAMPLE_COUNT " +
-                    "runtime=$nodeRuntime platform=$nodePlatform medianNs=${median(samples)}",
+        for (digits in intArrayOf(1000, 2000)) {
+            reportBalancedMultiplication(
+                digits = digits,
+                warmupIterations = LARGE_BALANCED_WARMUP_ITERATIONS,
+                operationsPerSample = LARGE_BALANCED_OPERATIONS_PER_SAMPLE,
             )
         }
+    }
+
+    @Test
+    fun scaledUnitMultiplicationReportsMedianLatency() {
+        if (!isDecimalMultiplyBenchmarkEnabled) return
 
         for (digits in intArrayOf(500, 1000, 2000)) {
             val largeValue = KBigDecimal(createUnscaledValue(digits, digits), 8)
@@ -63,6 +70,31 @@ class KBigDecimalMultiplyBenchmarkTest {
                     "runtime=$nodeRuntime platform=$nodePlatform medianNs=${median(samples)}",
             )
         }
+    }
+
+    private fun reportBalancedMultiplication(
+        digits: Int,
+        warmupIterations: Int,
+        operationsPerSample: Int,
+    ) {
+        val left = KBigDecimal(createUnscaledValue(digits, digits), 8)
+        val right = KBigDecimal(createUnscaledValue(digits, digits xor 0x5A5A), 16)
+        val operation = { left.multiply(right) }
+        val result = operation()
+
+        assertEquals(24, result.scale)
+        assertTrue(result.signum() > 0)
+
+        repeat(warmupIterations) { operation() }
+        val samples =
+            DoubleArray(SAMPLE_COUNT) {
+                measureAverageNanos(operationsPerSample, operation)
+            }
+        println(
+            "DECIMAL_MULTIPLY_BALANCED_BENCHMARK digits=$digits " +
+                "iterations=$operationsPerSample samples=$SAMPLE_COUNT " +
+                "runtime=$nodeRuntime platform=$nodePlatform medianNs=${median(samples)}",
+        )
     }
 
     private fun createUnscaledValue(
