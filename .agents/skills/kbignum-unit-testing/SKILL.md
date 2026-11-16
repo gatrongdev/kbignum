@@ -33,6 +33,8 @@ For multiplication changes, add focused magnitude cases immediately below and at
 
 When a multiplication fast path handles `+1` or `-1`, cover both operand positions and all relevant signs with large immutable values. For `KBigDecimal`, verify both the exact unscaled product and the sum of operand scales when either unscaled coefficient is a unit. Keep performance measurements opt-in and diagnostic; correctness tests must not assert latency thresholds.
 
+For `KBigDecimal` scale-alignment changes, assert the exact unscaled coefficient and result scale for add/subtract at equal and different scales, including a large scale gap. Check that zero shortcuts preserve the maximum scale where required, and compare positive, negative, and zero values across different scales. An extreme-scale zero comparison is useful for proving sign/zero handling does not construct an unnecessarily large power of ten. Keep these contract tests in `commonTest`; put timing only in an opt-in target-specific benchmark.
+
 For `pow()` changes, cover exponents 0, 1, odd, and even, negative bases, decimal scale preservation, and values around multiplication dispatch boundaries. Keep timing out of correctness assertions; an opt-in platform benchmark may report measurements without failing on a latency threshold.
 
 ## Coverage guardrail

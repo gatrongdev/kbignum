@@ -81,15 +81,29 @@ class KBigDecimal(
     }
 
     fun add(other: KBigDecimal): KBigDecimal {
-        val (scaledThis, scaledOther) = matchScales(this, other)
-        val sum = scaledThis.unscaledValue.add(scaledOther.unscaledValue)
-        return KBigDecimal(sum, scaledThis.scale)
+        if (scale == other.scale) {
+            return KBigDecimal(unscaledValue.add(other.unscaledValue), scale)
+        }
+        if (other.unscaledValue.isZero() && other.scale <= scale) return this
+        if (unscaledValue.isZero() && scale <= other.scale) return other
+
+        val resultScale = maxOf(scale, other.scale)
+        val sum = unscaledValueAtScale(resultScale).add(other.unscaledValueAtScale(resultScale))
+        return KBigDecimal(sum, resultScale)
     }
 
     fun subtract(other: KBigDecimal): KBigDecimal {
-        val (scaledThis, scaledOther) = matchScales(this, other)
-        val diff = scaledThis.unscaledValue.subtract(scaledOther.unscaledValue)
-        return KBigDecimal(diff, scaledThis.scale)
+        if (scale == other.scale) {
+            return KBigDecimal(unscaledValue.subtract(other.unscaledValue), scale)
+        }
+        if (other.unscaledValue.isZero() && other.scale <= scale) return this
+        if (unscaledValue.isZero() && scale <= other.scale) {
+            return KBigDecimal(other.unscaledValue.negate(), other.scale)
+        }
+
+        val resultScale = maxOf(scale, other.scale)
+        val difference = unscaledValueAtScale(resultScale).subtract(other.unscaledValueAtScale(resultScale))
+        return KBigDecimal(difference, resultScale)
     }
 
     fun multiply(other: KBigDecimal): KBigDecimal {
@@ -100,24 +114,12 @@ class KBigDecimal(
         return KBigDecimal(product, newScale)
     }
 
-    // Helper to align scales
-    private fun matchScales(
-        a: KBigDecimal,
-        b: KBigDecimal,
-    ): Pair<KBigDecimal, KBigDecimal> {
-        if (a.scale == b.scale) return a to b
-        if (a.scale > b.scale) {
-            val diff = a.scale - b.scale
-            val newMag = b.unscaledValue.multiply(powerOfTen(diff))
-            return a to KBigDecimal(newMag, a.scale)
-        } else {
-            val diff = b.scale - a.scale
-            val newMag = a.unscaledValue.multiply(powerOfTen(diff))
-            return KBigDecimal(newMag, b.scale) to b
-        }
+    private fun unscaledValueAtScale(targetScale: Int): KBigInteger {
+        if (scale == targetScale || unscaledValue.isZero()) return unscaledValue
+        return unscaledValue.multiply(powerOfTen(targetScale - scale))
     }
 
-    private val powerOfTenCache = mutableMapOf<Int, KBigInteger>()
+    private var powerOfTenCache: MutableMap<Int, KBigInteger>? = null
     private var lastLargePowerOfTen: Pair<Int, KBigInteger>? = null
 
     private fun powerOfTen(n: Int): KBigInteger {
@@ -125,7 +127,7 @@ class KBigDecimal(
         if (n < 0) throw IllegalArgumentException("Negative power")
 
         if (n <= 100) {
-            powerOfTenCache[n]?.let { return it }
+            powerOfTenCache?.get(n)?.let { return it }
         } else if (n <= MAX_CACHED_POWER_OF_TEN_EXPONENT) {
             lastLargePowerOfTen?.let { cached ->
                 if (cached.first == n) return cached.second
@@ -137,7 +139,8 @@ class KBigDecimal(
 
         // Cache commonly used values (up to 100)
         if (n <= 100) {
-            powerOfTenCache[n] = result
+            val cache = powerOfTenCache ?: mutableMapOf<Int, KBigInteger>().also { powerOfTenCache = it }
+            cache[n] = result
         } else if (n <= MAX_CACHED_POWER_OF_TEN_EXPONENT) {
             // Retain one measured large power without holding arbitrarily large values.
             lastLargePowerOfTen = n to result
@@ -381,8 +384,13 @@ class KBigDecimal(
         if (scale == other.scale) {
             return unscaledValue.compareTo(other.unscaledValue)
         }
-        val (scaledThis, scaledOther) = matchScales(this, other)
-        return scaledThis.unscaledValue.compareTo(scaledOther.unscaledValue)
+
+        val signComparison = unscaledValue.signum.compareTo(other.unscaledValue.signum)
+        if (signComparison != 0) return signComparison
+        if (unscaledValue.isZero()) return 0
+
+        val commonScale = maxOf(scale, other.scale)
+        return unscaledValueAtScale(commonScale).compareTo(other.unscaledValueAtScale(commonScale))
     }
 
     override fun equals(other: Any?): Boolean {

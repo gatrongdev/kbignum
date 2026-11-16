@@ -197,6 +197,20 @@ Addition and subtraction align a left operand at scale 8 with a right operand at
 
 The chart and raw measurements are available in [`benchmark-decimal-scale-alignment.svg`](docs/assets/benchmark-decimal-scale-alignment.svg) and [`scale-alignment.csv`](benchmarks/results/scale-alignment.csv).
 
+### Scale-alignment optimization A/B
+
+The implementation now aligns unscaled integers directly, avoids temporary decimal wrappers, returns an existing zero-add/subtract operand when its scale already matches the result representation, and checks signs/zero before scale alignment in `compareTo`. The powers-of-ten map is allocated only when an operation needs it. These changes preserve the result scale and exact coefficient; they do not change the public API.
+
+![JVM and Kotlin/JS speedup for scale-safe zero and comparison fast paths](docs/assets/benchmark-decimal-scale-alignment-optimization.svg)
+
+For 1000-digit values on this machine, JVM JMH showed a separated 1.92× reduction for nonzero `compareTo` at scale gap 128, and 2.70–3.82× for comparisons against zero at gaps 128 and 8. Adding a scale-8 zero to the higher-scale operand fell from 9.25 to 1.97 ns/op at gap 128 with separated intervals; gap 8 suggested a larger improvement, but its intervals overlap. Same-scale add/subtract stayed within overlapping intervals. Mismatched-scale add/subtract did not show a stable latency win, so their timing should be treated as inconclusive.
+
+The GC profiler measured `compareTo` allocation at 1000 digits / gap 128 falling from 1488 to 744 B/op (50%). `add(zero)` fell from 96 B/op to effectively zero; add/subtract mismatch allocation fell by 64 B/op because the per-result cache map is now lazy. Subtracting a higher-scale zero still has to rescale the nonzero operand to preserve the result scale, and showed no reliable latency change.
+
+On Kotlin/JS Node.js, the 1000-digit sample medians showed `add(zero)` improving 9.85–12.04× and `compareTo(zero)` 4.96–8.09×. Other mismatched-scale operation medians were close to baseline (about 1.0–1.14×); the harness has no confidence intervals, so those figures are diagnostic rather than proof of a general JS speedup. The CSV contains all 500/1000-digit JVM and Node.js samples, confidence intervals where JMH provides them, and JVM bytes/op. `†` marks overlapping JVM intervals; Node.js values are medians of seven samples.
+
+To rerun the Node.js measurement, set `KBIGNUM_DECIMAL_SCALE_ALIGNMENT_BENCHMARK=1` and run `./gradlew :shared:jsNodeTest --tests '*KBigDecimalScaleAlignmentBenchmarkTest*'`. JMH results use the same seeded operands with `-p digits=500,1000 -p scaleGap=8,128`; the renderer accepts baseline/candidate JMH JSON, GC-profile JSON, and the two Node.js test XML files. See [`render_scale_alignment_optimization.py`](scripts/render_scale_alignment_optimization.py) and [`decimal-scale-alignment-optimization.csv`](benchmarks/results/decimal-scale-alignment-optimization.csv) for the reproducible report.
+
 <!-- BIGDECIMAL_BENCHMARK_SUMMARY_END -->
 
 ### Regenerate the benchmark

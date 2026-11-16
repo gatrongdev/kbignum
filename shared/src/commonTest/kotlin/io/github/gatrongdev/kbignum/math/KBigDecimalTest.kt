@@ -93,6 +93,17 @@ class KBigDecimalTest {
     }
 
     @Test
+    fun add_zeroAtHigherScale_preservesTheMaximumScaleAndExactValue() {
+        val value = KBigDecimal(KBigInteger.fromInt(123), 2)
+        val highScaleZero = KBigDecimal(KBigInteger.ZERO, 5)
+
+        val actual = value.add(highScaleZero)
+
+        assertEquals(5, actual.scale)
+        assertEquals(KBigInteger.fromInt(123_000), actual.unscaledValue)
+    }
+
+    @Test
     fun add_largeNumbers_handlesCorrectlyWithoutOverflow() {
         // Arrange
         val a = "1234567890.1234567890".toKBigDecimal()
@@ -203,6 +214,34 @@ class KBigDecimalTest {
 
         // Assert
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun subtract_zeroAtHigherScale_preservesTheMaximumScaleAndExactValue() {
+        val value = KBigDecimal(KBigInteger.fromInt(-123), 2)
+        val highScaleZero = KBigDecimal(KBigInteger.ZERO, 5)
+
+        val actual = value.subtract(highScaleZero)
+
+        assertEquals(5, actual.scale)
+        assertEquals(KBigInteger.fromInt(-123_000), actual.unscaledValue)
+    }
+
+    @Test
+    fun scaleAlignment_withLargeGapPreservesExactAdditionSubtractionAndComparison() {
+        val one = KBigDecimal(KBigInteger.ONE, 0)
+        val smallestAtScale = KBigDecimal(KBigInteger.ONE, 128)
+        val alignedOne = KBigInteger.fromString("1" + "0".repeat(128))
+
+        val sum = one.add(smallestAtScale)
+        val difference = one.subtract(smallestAtScale)
+
+        assertEquals(128, sum.scale)
+        assertEquals(alignedOne.add(KBigInteger.ONE), sum.unscaledValue)
+        assertEquals(128, difference.scale)
+        assertEquals(alignedOne.subtract(KBigInteger.ONE), difference.unscaledValue)
+        assertTrue(sum.compareTo(one) > 0)
+        assertTrue(difference.compareTo(one) < 0)
     }
 
     // MULTIPLY FUNCTION TESTS
@@ -955,6 +994,17 @@ class KBigDecimalTest {
         assertTrue(positive.compareTo(zero) > 0)
         assertTrue(negative.compareTo(zero) < 0)
         assertEquals(0, zero.compareTo(zero))
+    }
+
+    @Test
+    fun compareTo_zeroWithExtremeScaleGap_usesSignAndZeroSemantics() {
+        val zero = KBigDecimal(KBigInteger.ZERO, 0)
+        val negativeAtMaximumScale = KBigDecimal(KBigInteger.fromInt(-1), Int.MAX_VALUE)
+        val zeroAtMaximumScale = KBigDecimal(KBigInteger.ZERO, Int.MAX_VALUE)
+
+        assertTrue(zero.compareTo(negativeAtMaximumScale) > 0)
+        assertTrue(negativeAtMaximumScale.compareTo(zero) < 0)
+        assertEquals(0, zero.compareTo(zeroAtMaximumScale))
     }
 
     // UTILITY FUNCTION TESTS

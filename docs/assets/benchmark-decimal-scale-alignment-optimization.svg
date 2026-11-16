@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="835" viewBox="0 0 1200 835">
+<rect width="100%" height="100%" fill="#fff"/>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#172033}.muted{fill:#64748b}.grid{stroke:#d8dee8;stroke-width:1}.axis{stroke:#64748b;stroke-width:1}</style>
+<text x="45" y="42" font-size="25" font-weight="700">KBigDecimal scale-alignment optimization</text>
+<text x="45" y="68" font-size="13" class="muted">1000 digits · speedup = baseline ÷ candidate · generated 2026-11-16 00:52 UTC</text>
+<text x="45" y="88" font-size="12" class="muted">JVM JMH 99.9% intervals shown in CSV · Node.js v24.16.0 sample medians have no confidence interval</text>
+<rect x="35" y="110" width="1130" height="318" rx="8" fill="#fff" stroke="#d8dee8"/>
+<text x="52" y="134" font-size="16" font-weight="700">JVM (JMH) · 21.0.8+9-b1140.54</text>
+<line x1="300.0" y1="158" x2="300.0" y2="398" class="grid"/>
+<text x="300.0" y="418" text-anchor="middle" font-size="10" class="muted">0×</text>
+<line x1="465.0" y1="158" x2="465.0" y2="398" class="grid"/>
+<text x="465.0" y="418" text-anchor="middle" font-size="10" class="muted">2×</text>
+<line x1="630.0" y1="158" x2="630.0" y2="398" class="grid"/>
+<text x="630.0" y="418" text-anchor="middle" font-size="10" class="muted">4×</text>
+<line x1="795.0" y1="158" x2="795.0" y2="398" class="grid"/>
+<text x="795.0" y="418" text-anchor="middle" font-size="10" class="muted">6×</text>
+<line x1="960.0" y1="158" x2="960.0" y2="398" class="grid"/>
+<text x="960.0" y="418" text-anchor="middle" font-size="10" class="muted">8×</text>
+<line x1="1125.0" y1="158" x2="1125.0" y2="398" class="grid"/>
+<text x="1125.0" y="418" text-anchor="middle" font-size="10" class="muted">10×</text>
+<line x1="382.5" y1="158" x2="382.5" y2="398" stroke="#64748b" stroke-dasharray="4 3"/>
+<text x="55" y="185" font-size="12">Add zero + value · gap 8</text>
+<rect x="300" y="172" width="825.0" height="18" rx="3" fill="#15803d"/>
+<text x="1077.0" y="185" font-size="11" font-weight="700">11.53×†</text>
+<text x="55" y="222" font-size="12">Add zero + value · gap 128</text>
+<rect x="300" y="209" width="388.3" height="18" rx="3" fill="#15803d"/>
+<text x="696.3" y="222" font-size="11" font-weight="700">4.71×</text>
+<text x="55" y="259" font-size="12">Compare nonzero · gap 8</text>
+<rect x="300" y="246" width="390.1" height="18" rx="3" fill="#2563eb"/>
+<text x="698.1" y="259" font-size="11" font-weight="700">4.73×†</text>
+<text x="55" y="296" font-size="12">Compare nonzero · gap 128</text>
+<rect x="300" y="283" width="158.4" height="18" rx="3" fill="#2563eb"/>
+<text x="466.4" y="296" font-size="11" font-weight="700">1.92×</text>
+<text x="55" y="333" font-size="12">Compare zero + value · gap 8</text>
+<rect x="300" y="320" width="315.2" height="18" rx="3" fill="#7c3aed"/>
+<text x="623.2" y="333" font-size="11" font-weight="700">3.82×</text>
+<text x="55" y="370" font-size="12">Compare zero + value · gap 128</text>
+<rect x="300" y="357" width="222.5" height="18" rx="3" fill="#7c3aed"/>
+<text x="530.5" y="370" font-size="11" font-weight="700">2.70×</text>
+<rect x="35" y="440" width="1130" height="318" rx="8" fill="#fff" stroke="#d8dee8"/>
+<text x="52" y="464" font-size="16" font-weight="700">Kotlin/JS Node.js · v24.16.0</text>
+<line x1="300.0" y1="488" x2="300.0" y2="728" class="grid"/>
+<text x="300.0" y="748" text-anchor="middle" font-size="10" class="muted">0×</text>
+<line x1="465.0" y1="488" x2="465.0" y2="728" class="grid"/>
+<text x="465.0" y="748" text-anchor="middle" font-size="10" class="muted">2×</text>
+<line x1="630.0" y1="488" x2="630.0" y2="728" class="grid"/>
+<text x="630.0" y="748" text-anchor="middle" font-size="10" class="muted">4×</text>
+<line x1="795.0" y1="488" x2="795.0" y2="728" class="grid"/>
+<text x="795.0" y="748" text-anchor="middle" font-size="10" class="muted">6×</text>
+<line x1="960.0" y1="488" x2="960.0" y2="728" class="grid"/>
+<text x="960.0" y="748" text-anchor="middle" font-size="10" class="muted">8×</text>
+<line x1="1125.0" y1="488" x2="1125.0" y2="728" class="grid"/>
+<text x="1125.0" y="748" text-anchor="middle" font-size="10" class="muted">10×</text>
+<line x1="382.5" y1="488" x2="382.5" y2="728" stroke="#64748b" stroke-dasharray="4 3"/>
+<text x="55" y="515" font-size="12">Add zero + value · gap 8</text>
+<rect x="300" y="502" width="825.0" height="18" rx="3" fill="#15803d"/>
+<text x="1077.0" y="515" font-size="11" font-weight="700">12.04×*</text>
+<text x="55" y="552" font-size="12">Add zero + value · gap 128</text>
+<rect x="300" y="539" width="812.9" height="18" rx="3" fill="#15803d"/>
+<text x="1077.0" y="552" font-size="11" font-weight="700">9.85×*</text>
+<text x="55" y="589" font-size="12">Compare nonzero · gap 8</text>
+<rect x="300" y="576" width="83.9" height="18" rx="3" fill="#2563eb"/>
+<text x="391.9" y="589" font-size="11" font-weight="700">1.02×*</text>
+<text x="55" y="626" font-size="12">Compare nonzero · gap 128</text>
+<rect x="300" y="613" width="91.4" height="18" rx="3" fill="#2563eb"/>
+<text x="399.4" y="626" font-size="11" font-weight="700">1.11×*</text>
+<text x="55" y="663" font-size="12">Compare zero + value · gap 8</text>
+<rect x="300" y="650" width="667.8" height="18" rx="3" fill="#7c3aed"/>
+<text x="975.8" y="663" font-size="11" font-weight="700">8.09×*</text>
+<text x="55" y="700" font-size="12">Compare zero + value · gap 128</text>
+<rect x="300" y="687" width="409.1" height="18" rx="3" fill="#7c3aed"/>
+<text x="717.1" y="700" font-size="11" font-weight="700">4.96×*</text>
+<text x="45" y="800" font-size="11" class="muted">† JMH baseline and candidate intervals overlap; * Node.js reports sample medians only. Values above 1× favor the candidate.</text>
+</svg>
