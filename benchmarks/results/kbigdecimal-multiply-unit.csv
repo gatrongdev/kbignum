@@ -1,0 +1,11 @@
+runtime,version,machine,workload,input_digits,baseline_label,candidate_label,baseline_ns_op,candidate_ns_op,baseline_ci_low_ns_op,baseline_ci_high_ns_op,candidate_ci_low_ns_op,candidate_ci_high_ns_op,baseline_bytes_op,candidate_bytes_op
+JVM,JMH 1.36 / JDK 21.0.8+9-b1140.54,Darwin 25.2.0 arm64,scaled-unit,500,generic kernel,±1 fast path,98.040000,8.236000,77.899000,118.182000,7.724000,8.748000,800,96
+JVM,JMH 1.36 / JDK 21.0.8+9-b1140.54,Darwin 25.2.0 arm64,scaled-unit,1000,generic kernel,±1 fast path,184.797000,10.911000,151.047000,218.546000,8.423000,13.399000,1424,96
+Kotlin/JS Node.js,Node v24.16.0,Darwin arm64,scaled-unit,500,generic kernel,±1 fast path,6945,200.83,,,,,,
+Kotlin/JS Node.js,Node v24.16.0,Darwin arm64,scaled-unit,1000,generic kernel,±1 fast path,13560,190.41,,,,,,
+Kotlin/JS Node.js,Node v24.16.0,Darwin arm64,scaled-unit,2000,generic kernel,±1 fast path,27273.75,179.58,,,,,,
+JVM,JMH 1.36 / JDK 21.0.8+9-b1140.54,Darwin 25.2.0 arm64,balanced-control,500,generic kernel,production path,1825.846000,1978.836000,1691.340000,1960.352000,1471.020000,2486.652000,,
+JVM,JMH 1.36 / JDK 21.0.8+9-b1140.54,Darwin 25.2.0 arm64,balanced-control,1000,generic kernel,production path,6489.888000,7549.127000,5719.546000,7260.230000,4658.569000,10439.685000,,
+Kotlin/JS Node.js,Node v24.16.0,Darwin arm64,balanced-control,500,generic kernel,production path,259633.4,240683.4,,,,,,
+Kotlin/JS Node.js,Node v24.16.0,Darwin arm64,balanced-control,1000,generic kernel,production path,972400,789891.6,,,,,,
+Kotlin/JS Node.js,Node v24.16.0,Darwin arm64,balanced-control,2000,generic kernel,production path,2518016.6,2510741.8,,,,,,

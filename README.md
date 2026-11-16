@@ -106,6 +106,24 @@ The BigDecimal chart compares `KBigDecimal` with `java.math.BigDecimal` at 34, 1
 
 ![KBigDecimal scale-alignment latency by scale gap and input precision](docs/assets/benchmark-decimal-scale-alignment.svg)
 
+### KBigDecimal multiplication by a scaled unit
+
+`KBigDecimal.multiply` still multiplies the exact unscaled integers and sums their scales. When either unscaled value is `+1` or `-1`, the new KBigInteger fast path skips the general limb multiplication. This is a targeted improvement for large coefficients multiplied by scaled units; it does not change the large-by-large multiplication algorithm.
+
+![KBigDecimal multiplication by a scaled unit on JVM and Node.js](docs/assets/benchmark-bigdecimal-multiply-unit.svg)
+
+| Runtime | Coefficient digits | Generic path | ±1 fast path | Speedup |
+| :--- | ---: | ---: | ---: | ---: |
+| JVM | 500 | 98.04 ns/op | 8.24 ns/op | 11.9× |
+| JVM | 1000 | 184.80 ns/op | 10.91 ns/op | 16.9× |
+| Kotlin/JS Node.js | 500 | 6.95 µs/op | 0.20 µs/op | 34.6× |
+| Kotlin/JS Node.js | 1000 | 13.56 µs/op | 0.19 µs/op | 71.2× |
+| Kotlin/JS Node.js | 2000 | 27.27 µs/op | 0.18 µs/op | 151.9× |
+
+The JVM comparison used three JMH forks, two 250 ms warmups, and four 250 ms measurements on JDK 21.0.8 / Darwin arm64. Both JVM sizes had separated 99.9% confidence intervals. The Node.js results are medians of 15 samples after 2000 warmups; each sample averages 100 operations on Node v24.16.0 / Darwin arm64. A separate GC-profiled run measured allocation reductions from 800 to 96 B/op at 500 digits and 1424 to 96 B/op at 1000 digits. These figures are machine-specific; the raw data, including balanced-operand controls, are in [`kbigdecimal-multiply-unit.csv`](benchmarks/results/kbigdecimal-multiply-unit.csv).
+
+The balanced large-by-large JVM control had overlapping 99.9% JMH intervals at 500 and 1000 digits. Repeated Node.js control runs varied by as much as 31% at 500 digits and changed direction, so they do not establish a large-by-large speedup or regression. This change targets the scaled-unit case. To reproduce, run the same `DecimalArithmeticBenchmark` and opt-in `KBigDecimalMultiplyBenchmarkTest` harnesses on the baseline and candidate revisions with identical settings. Include those harness files in the baseline worktree with `git checkout <candidate-ref> -- benchmarks/src/jmh/java/io/github/gatrongdev/kbignum/benchmark/DecimalArithmeticBenchmark.java shared/src/jsTest/kotlin/io/github/gatrongdev/kbignum/math/KBigDecimalMultiplyBenchmarkTest.kt`. Then run `./gradlew :benchmarks:jmhJar` and `java -jar benchmarks/build/libs/benchmarks-jmh.jar '.*DecimalArithmeticBenchmark.decimalMultiplyUnitKBigNum$' -p digits=500,1000 -f 3 -wi 2 -w 250ms -i 4 -r 250ms -tu ns -rf json -rff unit-jmh.json`. Run the Node.js harness with `KBIGNUM_DECIMAL_MULTIPLY_BENCHMARK=1 ./gradlew :shared:jsNodeTest --tests '*KBigDecimalMultiplyBenchmarkTest*'`; it reports both balanced controls and unit cases without a latency threshold. Regenerate the chart from the CSV with `python3 scripts/render_bigdecimal_unit_benchmark.py benchmarks/results/kbigdecimal-multiply-unit.csv`.
+
 <!-- BENCHMARK_SUMMARY_START -->
 
 ### KBigInteger latency ratio

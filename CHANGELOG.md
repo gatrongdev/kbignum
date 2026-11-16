@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Avoid the unused final square in `KBigInteger.pow` and `KBigDecimal.pow`; return the existing value directly for exponent 1.
+- Skip the general multiplication kernel when either `KBigInteger` operand is `+1` or `-1`, benefiting scaled `KBigDecimal` unit multiplication without changing scale behavior.
 
 ## [0.0.22] - 2026-11-14
 

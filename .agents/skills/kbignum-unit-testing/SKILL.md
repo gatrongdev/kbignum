@@ -31,6 +31,8 @@ Use this skill for test work in the KBigNum library. Read [`docs/architecture.md
 
 For multiplication changes, add focused magnitude cases immediately below and at the measured word-count dispatches, all-ones limbs that force carry propagation, unequal operand lengths, and Karatsuba half-differences that are positive, negative, or zero. Put `java.math.BigInteger` oracle cases in `androidHostTest`; use `commonTest` for platform-independent fixed results and identities.
 
+When a multiplication fast path handles `+1` or `-1`, cover both operand positions and all relevant signs with large immutable values. For `KBigDecimal`, verify both the exact unscaled product and the sum of operand scales when either unscaled coefficient is a unit. Keep performance measurements opt-in and diagnostic; correctness tests must not assert latency thresholds.
+
 For `pow()` changes, cover exponents 0, 1, odd, and even, negative bases, decimal scale preservation, and values around multiplication dispatch boundaries. Keep timing out of correctness assertions; an opt-in platform benchmark may report measurements without failing on a latency threshold.
 
 ## Coverage guardrail
