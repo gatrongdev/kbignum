@@ -17,7 +17,7 @@ from typing import Dict
 
 
 EXPECTED_BITS = [1024, 2048, 2560, 3072, 4096, 8192]
-EXPECTED_BASE_WORDS = [64, 72, 80, 88, 96, 112, 128, 160, 256]
+EXPECTED_BASE_WORDS = [40, 48, 56, 64, 72, 80, 88, 96, 112, 128, 160, 256]
 OPERAND_RATIOS = [1, 2, 4]
 OPERATIONS = {
     "integerAdd": "Addition",

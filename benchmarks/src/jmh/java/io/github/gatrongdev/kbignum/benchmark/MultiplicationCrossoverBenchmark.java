@@ -18,7 +18,7 @@ import org.openjdk.jmh.annotations.State;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class MultiplicationCrossoverBenchmark {
-    @Param({"64", "72", "80", "88", "96", "112", "128", "160", "256"})
+    @Param({"40", "48", "56", "64", "72", "80", "88", "96", "112", "128", "160", "256"})
     public int baseWords;
 
     @Param({"1", "2", "4"})

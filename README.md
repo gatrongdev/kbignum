@@ -49,9 +49,15 @@ The chart shows average latency in nanoseconds per operation across 1024-, 2048-
 
 ![KBigInteger JVM latency by operand size](docs/assets/benchmark-integer-latency.svg)
 
-The multiplication crossover chart compares the production multiplication path with a forced schoolbook reference around its measured dispatch points. It sweeps balanced operands and 2:1 and 4:1 size ratios; raw measurements are in [`benchmarks/results/multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
+The multiplication crossover chart compares the production multiplication path with a forced schoolbook reference around the dispatch boundaries. It sweeps 40, 48, and 56 words as well as larger balanced, 2:1, and 4:1 operands; raw measurements are in [`benchmarks/results/multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
 
 ![KBigInteger multiplication crossover](docs/assets/benchmark-multiplication-crossover.svg)
+
+### Karatsuba threshold calibration
+
+The common implementation keeps a 40-word top-level cutoff and a 48-word recursive cutoff. A temporary top-level candidate of 48 words improved JVM `KBigDecimal.multiply` at 400 digits in two JMH runs (1.35× and 1.37×) and at 450 digits in one run (1.11×); the second 450-digit run was inconclusive. On Node.js, three A/B pairs showed the candidate slower at 400 and 450 digits, but the medians varied substantially between runs; the 500-digit control also moved between runs. The cross-runtime conflict and Node.js variability do not support changing the shared cutoff. Raw paired measurements and run settings are in [`karatsuba-threshold-calibration.csv`](benchmarks/results/karatsuba-threshold-calibration.csv).
+
+Recursive cutoffs of 32 and 64 words did not produce a repeatable win across the measured JVM and Node.js cases. The current JVM crossover sweep remains the production-versus-schoolbook reference. These are single-machine measurements, not platform-wide guarantees.
 
 <!-- MULTIPLICATION_OPTIMIZATION_START -->
 
@@ -148,11 +154,11 @@ A crossover is reported only when the production confidence interval is below th
 
 | Operand ratio (larger : smaller) | First size with a stable win |
 | :---: | :--- |
-| 1:1 | 112 words |
+| 1:1 | No stable win in tested range |
 | 2:1 | 128 words |
-| 4:1 | 112 words |
+| 4:1 | No stable win in tested range |
 
-Crossover comparison generated 2026-11-15 04:48 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
+Crossover comparison generated 2026-11-16 12:37 UTC on Darwin 25.2.0 / arm64 with JMH 1.36 and JVM 21.0.8+9-b1140.54. Data: [`multiplication-crossover.csv`](benchmarks/results/multiplication-crossover.csv).
 
 <!-- BENCHMARK_SUMMARY_END -->
 
