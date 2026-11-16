@@ -82,6 +82,25 @@ The measured target was reached at 4/6 KBigInteger sizes (at least 20% reduction
 
 <!-- MULTIPLICATION_OPTIMIZATION_END -->
 
+### Multiplication allocation profile
+
+The multiplication kernel already creates a normalized result magnitude. `KBigInteger.multiply` now transfers that fresh array into the result through a private constructor path, avoiding a second copy and normalization scan. The public constructor still copies and normalizes caller arrays, and the public `magnitude` getter still returns a copy.
+
+![JVM multiplication allocation reduction](docs/assets/benchmark-multiplication-allocation.svg)
+
+| Workload | Baseline allocation | Optimized allocation | Reduction | JMH latency |
+| :--- | ---: | ---: | ---: | :--- |
+| KBigInteger · 1024 bits | 840 B/op | 568 B/op | 32.4% | 833 → 755 ns/op |
+| KBigInteger · 2048 bits | 5234 B/op | 4706 B/op | 10.1% | 2781 → 2632 ns/op |
+| KBigInteger · 4096 bits | 20972 B/op | 19932 B/op | 5.0% | 9471 → 8728 ns/op |
+| KBigInteger · 8192 bits | 73306 B/op | 71242 B/op | 2.8% | 31225 → 28671 ns/op |
+| KBigDecimal · 500 digits | 4352 B/op | 3920 B/op | 9.9% | 1927 → 2337 ns/op |
+| KBigDecimal · 1000 digits | 17305 B/op | 16457 B/op | 4.9% | 7502 → 7991 ns/op |
+
+JMH used three forks, two 250 ms warmups, four 250 ms measurements, and `-prof gc` on JDK 21.0.8 / Darwin arm64. All baseline and optimized 99.9% latency intervals overlap, so this change demonstrates lower JVM allocation, not a confirmed latency improvement. The opt-in Node.js run reported mixed medians across two paired reruns at 400–2000 digits, including large baseline outliers; it establishes neither a reliable speedup nor regression. The CSV records the JMH intervals and individual Node.js pairs. Recreate the artifacts from JMH JSON and Node.js test XML with `scripts/render_multiplication_allocation.py`.
+
+No Toom-Cook implementation or dispatch change is justified by the current data. The checked-in crossover sweep ends at 256 32-bit words and does not establish a stable production crossover even against forced schoolbook at that largest size. If very large operands become an important workload, extend the balanced JVM and Node.js sweep to 512 and 1024 words, then compare a common Toom-3 prototype with the existing Karatsuba path before changing production dispatch. Mature libraries also tune these crossovers empirically: see [OpenJDK BigInteger's Karatsuba and Toom-Cook thresholds](https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/math/BigInteger.java) and [GMP's multiplication algorithm ladder](https://gmplib.org/manual/Multiplication-Algorithms).
+
 ### Exponentiation and repeated squaring
 
 Binary exponentiation previously squared its base after processing the final exponent bit, even though that result was unused. The integer and decimal `pow` loops now skip that multiplication and return the original immutable value for exponent 1. The chart compares `pow(5)` before and after this change using the same seeded operands and JMH setup. Filled markers indicate non-overlapping 99.9% JMH intervals; `†` marks overlapping intervals, which are inconclusive.

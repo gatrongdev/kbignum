@@ -47,6 +47,24 @@ class KBigIntegerEdgeCaseTest {
     }
 
     @Test
+    fun multiply_resultMagnitudeRemainsIndependentOfOperandsAndGetterCopies() {
+        val leftMagnitude = intArrayOf(-1, 1)
+        val rightMagnitude = intArrayOf(7, 2)
+        val left = KBigInteger(1, leftMagnitude)
+        val right = KBigInteger(-1, rightMagnitude)
+        val product = left.multiply(right)
+        val expectedProduct = "-73786976346377814009"
+
+        leftMagnitude[0] = 0
+        rightMagnitude[0] = 0
+        product.magnitude.fill(0)
+
+        assertEquals(expectedProduct, product.toString())
+        assertEquals("8589934591", left.toString())
+        assertEquals("-8589934599", right.toString())
+    }
+
+    @Test
     fun pow_squareMatchesMultiplicationAtDispatchBoundaries() {
         for (wordCount in listOf(1, 39, 40, 47, 48, 79, 80, 128)) {
             val magnitude = IntArray(wordCount) { -1 }
