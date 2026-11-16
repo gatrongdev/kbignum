@@ -228,6 +228,20 @@ class KBigDecimalTest {
     }
 
     @Test
+    fun scaleAlignment_zeroAtHigherScale_preservesExactAdditionAndSubtraction() {
+        val highScaleZero = KBigDecimal(KBigInteger.ZERO, 5)
+        val value = KBigDecimal(KBigInteger.fromInt(123), 2)
+
+        val sum = highScaleZero.add(value)
+        val difference = highScaleZero.subtract(value)
+
+        assertEquals(5, sum.scale)
+        assertEquals(KBigInteger.fromInt(123_000), sum.unscaledValue)
+        assertEquals(5, difference.scale)
+        assertEquals(KBigInteger.fromInt(-123_000), difference.unscaledValue)
+    }
+
+    @Test
     fun scaleAlignment_withLargeGapPreservesExactAdditionSubtractionAndComparison() {
         val one = KBigDecimal(KBigInteger.ONE, 0)
         val smallestAtScale = KBigDecimal(KBigInteger.ONE, 128)

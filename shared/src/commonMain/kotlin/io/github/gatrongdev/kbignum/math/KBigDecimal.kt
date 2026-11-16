@@ -115,7 +115,7 @@ class KBigDecimal(
     }
 
     private fun unscaledValueAtScale(targetScale: Int): KBigInteger {
-        if (scale == targetScale || unscaledValue.isZero()) return unscaledValue
+        if (scale == targetScale) return unscaledValue
         return unscaledValue.multiply(powerOfTen(targetScale - scale))
     }
 
