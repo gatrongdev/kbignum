@@ -10,12 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add Kotlin/JS support for Node.js and browser targets, with common tests in CI.
 - Expand the multiplication crossover sweep to include 40-, 48-, and 56-word operands and record JVM/Node.js Karatsuba threshold calibration results.
+- Add JVM allocation profiling and paired Node.js measurements for balanced integer and decimal multiplication.
 
 ### Changed
 - Avoid the unused final square in `KBigInteger.pow` and `KBigDecimal.pow`; return the existing value directly for exponent 1.
 - Skip the general multiplication kernel when either `KBigInteger` operand is `+1` or `-1`, benefiting scaled `KBigDecimal` unit multiplication without changing scale behavior.
 - Align `KBigDecimal` add/subtract values directly as unscaled integers, short-circuit scale-safe zero cases and signed/zero comparisons, and allocate the per-instance power-of-ten map lazily.
 - Keep the shared Karatsuba thresholds unchanged because candidate results conflicted between JVM and Kotlin/JS; document the cross-runtime calibration evidence.
+- Avoid copying and renormalizing the fresh multiplication result magnitude a second time while preserving defensive copies at the public constructor and getter boundaries.
 
 ## [0.0.22] - 2026-11-14
 

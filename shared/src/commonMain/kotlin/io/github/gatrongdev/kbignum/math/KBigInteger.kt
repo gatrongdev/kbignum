@@ -4,33 +4,46 @@ package io.github.gatrongdev.kbignum.math
  * arbitrary-precision integer arithmetic.
  * Pure Kotlin implementation.
  */
-class KBigInteger(
+class KBigInteger private constructor(
     signum: Int,
-    magnitude: IntArray,
+    normalizedMagnitude: IntArray,
+    @Suppress("UNUSED_PARAMETER") normalized: Unit,
 ) : Comparable<KBigInteger> {
+    constructor(
+        signum: Int,
+        magnitude: IntArray,
+    ) : this(signum, normalizeAndCopyMagnitude(signum, magnitude), Unit)
+
     val signum: Int
-    private val magnitudeWords: IntArray
+    private val magnitudeWords: IntArray = normalizedMagnitude
 
     /** Returns a copy so callers cannot mutate this value's internal representation. */
     val magnitude: IntArray
         get() = magnitudeWords.copyOf()
 
     init {
-        require(signum in -1..1) { "signum must be -1, 0, or 1" }
-
-        var normalizedSize = magnitude.size
-        while (normalizedSize > 0 && magnitude[normalizedSize - 1] == 0) normalizedSize--
-
-        if (signum == 0 || normalizedSize == 0) {
-            magnitudeWords = IntArray(0)
-            this.signum = 0
-        } else {
-            magnitudeWords = magnitude.copyOf(normalizedSize)
-            this.signum = signum
-        }
+        this.signum = if (normalizedMagnitude.isEmpty()) 0 else signum
     }
 
     companion object {
+        private fun normalizeAndCopyMagnitude(
+            signum: Int,
+            magnitude: IntArray,
+        ): IntArray {
+            require(signum in -1..1) { "signum must be -1, 0, or 1" }
+            if (signum == 0) return IntArray(0)
+
+            var normalizedSize = magnitude.size
+            while (normalizedSize > 0 && magnitude[normalizedSize - 1] == 0) normalizedSize--
+            return if (normalizedSize == 0) IntArray(0) else magnitude.copyOf(normalizedSize)
+        }
+
+        /** Takes ownership of a freshly allocated magnitude already normalized by an internal operation. */
+        private fun fromOwnedNormalizedMagnitude(
+            signum: Int,
+            magnitude: IntArray,
+        ): KBigInteger = KBigInteger(signum, magnitude, Unit)
+
         val ZERO = KBigInteger(0, IntArray(0))
         val ONE = KBigInteger(1, intArrayOf(1))
         val TEN = KBigInteger(1, intArrayOf(10))
@@ -510,7 +523,7 @@ class KBigInteger(
 
         val newMag = multiplyMagnitude(magnitudeWords, other.magnitudeWords)
         val resultSign = if (signum == other.signum) 1 else -1
-        return KBigInteger(resultSign, newMag)
+        return fromOwnedNormalizedMagnitude(resultSign, newMag)
     }
 
     // Uses schoolbook for small operands, chunking for lopsided operands, and Karatsuba otherwise.
